@@ -627,6 +627,13 @@ body.theme-light .progress .progress-bar.mm-meter-fill--danger{
   background-image: none !important;
 }
 
+/* Light theme: progress track must contrast with white cards */
+body.theme-light .mm-meter-progress,
+body.theme-light .mm-meter-progress.progress{
+  background: rgba(31, 41, 55, .12) !important;
+  box-shadow: 0 0 0 1px var(--mm-border-strong) inset;
+}
+
 body.theme-light .mm-loaderbar__bar{
   background: rgba(31,41,55,.20) !important;
   animation: mm-loaderbar-move 1.1s ease-in-out infinite;
