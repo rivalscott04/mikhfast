@@ -315,6 +315,12 @@ function mikhmon_ajaxSubmitForm(form) {
   var method = (form.getAttribute("method") || "GET").toUpperCase();
   if (method !== "POST") return false;
 
+  // Never hijack the login form; keep it classic synchronous.
+  try {
+    if (window.location.href.indexOf("admin.php?id=login") !== -1) return false;
+    if (form.querySelector && form.querySelector('button[name="login"],input[name="login"]')) return false;
+  } catch (e) {}
+
   var action = form.getAttribute("action") || window.location.href;
   var abs = mikhmon_absUrl(action);
 
