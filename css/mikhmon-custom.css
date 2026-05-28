@@ -8,6 +8,7 @@
   display:flex;
   align-items:center;
   gap:10px;
+  width:100%;
 }
 
 .mm-meter-label{
@@ -20,6 +21,7 @@
 .mm-meter-progress{
   height:12px;
   flex:1;
+  min-width:80px; /* prevent collapse into a thin line */
   border-radius:999px;
   overflow:hidden;
   background: rgba(255,255,255,.08);

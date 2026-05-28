@@ -194,9 +194,6 @@ if (!isset($_SESSION["mikhmon"])) {
                     </div>
                     <div class="mm-meter-value">
                       <?= $cpuLoad ?>%
-                      <?php if ($cpuFreq > 0) { ?>
-                        <span class="mm-meter-subvalue"><?= $cpuCount > 0 ? ($cpuCount . "x ") : "" ?><?= $cpuFreq ?> MHz</span>
-                      <?php } ?>
                     </div>
                   </div>
 
@@ -204,7 +201,6 @@ if (!isset($_SESSION["mikhmon"])) {
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
                     <div class="progress mm-meter-progress">
                       <?php
-                        $memLabel = ($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2);
                         // free-based: low free => danger
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -212,8 +208,7 @@ if (!isset($_SESSION["mikhmon"])) {
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $memUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $memLabel ?></span>
+                      <?= $memFreePct ?>%
                     </div>
                   </div>
 
@@ -221,15 +216,13 @@ if (!isset($_SESSION["mikhmon"])) {
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
                     <div class="progress mm-meter-progress">
                       <?php
-                        $hddLabel = ($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2);
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
                       <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $hddUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $hddLabel ?></span>
+                      <?= $hddFreePct ?>%
                     </div>
                   </div>
                 </div>
@@ -316,10 +309,11 @@ if (!isset($_SESSION["mikhmon"])) {
                   ?>
                   
                   <script type="text/javascript"> 
-                    var chart;
+                    (function () {
                     var sessiondata = "<?= $session ?>";
                     var interface = "<?= $interface ?>";
                     var n = 3000;
+
                     function requestDatta(session,iface) {
                       $.ajax({
                         url: './traffic/traffic.php?session='+session+'&iface='+iface,
@@ -330,9 +324,11 @@ if (!isset($_SESSION["mikhmon"])) {
                             var TX=parseInt(midata[0].data);
                             var RX=parseInt(midata[1].data);
                             var x = (new Date()).getTime(); 
-                            shift=chart.series[0].data.length > 19;
-                            chart.series[0].addPoint([x, TX], true, shift);
-                            chart.series[1].addPoint([x, RX], true, shift);
+                            var c = window.__mikhmonTrafficChart;
+                            if (!c || !c.series || !c.series.length) return;
+                            shift=c.series[0].data.length > 19;
+                            c.series[0].addPoint([x, TX], true, shift);
+                            c.series[1].addPoint([x, RX], true, shift);
                           }
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -341,24 +337,38 @@ if (!isset($_SESSION["mikhmon"])) {
                       });
                     }	
 
-                    $(document).ready(function() {
-                        Highcharts.setOptions({
-                          global: {
-                            useUTC: false
-                          }
-                        });
+                    function initTraffic() {
+                      if (typeof Highcharts === "undefined") {
+                        setTimeout(initTraffic, 200);
+                        return;
+                      }
+                      if (!document.getElementById("trafficMonitor")) return;
 
-                        Highcharts.addEvent(Highcharts.Series, 'afterInit', function () {
-	                        this.symbolUnicode = {
-    	                    circle: '●',
+                      // prevent stacking intervals/charts on AJAX refresh
+                      try {
+                        if (window.__mikhmonTrafficInterval) clearInterval(window.__mikhmonTrafficInterval);
+                      } catch (e) {}
+                      try {
+                        if (window.__mikhmonTrafficChart && typeof window.__mikhmonTrafficChart.destroy === "function") {
+                          window.__mikhmonTrafficChart.destroy();
+                        }
+                      } catch (e) {}
+
+                      Highcharts.setOptions({
+                        global: { useUTC: false }
+                      });
+
+                      Highcharts.addEvent(Highcharts.Series, 'afterInit', function () {
+                        this.symbolUnicode = {
+                          circle: '●',
                           diamond: '♦',
                           square: '■',
                           triangle: '▲',
                           'triangle-down': '▼'
-                          }[this.symbol] || '●';
-                        });
+                        }[this.symbol] || '●';
+                      });
 
-                          chart = new Highcharts.Chart({
+                      window.__mikhmonTrafficChart = new Highcharts.Chart({
                           chart: {
                           renderTo: 'trafficMonitor',
                           animation: Highcharts.svg,
@@ -419,7 +429,10 @@ if (!isset($_SESSION["mikhmon"])) {
                           shared: true                                                      
                         },
                       });
-                    });
+                    }
+
+                    initTraffic();
+                    })();
                   </script>
                   <div id="trafficMonitor"></div>
                 </div> 

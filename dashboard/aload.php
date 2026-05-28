@@ -170,9 +170,6 @@ include('../lang/'.$langid.'.php');
                     </div>
                     <div class="mm-meter-value">
                       <?= $cpuLoad ?>%
-                      <?php if ($cpuFreq > 0) { ?>
-                        <span class="mm-meter-subvalue"><?= $cpuCount > 0 ? ($cpuCount . "x ") : "" ?><?= $cpuFreq ?> MHz</span>
-                      <?php } ?>
                     </div>
                   </div>
 
@@ -180,15 +177,13 @@ include('../lang/'.$langid.'.php');
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
                     <div class="progress mm-meter-progress">
                       <?php
-                        $memLabel = ($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2);
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
                       <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $memUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $memLabel ?></span>
+                      <?= $memFreePct ?>%
                     </div>
                   </div>
 
@@ -196,15 +191,13 @@ include('../lang/'.$langid.'.php');
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
                     <div class="progress mm-meter-progress">
                       <?php
-                        $hddLabel = ($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2);
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
                       <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $hddUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $hddLabel ?></span>
+                      <?= $hddFreePct ?>%
                     </div>
                   </div>
                 </div>
@@ -634,10 +627,11 @@ else if ($load == "all") {
               $interface = isset($getinterface[$iface - 1]['name']) ? $getinterface[$iface - 1]['name'] : (isset($getinterface[0]['name']) ? $getinterface[0]['name'] : '');
             ?>
             <script type="text/javascript"> 
-              var chart;
+              (function () {
               var sessiondata = "<?= $session ?>";
               var interface = "<?= $interface ?>";
               var n = 3000;
+
               function requestDatta(session,iface) {
                 $.ajax({
                   url: './traffic/traffic.php?session='+session+'&iface='+iface,
@@ -648,9 +642,11 @@ else if ($load == "all") {
                       var TX=parseInt(midata[0].data);
                       var RX=parseInt(midata[1].data);
                       var x = (new Date()).getTime(); 
-                      shift=chart.series[0].data.length > 19;
-                      chart.series[0].addPoint([x, TX], true, shift);
-                      chart.series[1].addPoint([x, RX], true, shift);
+                      var c = window.__mikhmonTrafficChart;
+                      if (!c || !c.series || !c.series.length) return;
+                      shift=c.series[0].data.length > 19;
+                      c.series[0].addPoint([x, TX], true, shift);
+                      c.series[1].addPoint([x, RX], true, shift);
                     }
                   },
                   error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -659,24 +655,37 @@ else if ($load == "all") {
                 });
               }	
 
-              $(document).ready(function() {
-                  Highcharts.setOptions({
-                    global: {
-                      useUTC: false
-                    }
-                  });
+              function initTraffic() {
+                if (typeof Highcharts === "undefined") {
+                  setTimeout(initTraffic, 200);
+                  return;
+                }
+                if (!document.getElementById("trafficMonitor")) return;
 
-                  Highcharts.addEvent(Highcharts.Series, 'afterInit', function () {
-                    this.symbolUnicode = {
-                      circle: '●',
-                      diamond: '♦',
-                      square: '■',
-                      triangle: '▲',
-                      'triangle-down': '▼'
-                      }[this.symbol] || '●';
-                  });
+                try {
+                  if (window.__mikhmonTrafficInterval) clearInterval(window.__mikhmonTrafficInterval);
+                } catch (e) {}
+                try {
+                  if (window.__mikhmonTrafficChart && typeof window.__mikhmonTrafficChart.destroy === "function") {
+                    window.__mikhmonTrafficChart.destroy();
+                  }
+                } catch (e) {}
 
-                    chart = new Highcharts.Chart({
+                Highcharts.setOptions({
+                  global: { useUTC: false }
+                });
+
+                Highcharts.addEvent(Highcharts.Series, 'afterInit', function () {
+                  this.symbolUnicode = {
+                    circle: '●',
+                    diamond: '♦',
+                    square: '■',
+                    triangle: '▲',
+                    'triangle-down': '▼'
+                  }[this.symbol] || '●';
+                });
+
+                window.__mikhmonTrafficChart = new Highcharts.Chart({
                     chart: {
                     renderTo: 'trafficMonitor',
                     animation: Highcharts.svg,
@@ -736,7 +745,10 @@ else if ($load == "all") {
                     shared: true                                                      
                   },
                 });
-              });
+              }
+
+              initTraffic();
+              })();
             </script>
             <div id="trafficMonitor"></div>
           </div>
