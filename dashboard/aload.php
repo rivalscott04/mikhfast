@@ -511,9 +511,6 @@ else if ($load == "all") {
                     </div>
                     <div class="mm-meter-value">
                       <?= $cpuLoad ?>%
-                      <?php if ($cpuFreq > 0) { ?>
-                        <span class="mm-meter-subvalue"><?= $cpuCount > 0 ? ($cpuCount . "x ") : "" ?><?= $cpuFreq ?> MHz</span>
-                      <?php } ?>
                     </div>
                   </div>
 
@@ -529,7 +526,6 @@ else if ($load == "all") {
                     </div>
                     <div class="mm-meter-value">
                       <?= $memUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $memLabel ?></span>
                     </div>
                   </div>
 
@@ -545,7 +541,6 @@ else if ($load == "all") {
                     </div>
                     <div class="mm-meter-value">
                       <?= $hddUsedPct ?>%
-                      <span class="mm-meter-subvalue"><?= $hddLabel ?></span>
                     </div>
                   </div>
                 </div>
