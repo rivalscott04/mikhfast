@@ -930,6 +930,11 @@ body.mm-switching .box::after{
 }
 
 /* --- Page skeleton overlay (route-aware) --- */
+/* Hide current page content while destination skeleton is visible (no overlap). */
+body.mm-skel-active .wrapper{
+  visibility: hidden;
+}
+
 #mmPageSkeleton{
   position: fixed;
   inset: 0;
@@ -939,6 +944,26 @@ body.mm-switching .box::after{
   padding: 12px 14px;
 }
 #mmPageSkeleton.mm-skel--show{ display:block; }
+
+/* Opaque backdrop over main content (sidebar/nav stay visible). */
+#mmPageSkeleton.mm-skel--show::before{
+  content:"";
+  position: fixed;
+  top: 56px;
+  left: 260px;
+  right: 0;
+  bottom: 0;
+  background: #2f353a;
+  z-index: -1;
+}
+body.theme-light #mmPageSkeleton.mm-skel--show::before{
+  background: var(--mm-bg);
+}
+@media (max-width: 900px){
+  #mmPageSkeleton.mm-skel--show::before{
+    left: 0;
+  }
+}
 
 /* align with app layout: sidebar + navbar; keep it safe if layout differs */
 #mmPageSkeleton .mm-skel__inner{

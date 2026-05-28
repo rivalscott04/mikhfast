@@ -181,7 +181,6 @@ function mikhmon_ensurePageSkeleton() {
   el = document.createElement("div");
   el.id = "mmPageSkeleton";
   el.setAttribute("aria-hidden", "true");
-  el.innerHTML = '<div class="mm-skel__inner"></div>';
   try { document.body.appendChild(el); } catch (e) {}
   return el;
 }
@@ -347,30 +346,34 @@ function mikhmon_skeletonTemplate(route) {
 function mikhmon_showPageSkeletonForHref(href) {
   var el = mikhmon_ensurePageSkeleton();
   if (!el) return;
-  var inner = el.querySelector(".mm-skel__inner");
-  if (!inner) return;
   var route = mikhmon_parseRouteFromHref(href);
-  try { inner.innerHTML = mikhmon_skeletonTemplate(route); } catch (e) {}
+  try { el.innerHTML = mikhmon_skeletonTemplate(route); } catch (e) {}
   try { el.classList.add("mm-skel--show"); } catch (e) {}
+  try { document.body.classList.add("mm-skel-active"); } catch (e) {}
 }
 
 function mikhmon_hidePageSkeleton() {
   var el = document.getElementById("mmPageSkeleton");
   if (!el) return;
   try { el.classList.remove("mm-skel--show"); } catch (e) {}
+  try { document.body.classList.remove("mm-skel-active"); } catch (e) {}
 }
 
-function mikhmon_beginNavigateUI() {
+function mikhmon_beginNavigateUI(href) {
   try { if (window.__mmNavSkelTimer) clearTimeout(window.__mmNavSkelTimer); } catch (e) {}
-  // href stored from click handler (best-effort)
-  var href = window.__mmNavPendingHref || "";
+  window.__mmNavGen = (window.__mmNavGen || 0) + 1;
+  var navGen = window.__mmNavGen;
+  var pendingHref = href || window.__mmNavPendingHref || "";
+  try { mikhmon_hidePageSkeleton(); } catch (e) {}
+  try { mikhmon_setSwitchingUI(false); } catch (e) {}
   window.__mmNavSkelTimer = setTimeout(function () {
-    try { mikhmon_setSwitchingUI(true); } catch (e) {}
-    try { mikhmon_showPageSkeletonForHref(href); } catch (e) {}
+    if (navGen !== window.__mmNavGen) return;
+    try { mikhmon_showPageSkeletonForHref(pendingHref); } catch (e) {}
   }, 180);
 }
 
 function mikhmon_endNavigateUI() {
+  window.__mmNavGen = (window.__mmNavGen || 0) + 1;
   try { if (window.__mmNavSkelTimer) clearTimeout(window.__mmNavSkelTimer); } catch (e) {}
   window.__mmNavSkelTimer = null;
   try { mikhmon_setSwitchingUI(false); } catch (e) {}
@@ -854,6 +857,7 @@ function mikhmon_applyHtml(wrapperHtml) {
 
   // If we were in "switching" state, clear it after the new page is rendered.
   try { mikhmon_setSwitchingUI(false); } catch (e) {}
+  try { mikhmon_hidePageSkeleton(); } catch (e) {}
   try { mikhmon_disableDuringSwitch(wrapperEl); } catch (e) {}
 }
 
@@ -863,7 +867,7 @@ function mikhmon_ajaxNavigate(href, opts) {
 
   // Premium feel: global skeleton shimmer during navigation.
   // Keep it non-blocking and delayed so fast navigations don't flash.
-  try { mikhmon_beginNavigateUI(); } catch (e) {}
+  try { mikhmon_beginNavigateUI(abs); } catch (e) {}
 
   return fetch(abs, {
     method: "GET",
@@ -973,10 +977,7 @@ document.addEventListener("click", function (e) {
 
   // Allow existing inline handlers to run if they explicitly prevent default.
   e.preventDefault();
-  try {
-    window.__mmNavPendingHref = href;
-    mikhmon_beginNavigateUI();
-  } catch (e) {}
+  try { window.__mmNavPendingHref = href; } catch (e) {}
   mikhmon_ajaxNavigate(href);
 });
 
@@ -1132,6 +1133,10 @@ try { mikhmon_bindLangDropdown(); } catch (e) {}
 
 // Init widgets on full page load (not only after AJAX navigation).
 document.addEventListener("DOMContentLoaded", function () {
+  try { mikhmon_endNavigateUI(); } catch (e) {}
   try { mikhmon_initTrafficChart(); } catch (e) {}
   try { mikhmon_initAppLog(); } catch (e) {}
+});
+window.addEventListener("pageshow", function () {
+  try { mikhmon_endNavigateUI(); } catch (e) {}
 });
