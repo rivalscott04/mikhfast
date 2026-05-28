@@ -23,6 +23,7 @@ if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
+  include_once('./include/ajax.php');
   $mikhmon_config_write_error = "";
 
   if ($id == "settings" && explode("-",$router)[0] == "new") {
@@ -37,7 +38,15 @@ if (!isset($_SESSION["mikhmon"])) {
     } else {
       @fwrite($f, $line);
       @fclose($f);
-      echo "<script>window.location='./admin.php?id=settings&session=" . $router . "'</script>";
+      $redirect = "./admin.php?id=settings&session=" . $router;
+      if (mikhmon_is_ajax()) {
+        mikhmon_json(array(
+          "ok" => true,
+          "flash" => "OK",
+          "redirect" => $redirect,
+        ));
+      }
+      echo "<script>window.location='" . $redirect . "'</script>";
     }
   }
 
@@ -84,9 +93,20 @@ if (!isset($_SESSION["mikhmon"])) {
       $updated = rtrim($configContent) . "\n" . trim($newLine) . "\n";
     }
 
-    file_put_contents($configPath, $updated);
+    $writeOk = @file_put_contents($configPath, $updated);
+    if ($writeOk === false) {
+      $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
+    }
     $_SESSION["connect"] = "";
-    echo "<script>window.location='./admin.php?id=settings&session=" . $sesname . "'</script>";
+    $redirect = "./admin.php?id=settings&session=" . $sesname;
+    if (mikhmon_is_ajax()) {
+      mikhmon_json(array(
+        "ok" => $writeOk !== false,
+        "flash" => $writeOk !== false ? "OK" : $mikhmon_config_write_error,
+        "redirect" => $redirect,
+      ), $writeOk !== false ? 200 : 500);
+    }
+    echo "<script>window.location='" . $redirect . "'</script>";
   }
   // If config is missing/incomplete, do NOT redirect in a loop.
   // Let the form render with defaults (set in include/readcfg.php).
