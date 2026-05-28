@@ -1034,6 +1034,74 @@ function mikhmon_bindAccordion() {
 
 try { mikhmon_bindAccordion(); } catch (e) {}
 
+function mikhmon_closeLangDropdowns(exceptRoot) {
+  var roots = document.querySelectorAll("[data-mm-lang-dropdown]");
+  for (var i = 0; i < roots.length; i++) {
+    var root = roots[i];
+    if (exceptRoot && root === exceptRoot) continue;
+    root.classList.remove("mm-lang-dropdown--open");
+    var menu = root.querySelector(".mm-lang-dropdown__menu");
+    var trigger = root.querySelector(".mm-lang-dropdown__trigger");
+    if (menu) menu.hidden = true;
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+  }
+}
+
+function mikhmon_toggleLangDropdown(root) {
+  if (!root) return;
+  var menu = root.querySelector(".mm-lang-dropdown__menu");
+  var trigger = root.querySelector(".mm-lang-dropdown__trigger");
+  if (!menu || !trigger) return;
+
+  var willOpen = menu.hidden;
+  mikhmon_closeLangDropdowns(willOpen ? root : null);
+  menu.hidden = !willOpen;
+  root.classList.toggle("mm-lang-dropdown--open", willOpen);
+  trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+}
+
+function mikhmon_bindLangDropdown() {
+  if (window.__mikhmonLangDropdownBound) return;
+  window.__mikhmonLangDropdownBound = true;
+
+  document.addEventListener("click", function (e) {
+    var item = e.target && e.target.closest ? e.target.closest(".mm-lang-dropdown__item") : null;
+    if (item) {
+      var langUrl = item.getAttribute("data-lang-url") || "";
+      if (!langUrl) return;
+      e.preventDefault();
+      mikhmon_closeLangDropdowns();
+      var langRoot = item.closest("[data-mm-lang-dropdown]");
+      var loadingMsg =
+        (langRoot && langRoot.getAttribute("data-loading-msg")) || "Loading…";
+      if (typeof notify === "function") {
+        try { notify(loadingMsg); } catch (err) {}
+      }
+      if (typeof stheme === "function") stheme(langUrl);
+      return;
+    }
+
+    var trigger = e.target && e.target.closest ? e.target.closest(".mm-lang-dropdown__trigger") : null;
+    if (trigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      var root = trigger.closest("[data-mm-lang-dropdown]");
+      mikhmon_toggleLangDropdown(root);
+      return;
+    }
+
+    if (!e.target || !e.target.closest || !e.target.closest("[data-mm-lang-dropdown]")) {
+      mikhmon_closeLangDropdowns();
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") mikhmon_closeLangDropdowns();
+  });
+}
+
+try { mikhmon_bindLangDropdown(); } catch (e) {}
+
 // Init widgets on full page load (not only after AJAX navigation).
 document.addEventListener("DOMContentLoaded", function () {
   try { mikhmon_initTrafficChart(); } catch (e) {}

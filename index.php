@@ -62,8 +62,10 @@ if (!isset($_SESSION["mikhmon"])) {
   date_default_timezone_set($_SESSION['timezone']);
 
 // lang
+  include('./lang/isocodelang.php');
   include('./include/lang.php');
   include('./lang/'.$langid.'.php');
+  include('./settings/setlang.php');
 
 // load config
   include('./include/config.php');

@@ -210,6 +210,8 @@ if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 
 </div>
  <div class="navbar-right">
   <a id="logout" href="./admin.php?id=logout" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
+  <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
+  <?php include(__DIR__ . '/lang-dropdown.php'); ?>
   <?php
     $mmThemeBase = explode("&set-theme", $url)[0];
     $mmThemeDarkUrl = $mmThemeBase . "&set-theme=dark";
@@ -230,21 +232,6 @@ if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 
       <span class="mm-theme-toggle__thumb"></span>
     </span>
   </button>
-  <select class="slang ses text-right mr-t-10 pd-5">
-    <option> <?= $language ?></option>
-    <?php 
-      $fileList = glob('lang/*');
-      foreach($fileList as $filename){
-        if(is_file($filename)){
-          $filename = substr(explode("/",$filename)[1],0,-4);
-          if($filename == "isocodelang"){}else{
-            echo '<option value="'.$url.'&setlang=' . $filename . '">'. $isocodelang[$filename]. '</option>'; 
-         }   
-        }
-      }
-    ?>
-  </select>
-  <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
 </div>
 </div>
 
@@ -325,10 +312,6 @@ $(document).ready(function(){
       }).catch(function(){});
     } catch (e) {}
   });
-  $(".slang").change(function(){
-    notify("<?= $_loading ?>");
-    stheme(this.value)
-  });
 });
 </script>
 <div id="notify"><div class="message"></div></div>
@@ -364,6 +347,8 @@ if (file_exists('./info.php')) {
 </div>
  <div class="navbar-right">
   <a id="logout" href="./?hotspot=logout&session=<?= $session; ?>" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
+  <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
+  <?php include(__DIR__ . '/lang-dropdown.php'); ?>
   <?php
     $mmThemeBase = explode("&set-theme", $url)[0];
     $mmThemeDarkUrl = $mmThemeBase . "&set-theme=dark";
@@ -384,7 +369,6 @@ if (file_exists('./info.php')) {
       <span class="mm-theme-toggle__thumb"></span>
     </span>
   </button>
-  <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
 </div>
 </div>
 

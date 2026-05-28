@@ -19,6 +19,8 @@ session_start();
 // hide all error
 error_reporting(0);
 
+@include_once(__DIR__ . '/../include/ajax.php');
+
 // check url
 $url2 = explode("&setlang", $url)[0];
 
@@ -28,7 +30,6 @@ if (empty($getlang)) {
 
 } else {
     if (!empty($isocodelang[$getlang])) {
-        include_once('./include/headhtml.php');
         $gen = '<?php $langid="' . $getlang . '";?>';
         // Use absolute path and don't hard-fail on unwritable FS.
         $slang = __DIR__ . '/../include/lang.php';
@@ -38,12 +39,36 @@ if (empty($getlang)) {
             @fclose($handle);
         }
         $_SESSION['lang'] = $getlang;
-        echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>Load '.$getlang.' lang...</h3></center>';
+
+        $isAjax = function_exists('mikhmon_is_ajax') ? mikhmon_is_ajax() : false;
+        if ($isAjax && function_exists('mikhmon_json')) {
+            mikhmon_json(array(
+                "ok" => true,
+                "lang" => $getlang,
+                "redirect" => $url2,
+            ));
+        }
+
+        if (!headers_sent()) {
+            header("Location: " . $url2);
+            exit;
+        }
         echo "<script>window.location='" . $url2 . "'</script>";
         
     } else {
-        include_once('./include/headhtml.php');
-        echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>'.$getlang.' lang not found...</h3></center>';
+        $isAjax = function_exists('mikhmon_is_ajax') ? mikhmon_is_ajax() : false;
+        if ($isAjax && function_exists('mikhmon_json')) {
+            mikhmon_json(array(
+                "ok" => false,
+                "error" => "lang_not_found",
+                "redirect" => $url2,
+            ), 400);
+        }
+
+        if (!headers_sent()) {
+            header("Location: " . $url2);
+            exit;
+        }
         echo "<script>window.location='" . $url2 . "'</script>";
     }
 }
