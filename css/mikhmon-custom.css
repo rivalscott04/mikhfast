@@ -401,6 +401,11 @@ body .progress .progress-bar.mm-meter-fill--danger{
 body.theme-light{
   background-color: var(--mm-bg) !important;
   color: var(--mm-text) !important;
+  color-scheme: light;
+}
+
+body.theme-dark{
+  color-scheme: dark;
 }
 
 /* Surfaces */
@@ -497,6 +502,32 @@ body.theme-light .form-control:focus,
 body.theme-light .group-item:focus{
   border-color: rgba(43,111,168,.35) !important;
   box-shadow: 0 0 0 3px rgba(43,111,168,.14) !important;
+}
+
+/* Light theme: native <select> popup must not inherit dark form colors */
+body.theme-light select,
+body.theme-light select.form-control{
+  background-color: #FFF !important;
+  color: var(--mm-text) !important;
+  border-color: var(--mm-border) !important;
+}
+body.theme-light select option{
+  background-color: #FFF;
+  color: var(--mm-text);
+}
+body.theme-light select option:checked,
+body.theme-light select option:hover,
+body.theme-light select option:focus{
+  background-color: var(--mm-accent-soft);
+  color: var(--mm-accent-2);
+}
+body.theme-light .form-control:disabled,
+body.theme-light .group-item:disabled,
+body.theme-light input:disabled,
+body.theme-light select:disabled{
+  background-color: var(--mm-surface-2) !important;
+  color: var(--mm-text-muted) !important;
+  opacity: 1;
 }
 
 /* Tables */
