@@ -292,7 +292,11 @@ function mikhmon_ajaxNavigate(href, opts) {
     },
     credentials: "same-origin",
   })
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
+      return r.json();
+    })
     .then(function (data) {
       if (data && data.redirect) {
         if (!opts.fromPopState) history.pushState({ url: data.redirect }, "", data.redirect);
@@ -336,7 +340,11 @@ function mikhmon_ajaxSubmitForm(form) {
     body: fd,
     credentials: "same-origin",
   })
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
+      return r.json();
+    })
     .then(function (data) {
       if (data && data.redirect) {
         history.pushState({ url: data.redirect }, "", data.redirect);
