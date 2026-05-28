@@ -25,9 +25,17 @@ if (!isset($_SESSION["mikhmon"])) {
 
   if ($id == "settings" && explode("-",$router)[0] == "new") {
     $data = '$data';
-    $f = fopen('./include/config.php', 'a');
-    fwrite($f, "\n'$'data['".$router."'] = array ('1'=>'".$router."!','".$router."@|@','".$router."#|#','".$router."%','".$router."^','".$router."&Rp','".$router."*10','".$router."(1','".$router.")','".$router."=10','".$router."@!@disable');");
-    fclose($f);
+    $configPath = './include/config.php';
+    $line = "\n" . '$data' . "['" . $router . "'] = array ('1'=>'" . $router . "!','" . $router . "@|@','" . $router . "#|#','" . $router . "%','" . $router . "^','" . $router . "&Rp','" . $router . "*10','" . $router . "(1','" . $router . ")','" . $router . "=10','" . $router . "@!@disable');";
+
+    $f = @fopen($configPath, 'a');
+    if ($f === false) {
+      // Avoid fatal errors on PHP 8+ (fwrite expects resource).
+      echo "<div class='bg-danger pd-10 radius-5'>Cannot write to <b>include/config.php</b>. Please check file permissions/ownership.</div>";
+      exit;
+    }
+    @fwrite($f, $line);
+    @fclose($f);
     $search = "'$'data";
     $replace = (string)"$data";
     $file = file("./include/config.php");
