@@ -18,7 +18,11 @@ $mmOnline = is_array($resource) && !empty($resource);
 $mmStatusLabel = $mmOnline ? "Online" : "Unknown";
 $mmStatusClass = $mmOnline ? "mm-chip--ok" : "mm-chip--muted";
 
+$mmBoardName = (is_array($resource) && isset($resource['board-name'])) ? (string) $resource['board-name'] : "";
 $mmRouterLabel = $identity !== "" ? $identity : (isset($routerboard['model']) ? $routerboard['model'] : "");
+if ($mmRouterLabel !== "" && strcasecmp(trim($mmRouterLabel), "mikrotik") === 0 && $mmBoardName !== "") {
+  $mmRouterLabel = $mmBoardName;
+}
 $mmHotspotLabel = $hotspotname !== "" ? $hotspotname : "";
 ?>
 
@@ -39,14 +43,14 @@ $mmHotspotLabel = $hotspotname !== "" ? $hotspotname : "";
   <div class="mm-dashheader__right">
     <span class="mm-chip <?= $mmStatusClass; ?>"><i class="fa fa-circle"></i> <?= $mmStatusLabel; ?></span>
 
-    <a class="btn btn-sm mm-btn-ghost" onclick="cancelPage()" href="./?hotspot-user=add&session=<?= htmlspecialchars($session, ENT_QUOTES) ?>">
+    <a class="btn btn-sm mm-btn-ghost" data-mm-disable-on-switch="1" onclick="cancelPage()" href="./?hotspot-user=add&session=<?= htmlspecialchars($session, ENT_QUOTES) ?>">
       <i class="fa fa-user-plus"></i> <?= isset($_add_user) ? $_add_user : "Add user" ?>
     </a>
-    <a class="btn btn-sm mm-btn-ghost" onclick="cancelPage()" href="./?hotspot-user=generate&session=<?= htmlspecialchars($session, ENT_QUOTES) ?>">
+    <a class="btn btn-sm mm-btn-ghost" data-mm-disable-on-switch="1" onclick="cancelPage()" href="./?hotspot-user=generate&session=<?= htmlspecialchars($session, ENT_QUOTES) ?>">
       <i class="fa fa-ticket"></i> <?= isset($_generate) ? $_generate : "Generate" ?>
     </a>
 
-    <a class="btn btn-sm mm-btn-ghost" href="javascript:void(0)" title="Refresh" onclick="if (typeof reloadHome === 'function') { reloadHome(); } else { location.reload(); }">
+    <a class="btn btn-sm mm-btn-ghost" data-mm-disable-on-switch="1" href="javascript:void(0)" title="Refresh" onclick="if (typeof reloadHome === 'function') { reloadHome(); } else { location.reload(); }">
       <i class="fa fa-refresh"></i>
     </a>
   </div>

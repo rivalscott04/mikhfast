@@ -27,6 +27,13 @@ if (!isset($_SESSION["mikhmon"])) {
   $mikhmon_config_write_error = "";
   $mikhmon_flash = "";
 
+  // Dynamic device label (prefer board-name if already cached by app pages).
+  $mmBoardName = "";
+  if (isset($session) && is_string($session) && $session !== "" && isset($_SESSION['mm_board_name'][$session]['v'])) {
+    $mmBoardName = (string) $_SESSION['mm_board_name'][$session]['v'];
+  }
+  $mmDeviceLabel = $mmBoardName !== "" ? $mmBoardName : "Router";
+
   if (isset($_SESSION['mikhmon_flash'])) {
     $mikhmon_flash = $_SESSION['mikhmon_flash'];
     unset($_SESSION['mikhmon_flash']);
@@ -192,21 +199,21 @@ if (!isset($_SESSION["mikhmon"])) {
             <div class="col-12">
 				      <div class="card">
         	     <div class="card-header">
-            	   <h3 class="card-title">MikroTik <?= $_SESSION["connect"]; ?></h3>
+            	   <h3 class="card-title"><?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?> <?= $_SESSION["connect"]; ?></h3>
         	     </div>
         	     <div class="card-body">
 				<table class="table table-sm">
 					<tr>
-	  					<td class="align-middle">IP MikroTik </td><td><input class="form-control" type="text" size="15" name="ipmik" title="IP MikroTik / IP Cloud MikroTik" value="<?= $iphost; ?>" required="1"/></td>
+	  					<td class="align-middle">IP <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?> </td><td><input class="form-control" type="text" size="15" name="ipmik" title="IP <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?> / IP Cloud <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?>" value="<?= $iphost; ?>" required="1"/></td>
 					</tr>
 					<tr>
-						<td class="align-middle">Username  </td><td><input class="form-control" id="usermk" type="text" size="10" name="usermik" title="User MikroTik" value="<?= $userhost; ?>" required="1"/></td>
+						<td class="align-middle">Username  </td><td><input class="form-control" id="usermk" type="text" size="10" name="usermik" title="User <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?>" value="<?= $userhost; ?>" required="1"/></td>
 					</tr>
 					<tr>
 						<td class="align-middle">Password  </td><td>
 							<div class="input-group">
 								<div class="input-group-11 col-box-10">
-        						<input class="group-item group-item-l" id="passmk" type="password" name="passmik" title="Password MikroTik" value="<?= decrypt($passwdhost); ?>" required="1"/>
+        						<input class="group-item group-item-l" id="passmk" type="password" name="passmik" title="Password <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?>" value="<?= decrypt($passwdhost); ?>" required="1"/>
         						</div>
             					<div class="input-group-1 col-box-2">
             						<div class="group-item group-item-r pd-2p5 text-center align-middle">

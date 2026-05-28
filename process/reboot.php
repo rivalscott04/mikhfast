@@ -22,6 +22,11 @@ include_once('./include/ajax.php');
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
+  $mmBoardName = "";
+  if (isset($session) && is_string($session) && $session !== "" && isset($_SESSION['mm_board_name'][$session]['v'])) {
+    $mmBoardName = (string) $_SESSION['mm_board_name'][$session]['v'];
+  }
+  $mmDeviceLabel = $mmBoardName !== "" ? $mmBoardName : "Router";
 
   if (isset($_POST['submit'])) {
     $API = new RouterosAPI();
@@ -47,7 +52,7 @@ if (!isset($_SESSION["mikhmon"])) {
 <div style="padding-top:10%;" class="register-box">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><i class="fa fa-power-off"></i> Reboot MikroTik</h3>
+        <h3 class="card-title"><i class="fa fa-power-off"></i> Reboot <?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?></h3>
     </div>
   	<div class="card-body text-center">
   		<form action="" method="post" enctype="multipart/form-data">

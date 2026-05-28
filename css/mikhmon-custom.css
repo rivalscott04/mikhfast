@@ -704,3 +704,92 @@ body.theme-light .mm-theme-toggle__icon--moon{
 /* make sun a bit warmer in light */
 body.theme-light .mm-theme-toggle__icon--sun{ color: rgba(245,158,11,.92); }
 body.theme-light .mm-theme-toggle__icon--moon{ color: rgba(17,24,39,.55); }
+
+/* --- Session switch UX: toast + skeleton shimmer (non-blocking) --- */
+#mmToast{
+  position: fixed;
+  right: 14px;
+  top: 14px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+#mmToast.mm-toast--show{
+  opacity: 1;
+  transform: translateY(0);
+}
+.mm-toast__inner{
+  pointer-events: auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  max-width: 360px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.35);
+  box-shadow: 0 10px 26px rgba(0,0,0,.22);
+  backdrop-filter: blur(10px);
+}
+.mm-toast__inner--ok{ border-color: rgba(46, 204, 113, .35); }
+.mm-toast__inner--error{ border-color: rgba(235, 87, 87, .45); }
+.mm-toast__inner--info{ border-color: rgba(45,156,219,.35); }
+.mm-toast__text{
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mm-toast__spinner{
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.28);
+  border-top-color: rgba(255,255,255,.88);
+  animation: mm-spin .8s linear infinite;
+}
+@keyframes mm-spin{ to { transform: rotate(360deg); } }
+
+/* Switching state: don't block layout, just dim + shimmer */
+body.mm-switching .card,
+body.mm-switching .box{
+  position: relative;
+}
+body.mm-switching .card > *,
+body.mm-switching .box > *{
+  opacity: .55;
+  transition: opacity .15s ease;
+}
+body.mm-switching .card::after,
+body.mm-switching .box::after{
+  content:"";
+  position:absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,.10) 30%,
+    rgba(255,255,255,.18) 50%,
+    rgba(255,255,255,.10) 70%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: translateX(-120%);
+  animation: mm-skeleton-shimmer 1.2s ease-in-out infinite;
+  pointer-events:none;
+  z-index: 5;
+}
+@keyframes mm-skeleton-shimmer{
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Disable only tagged heavy actions (safer than disabling everything) */
+.mm-disabled{
+  pointer-events: none !important;
+  opacity: .55 !important;
+  filter: grayscale(.1);
+}

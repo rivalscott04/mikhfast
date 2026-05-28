@@ -165,6 +165,32 @@ if($idleto != "disable"){
 }else{
   $didleto = 'display:none;';
 }
+
+// Board name cache (for dynamic device labeling).
+// We keep it in session so admin/settings pages can reuse without reconnecting.
+$mmBoardName = "";
+if (isset($session) && is_string($session) && $session !== "") {
+  if (!isset($_SESSION['mm_board_name'])) $_SESSION['mm_board_name'] = array();
+  $cached = isset($_SESSION['mm_board_name'][$session]) ? $_SESSION['mm_board_name'][$session] : null;
+  $cacheOk = is_array($cached) && isset($cached['t']) && isset($cached['v']) && (time() - (int)$cached['t'] <= 60);
+  if ($cacheOk) {
+    $mmBoardName = (string) $cached['v'];
+  } else {
+    // Only attempt live fetch when RouterService is available (main app pages).
+    if (isset($router) && is_object($router) && method_exists($router, 'getSystemResource')) {
+      $res = $router->getSystemResource();
+      if (is_array($res) && isset($res['board-name'])) {
+        $mmBoardName = (string) $res['board-name'];
+        $_SESSION['mm_board_name'][$session] = array('t' => time(), 'v' => $mmBoardName);
+      }
+    }
+  }
+}
+
+$mmDeviceLabel = isset($identity) ? (string) $identity : "";
+if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 && $mmBoardName !== "") {
+  $mmDeviceLabel = $mmBoardName;
+}
 ?>
 <span style="display:none;" id="idto"><?= $idleto ;?></span>
 
@@ -243,7 +269,6 @@ if($idleto != "disable"){
 <script>
 $(document).ready(function(){
   $(".connect").click(function(){
-    notify("<?= $_connecting ?>");
     connect(this.id)
   });
   $(".mm-theme-toggle").click(function(){
@@ -362,7 +387,7 @@ if (file_exists('./info.php')) {
       <img src="img/mikfast.svg" alt="MIKFAST" style="width:22px;height:22px;vertical-align:-4px;margin-right:8px;">
       MIKFAST
     </div>
-    <div class="mm-sidenav-sub"><?= htmlspecialchars($identity, ENT_QUOTES); ?></div>
+    <div class="mm-sidenav-sub"><?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?></div>
     <select class="connect mm-sidenav-session" aria-label="Session">
       <option id="MikhmonSession" value="<?= $session; ?>"><?= htmlspecialchars($session, ENT_QUOTES); ?></option>
         <?php
@@ -424,13 +449,10 @@ if (file_exists('./info.php')) {
   </div>
   <div class="dropdown-container <?= $schmenu; ?>">
     <a href="./?system=scheduler&session=<?= $session; ?>" class="<?= $ssch; ?>"> <i class="fa fa-clock-o "></i> <?= $_system_scheduler ?> </a>
+    <a href="./?interface=traffic-monitor&session=<?= $session; ?>" class="<?= $strafficmonitor; ?>"> <i class="fa fa-area-chart"></i> <?= $_traffic_monitor ?></a>
     <a href="./admin.php?id=reboot&session=<?= $session; ?>" class=""> <i class="fa fa-power-off "></i> <?= $_system_reboot ?> </a>            
     <a href="./admin.php?id=shutdown&session=<?= $session; ?>" class=""> <i class="fa fa-power-off "></i> <?= $_system_off ?> </a> 
   </div>
-  <!--dhcp leases-->
-  <a href="./?hotspot=dhcp-leases&session=<?= $session; ?>" class="menu <?= $slease; ?>"><i class=" fa fa-sitemap"></i> <?= $_dhcp_leases ?></a>
-  <!--traffic monitor-->
-  <a href="./?interface=traffic-monitor&session=<?= $session; ?>" class="menu <?= $strafficmonitor; ?>"><i class=" fa fa-area-chart"></i> <?= $_traffic_monitor ?></a>
   <!--report-->
   <?php
     // Preserve last-used report filter (month/day) when navigating via menu.
@@ -467,7 +489,6 @@ if (file_exists('./info.php')) {
 <script>
 $(document).ready(function(){
   $(".connect").change(function(){
-    notify("<?= $_connecting ?>");
     connect(this.value)
   });
   $(".mm-theme-toggle").click(function(){
