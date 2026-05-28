@@ -82,8 +82,12 @@ if ($id == "login" || substr($url, -1) == "p") {
     $pass = $_POST['pass'];
     if ($user == $useradm && $pass == decrypt($passadm)) {
       $_SESSION["mikhmon"] = $user;
-
-        echo "<script>window.location='./admin.php?id=sessions'</script>";
+      // Use server-side redirect to avoid flaky JS redirect.
+      if (!headers_sent()) {
+        header("Location:./admin.php?id=sessions");
+        exit;
+      }
+      echo "<script>window.location='./admin.php?id=sessions'</script>";
     
     } else {
       $error = '<div style="width: 100%; padding:5px 0px 5px 0px; border-radius:5px;" class="bg-danger"><i class="fa fa-ban"></i> Alert!<br>Invalid username or password.</div>';
@@ -99,6 +103,10 @@ if ($id == "login" || substr($url, -1) == "p") {
       "redirect" => "./admin.php?id=login",
     ), 401);
   }
+  if (!headers_sent()) {
+    header("Location:./admin.php?id=login");
+    exit;
+  }
   echo "<script>window.location='./admin.php?id=login'</script>";
 } elseif (substr($url, -1) == "/" || substr($url, -4) == ".php") {
   if ($__mikhmon_ajax) {
@@ -106,6 +114,10 @@ if ($id == "login" || substr($url, -1) == "p") {
       "ok" => false,
       "redirect" => "./admin.php?id=sessions",
     ), 400);
+  }
+  if (!headers_sent()) {
+    header("Location:./admin.php?id=sessions");
+    exit;
   }
   echo "<script>window.location='./admin.php?id=sessions'</script>";
 
