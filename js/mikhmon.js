@@ -166,6 +166,7 @@ var idleto,
 
 function idleTimer() {
   var timerEl = document.getElementById("timer");
+  if (!timerEl) return;
 
   // cache repeated lookups (keeps original logic)
   var brandEl = document[_0x8202[1]](_0x8202[0]);
@@ -193,6 +194,7 @@ function idleTimer() {
 function startTimer() {
   var logoutEl = document.getElementById("logout");
   var timerEl = document.getElementById("timer");
+  if (!logoutEl || !timerEl) return;
   var parts = timerEl.innerHTML.split(/[:]+/);
   var minutes = parts[0];
   var seconds = checkSecond(parts[1] - 1);
@@ -309,6 +311,46 @@ function mikhmon_ajaxNavigate(href, opts) {
     });
 }
 
+function mikhmon_ajaxSubmitForm(form) {
+  var method = (form.getAttribute("method") || "GET").toUpperCase();
+  if (method !== "POST") return false;
+
+  var action = form.getAttribute("action") || window.location.href;
+  var abs = mikhmon_absUrl(action);
+
+  var fd = new FormData(form);
+  notify("Processing...");
+
+  fetch(abs, {
+    method: "POST",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json",
+    },
+    body: fd,
+    credentials: "same-origin",
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.redirect) {
+        history.pushState({ url: data.redirect }, "", data.redirect);
+        return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
+      }
+      if (data && data.html) {
+        mikhmon_applyHtml(data.html);
+        history.pushState({ url: abs }, "", abs);
+      }
+      if (data && data.flash) notify(data.flash);
+      return data;
+    })
+    .catch(function () {
+      // fallback to normal submit
+      form.submit();
+    });
+
+  return true;
+}
+
 document.addEventListener("click", function (e) {
   var a = e.target && e.target.closest ? e.target.closest("a") : null;
   if (!a) return;
@@ -321,6 +363,17 @@ document.addEventListener("click", function (e) {
   // Allow existing inline handlers to run if they explicitly prevent default.
   e.preventDefault();
   mikhmon_ajaxNavigate(href);
+});
+
+document.addEventListener("submit", function (e) {
+  var form = e.target;
+  if (!form || form.tagName !== "FORM") return;
+  if (form.target && form.target !== "_self") return;
+
+  // Only intercept POST (safe default).
+  if (mikhmon_ajaxSubmitForm(form)) {
+    e.preventDefault();
+  }
 });
 
 window.addEventListener("popstate", function (e) {

@@ -73,9 +73,8 @@ if (!isset($_SESSION["mikhmon"])) {
     $_SESSION["connect"] = "";
     echo "<script>window.location='./admin.php?id=settings&session=" . $sesname . "'</script>";
   }
-  if ($currency == "") {
-    echo "<script>window.location='./admin.php?id=settings&session=" . $session . "'</script>";
-  }
+  // If config is missing/incomplete, do NOT redirect in a loop.
+  // Let the form render with defaults (set in include/readcfg.php).
 }
 ?>
 <script>

@@ -19,10 +19,20 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 // remove host
 include_once('./lib/router/RouterService.php');
 $router = new RouterService($API);
 $router->removeHotspotCookie($removecookie);
 // redirect to host
-echo "<script>window.location='./?hotspot=cookies&session=" . $session . "'</script>";
+$redirect = "./?hotspot=cookies&session=" . $session;
+if (mikhmon_is_ajax()) {
+  mikhmon_json(array(
+    "ok" => true,
+    "flash" => "OK",
+    "redirect" => $redirect,
+  ));
+}
+echo "<script>window.location='" . $redirect . "'</script>";
 ?>

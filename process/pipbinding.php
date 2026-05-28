@@ -19,6 +19,8 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 // remove ip binding
 if ($removeipbinding != "") {
 	include_once('./lib/router/RouterService.php');
@@ -65,7 +67,15 @@ if ($removeipbinding != "") {
 	));			
 		
 //redirect to ipbinding
-	echo "<script>window.location='./?hotspot=ipbinding&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=ipbinding&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }
 
 // enable ip binging
@@ -74,7 +84,15 @@ elseif ($enableipbinding != "") {
 	$router = new RouterService($API);
 	$router->setHotspotIpBindingDisabled($enableipbinding, false);
 
-	echo "<script>window.location='./?hotspot=ipbinding&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=ipbinding&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }
 
 // disable ip binging
@@ -83,5 +101,13 @@ elseif ($disableipbinding != "") {
 	$router = new RouterService($API);
 	$router->setHotspotIpBindingDisabled($disableipbinding, true);
 
-	echo "<script>window.location='./?hotspot=ipbinding&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=ipbinding&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }

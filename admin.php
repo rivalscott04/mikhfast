@@ -21,6 +21,13 @@ error_reporting(0);
 
 ob_start("ob_gzhandler");
 
+include_once('./include/ajax.php');
+$__mikhmon_ajax = mikhmon_is_ajax();
+if ($__mikhmon_ajax) {
+  // capture full output, return JSON at end
+  ob_start();
+}
+
 // check url
 $url = $_SERVER['REQUEST_URI'];
 
@@ -86,8 +93,20 @@ if ($id == "login" || substr($url, -1) == "p") {
 
   include_once('./include/login.php');
 } elseif (!isset($_SESSION["mikhmon"])) {
+  if ($__mikhmon_ajax) {
+    mikhmon_json(array(
+      "ok" => false,
+      "redirect" => "./admin.php?id=login",
+    ), 401);
+  }
   echo "<script>window.location='./admin.php?id=login'</script>";
 } elseif (substr($url, -1) == "/" || substr($url, -4) == ".php") {
+  if ($__mikhmon_ajax) {
+    mikhmon_json(array(
+      "ok" => false,
+      "redirect" => "./admin.php?id=sessions",
+    ), 400);
+  }
   echo "<script>window.location='./admin.php?id=sessions'</script>";
 
 } elseif ($id == "sessions") {
@@ -182,4 +201,16 @@ if ($id == "login" || substr($url, -1) == "p") {
 <?php include('./include/info.php'); ?>
 </body>
 </html>
+
+<?php
+// AJAX: return JSON wrapper for SPA navigation.
+if (isset($__mikhmon_ajax) && $__mikhmon_ajax) {
+  $full = ob_get_clean();
+  mikhmon_json(array(
+    "ok" => true,
+    "html" => mikhmon_extract_wrapper_html($full),
+    "url" => $url,
+  ));
+}
+?>
 

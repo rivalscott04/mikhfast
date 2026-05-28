@@ -19,13 +19,23 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 // remove scheduler
 if ($removesch != "") {
 	include_once('./lib/router/RouterService.php');
 	$router = new RouterService($API);
 	$router->removeSchedulerById($removesch);
 
-	echo "<script>window.location='./?system=scheduler&session=" . $session . "'</script>";
+	$redirect = "./?system=scheduler&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }
 // enable scheduler
 elseif ($enablesch != "") {
@@ -33,7 +43,15 @@ elseif ($enablesch != "") {
 	$router = new RouterService($API);
 	$router->setSchedulerDisabled($enablesch, false);
 
-	echo "<script>window.location='./?system=scheduler&session=" . $session . "'</script>";
+	$redirect = "./?system=scheduler&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }
 
 // disable scheduler
@@ -42,5 +60,13 @@ elseif ($disablesch != "") {
 	$router = new RouterService($API);
 	$router->setSchedulerDisabled($disablesch, true);
 
-	echo "<script>window.location='./?system=scheduler&session=" . $session . "'</script>";
+	$redirect = "./?system=scheduler&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
 }

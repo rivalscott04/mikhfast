@@ -18,6 +18,7 @@
 session_start();
 // hide all error
 error_reporting(0);
+include_once('./include/ajax.php');
 if (!isset($_SESSION["mikhmon"])) {
     header("Location:../admin.php?id=login");
 } else {
@@ -31,7 +32,15 @@ if (!isset($_SESSION["mikhmon"])) {
             $router->shutdown();
         }
         session_destroy();
-        echo "<script>window.location='./admin.php?id=login'</script>";
+        $redirect = "./admin.php?id=login";
+        if (mikhmon_is_ajax()) {
+            mikhmon_json(array(
+                "ok" => true,
+                "flash" => "OK",
+                "redirect" => $redirect,
+            ));
+        }
+        echo "<script>window.location='" . $redirect . "'</script>";
     }
 }
 ?>

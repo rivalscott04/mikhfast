@@ -22,6 +22,13 @@ error_reporting(0);
 
 ob_start("ob_gzhandler");
 
+include_once('./include/ajax.php');
+$__mikhmon_ajax = mikhmon_is_ajax();
+if ($__mikhmon_ajax) {
+  // capture full output, return JSON at end
+  ob_start();
+}
+
 
 $url = $_SERVER['REQUEST_URI'];
 
@@ -30,8 +37,20 @@ $url = $_SERVER['REQUEST_URI'];
 $session = $_GET['session'];
 
 if (!isset($_SESSION["mikhmon"])) {
+  if ($__mikhmon_ajax) {
+    mikhmon_json(array(
+      "ok" => false,
+      "redirect" => "./admin.php?id=login",
+    ), 401);
+  }
   header("Location:./admin.php?id=login");
 } elseif (empty($session)) {
+  if ($__mikhmon_ajax) {
+    mikhmon_json(array(
+      "ok" => false,
+      "redirect" => "./admin.php?id=sessions",
+    ), 400);
+  }
   echo "<script>window.location='./admin.php?id=sessions'</script>";
 } else {
   $_SESSION["$session"] = $session;
@@ -607,4 +626,16 @@ $(document).ready(function(){
 ?>
 </body>
 </html>
+
+<?php
+// AJAX: return JSON wrapper for SPA navigation.
+if (isset($__mikhmon_ajax) && $__mikhmon_ajax) {
+  $full = ob_get_clean();
+  mikhmon_json(array(
+    "ok" => true,
+    "html" => mikhmon_extract_wrapper_html($full),
+    "url" => $url,
+  ));
+}
+?>
 

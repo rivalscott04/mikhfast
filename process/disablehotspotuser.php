@@ -19,16 +19,26 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 include_once('./lib/router/RouterService.php');
 $router = new RouterService($API);
 $router->setHotspotUserDisabled($disablehotspotuser, true);
 if ($_SESSION['ubp'] != "") {
-	echo "<script>window.location='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session;
 } elseif ($_SESSION['ubc'] != "") {
-	echo "<script>window.location='./?hotspot=users&comment=" . $_SESSION['ubc'] . "&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=users&comment=" . $_SESSION['ubc'] . "&session=" . $session;
 } else {
-	echo "<script>window.location='./?hotspot=users&profile=all&session=" . $session . "'</script>";
+	$redirect = "./?hotspot=users&profile=all&session=" . $session;
 }
+if (mikhmon_is_ajax()) {
+	mikhmon_json(array(
+		"ok" => true,
+		"flash" => "OK",
+		"redirect" => $redirect,
+	));
+}
+echo "<script>window.location='" . $redirect . "'</script>";
 
 
 ?>

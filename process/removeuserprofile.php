@@ -19,6 +19,8 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 $pid = $removeuserprofile;
 $pname = $_GET['pname'];
 
@@ -26,5 +28,13 @@ include_once('./lib/router/RouterService.php');
 $router = new RouterService($API);
 $router->removeHotspotUserProfileById($pid);
 $router->removeSchedulerByName($pname);
-echo "<script>window.location='./?hotspot=user-profiles&session=" . $session . "'</script>";
+$redirect = "./?hotspot=user-profiles&session=" . $session;
+if (mikhmon_is_ajax()) {
+  mikhmon_json(array(
+    "ok" => true,
+    "flash" => "OK",
+    "redirect" => $redirect,
+  ));
+}
+echo "<script>window.location='" . $redirect . "'</script>";
 ?>

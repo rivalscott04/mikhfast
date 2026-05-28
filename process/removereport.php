@@ -19,6 +19,8 @@ session_start();
 // hide all error
 error_reporting(0);
 
+include_once('./include/ajax.php');
+
 	if ($removereport != "") {
 		$uids = explode("~", $removereport);
 	
@@ -31,4 +33,12 @@ error_reporting(0);
 		}
 		$_SESSION[$session.'idhr'] = "";
 	}
-	echo "<script>window.location='./?report=selling".$_SESSION['report']."&session=" . $session . "'</script>";
+	$redirect = "./?report=selling" . $_SESSION['report'] . "&session=" . $session;
+	if (mikhmon_is_ajax()) {
+		mikhmon_json(array(
+			"ok" => true,
+			"flash" => "OK",
+			"redirect" => $redirect,
+		));
+	}
+	echo "<script>window.location='" . $redirect . "'</script>";
