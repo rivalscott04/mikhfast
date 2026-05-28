@@ -379,6 +379,38 @@ include('../lang/'.$langid.'.php');
                 </div>
 
 <?php 
+} else if ($load == "applog") {
+  // RouterOS access log like Winbox (topics=account). This shows login/logout events.
+  $cacheKey = 'dash:' . $session . ':applog10';
+  $rows = __mikhmon_cache_get($cacheKey, 5);
+  if (!is_array($rows)) {
+    $rows = $API->comm("/log/print", array(
+      "?topics" => "account",
+    ), array("time", "topics", "message"));
+    if (!is_array($rows)) $rows = array();
+    $rows = array_reverse($rows);
+    $rows = array_slice($rows, 0, 10);
+    __mikhmon_cache_set($cacheKey, $rows);
+  }
+  ?>
+  <ul class="mm-list-compact">
+    <?php
+      if (!is_array($rows) || count($rows) === 0) {
+        echo "<li>-</li>";
+      } else {
+        foreach ($rows as $r) {
+          $t = isset($r['time']) ? $r['time'] : '';
+          $m = isset($r['message']) ? $r['message'] : '';
+          $tp = isset($r['topics']) ? $r['topics'] : '';
+          $line = trim($t . " - " . $m);
+          if ($tp !== '') $line .= " (" . $tp . ")";
+          echo "<li>" . htmlspecialchars($line, ENT_QUOTES) . "</li>";
+        }
+      }
+    ?>
+  </ul>
+
+<?php 
 }
 
 // Batch load (single RouterOS connection) for dashboard refresh.
@@ -643,12 +675,9 @@ else if ($load == "all") {
             <h3 class="mm-panel-title"><i class="fa fa-align-justify"></i> App Log</h3>
           </div>
           <div class="card-body">
-            <ul class="mm-list-compact">
-              <li><?= date("H:i:s") ?> - Loading Hotspot Info</li>
-              <li><?= date("H:i:s") ?> - Loading Traffic Monitor</li>
-              <li><?= date("H:i:s") ?> - Loading System Log</li>
-              <li><?= date("H:i:s") ?> - Loading Report</li>
-            </ul>
+            <div id="appLog" data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>">
+              <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
+            </div>
           </div>
         </div>
       </div>

@@ -339,12 +339,36 @@ function mikhmon_clearIntervals() {
     try { clearInterval(window.__mikhmonTrafficInterval); } catch (e) {}
     window.__mikhmonTrafficInterval = null;
   }
+  // Clear app log poller (dashboard)
+  if (window.__mikhmonAppLogInterval) {
+    try { clearInterval(window.__mikhmonAppLogInterval); } catch (e) {}
+    window.__mikhmonAppLogInterval = null;
+  }
   if (window.__mikhmonTrafficChart) {
     try {
       if (typeof window.__mikhmonTrafficChart.destroy === "function") window.__mikhmonTrafficChart.destroy();
     } catch (e) {}
     window.__mikhmonTrafficChart = null;
   }
+}
+
+function mikhmon_initAppLog() {
+  var el = document.getElementById("appLog");
+  if (!el) return;
+
+  var session = (el.getAttribute("data-session") || "").trim();
+  if (!session) return;
+
+  function loadOnce() {
+    try {
+      $("#appLog").load("./dashboard/aload.php?load=applog&session=" + encodeURIComponent(session));
+    } catch (e) {}
+  }
+
+  // initial load + poll
+  loadOnce();
+  try { if (window.__mikhmonAppLogInterval) clearInterval(window.__mikhmonAppLogInterval); } catch (e) {}
+  window.__mikhmonAppLogInterval = setInterval(loadOnce, 8000);
 }
 
 function mikhmon_initTrafficChart() {
@@ -483,6 +507,8 @@ function mikhmon_applyHtml(wrapperHtml) {
   try { mikhmon_runInlineScripts(wrapperEl); } catch (e) {}
   // init traffic chart if present
   try { mikhmon_initTrafficChart(); } catch (e) {}
+  // init app log poller if present
+  try { mikhmon_initAppLog(); } catch (e) {}
 
   // re-init behaviors that are expected after navigation
   $(".main-container").fadeIn(0);

@@ -257,12 +257,9 @@ if (!isset($_SESSION["mikhmon"])) {
             <h3 class="mm-panel-title"><i class="fa fa-align-justify"></i> App Log</h3>
           </div>
           <div class="card-body">
-            <ul class="mm-list-compact">
-              <li><?= date("H:i:s") ?> - Loading Hotspot Info</li>
-              <li><?= date("H:i:s") ?> - Loading Traffic Monitor</li>
-              <li><?= date("H:i:s") ?> - Loading System Log</li>
-              <li><?= date("H:i:s") ?> - Loading Report</li>
-            </ul>
+            <div id="appLog" data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>">
+              <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
+            </div>
           </div>
         </div>
       </div>
