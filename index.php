@@ -532,11 +532,24 @@ elseif ($ppp == "edit-profile") {
 if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?session") {
   echo '<script>
     // Batch refresh to reduce RouterOS API connections (single request updates multiple widgets).
-    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome");
+    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome", function () {
+      try {
+        // jQuery `.load(... selector)` strips inline <script>, so re-run them when present.
+        if (typeof mikhmon_runInlineScripts === "function") {
+          mikhmon_runInlineScripts(document.getElementById("reloadHome"));
+        }
+      } catch (e) {}
+    });
     var interval1 = "' . ($areload * 1000) . '";
     window.dashboard = setInterval(function() {
       
-    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome");
+    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome", function () {
+      try {
+        if (typeof mikhmon_runInlineScripts === "function") {
+          mikhmon_runInlineScripts(document.getElementById("reloadHome"));
+        }
+      } catch (e) {}
+    });
     
   }, interval1);
 

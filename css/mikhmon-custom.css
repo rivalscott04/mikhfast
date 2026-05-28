@@ -23,11 +23,25 @@
   border-radius:999px;
   overflow:hidden;
   background: rgba(255,255,255,.08);
+  display:block !important; /* some themes override `.progress` */
 }
 
 .mm-meter-fill{
   height:100%;
   border-radius:999px;
+  display:block !important;
+  min-width:2px; /* keep visible at low % */
+}
+
+/* Ensure theme doesn't collapse bootstrap-like progress */
+.mm-meter-progress.progress{
+  height:12px !important;
+  background: rgba(255,255,255,.08) !important;
+}
+.mm-meter-progress .progress-bar{
+  float:none !important;
+  height:100% !important;
+  line-height:12px !important;
 }
 
 .mm-meter-value{
