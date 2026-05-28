@@ -372,6 +372,9 @@ function mikhmon_initAppLog() {
       '<div style="font-size:12px; opacity:.92; line-height:1.35;">' +
         '<div><b>' + text + '</b></div>' +
         (safeDetail ? ('<div style="opacity:.85; margin-top:4px;">' + safeDetail + '</div>') : '') +
+        (state === "loading"
+          ? '<div style="opacity:.78; margin-top:6px;">Showing the latest RouterOS <b>login/logout</b> events (topic: <code>account</code>), auto-refresh every 8s.</div>'
+          : '') +
         '<div style="opacity:.7; margin-top:6px;">Last check: ' + time + '</div>' +
       '</div>';
   }

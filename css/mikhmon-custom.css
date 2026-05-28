@@ -412,11 +412,8 @@ body.theme-light .card-header{
   border-bottom-color: var(--mm-border) !important;
 }
 
-/* KPI cards in light: neutral surface + subtle accent (no colorful blocks) */
-body.theme-light .box.bg-red,
-body.theme-light .box.bg-yellow,
-body.theme-light .box.bg-green,
-body.theme-light .box.bg-blue{
+/* Light: neutralize ALL colored `.box bg-*` (e.g. Vouchers cards) */
+body.theme-light .box[class*="bg-"]{
   background-color: var(--mm-surface) !important;
   color: var(--mm-text) !important;
   border: 1px solid var(--mm-border) !important;
@@ -426,10 +423,7 @@ body.theme-light .box.bg-blue{
 }
 
 /* subtle top accent line */
-body.theme-light .box.bg-red::before,
-body.theme-light .box.bg-yellow::before,
-body.theme-light .box.bg-green::before,
-body.theme-light .box.bg-blue::before{
+body.theme-light .box[class*="bg-"]::before{
   content:"";
   position:absolute;
   left:0;
@@ -440,12 +434,27 @@ body.theme-light .box.bg-blue::before{
   opacity:.9;
 }
 
-/* keep KPI links readable */
-body.theme-light .box.bg-red a,
-body.theme-light .box.bg-yellow a,
-body.theme-light .box.bg-green a,
-body.theme-light .box.bg-blue a{
+/* ensure text inside these boxes isn't forced white */
+body.theme-light .box[class*="bg-"] h1,
+body.theme-light .box[class*="bg-"] h2,
+body.theme-light .box[class*="bg-"] h3,
+body.theme-light .box[class*="bg-"] h4,
+body.theme-light .box[class*="bg-"] h5,
+body.theme-light .box[class*="bg-"] h6,
+body.theme-light .box[class*="bg-"] p,
+body.theme-light .box[class*="bg-"] span,
+body.theme-light .box[class*="bg-"] small,
+body.theme-light .box[class*="bg-"] i{
   color: inherit !important;
+}
+
+/* links inside boxes should follow accent (not white) */
+body.theme-light .box[class*="bg-"] a{
+  color: var(--mm-accent-2) !important;
+}
+body.theme-light .box[class*="bg-"] a:hover{
+  color: var(--mm-accent-2) !important;
+  opacity: .9;
 }
 
 /* KPI typography */

@@ -173,7 +173,7 @@ if($idleto != "disable"){
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="javascript:void(0)">MIKHMON</a>
+    <a id="brand" class="text-center" href="javascript:void(0)">MIKFAST</a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -225,7 +225,7 @@ if($idleto != "disable"){
 ?>  
   <div class="menu text-center align-middle card-header" style="border-radius:0;"><h3 id="MikhmonSession"><?= $session; ?></h3></div>
   <a class="connect menu <?= $shome; ?>" id="<?= $session; ?>&c=settings"><i class='fa fa-tachometer'></i> <?= $_dashboard ?></a>
-  <a  href="./admin.php?id=settings&session=<?= $session; ?>" class="menu <?= $ssettings; ?>" title="Mikhmon Settings"><i class='fa fa-gear'></i> <?= $_session_settings ?></a>
+  <a  href="./admin.php?id=settings&session=<?= $session; ?>" class="menu <?= $ssettings; ?>" title="Mikfast Settings"><i class='fa fa-gear'></i> <?= $_session_settings ?></a>
   <a href="./admin.php?id=uplogo&session=<?= $session; ?>" class="menu <?= $suplogo; ?>"><i class="fa fa-upload "></i> <?= $_upload_logo ?></a>
   <a href="./admin.php?id=editor&template=default&session=<?= $session; ?>" class="menu <?= $seditor; ?>"><i class="fa fa-edit"></i> <?= $_template_editor ?></a>
   <div class="menu spa"></div>
@@ -269,6 +269,27 @@ $(document).ready(function(){
       paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
     }
 
+    // 2b) Swap Highcharts theme + re-render traffic chart
+    (function(){
+      var hcTheme = document.getElementById("mm-hc-theme");
+      if (!hcTheme) return;
+      var src = hcTheme.getAttribute("src") || "";
+      var nextSrc = src.replace(/hc\.(dark|light)\.js/i, "hc." + nextTheme + ".js");
+      if (nextSrc === src) nextSrc = "./js/highcharts/themes/hc." + nextTheme + ".js";
+
+      // Recreate the <script> so the theme file executes again.
+      var s = document.createElement("script");
+      s.id = "mm-hc-theme";
+      s.src = nextSrc + (nextSrc.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
+      s.onload = function(){
+        try {
+          if (typeof mikhmon_initTrafficChart === "function") mikhmon_initTrafficChart();
+        } catch (e) {}
+      };
+      hcTheme.parentNode.insertBefore(s, hcTheme.nextSibling);
+      try { hcTheme.parentNode.removeChild(hcTheme); } catch (e) {}
+    })();
+
     // 3) Persist selection in session (no loader, no redirect)
     try {
       fetch(nextUrl, {
@@ -297,7 +318,7 @@ if (file_exists('./info.php')) {
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">MIKHMON</a>
+    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">MIKFAST</a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -331,7 +352,7 @@ if (file_exists('./info.php')) {
 
 <div id="sidenav" class="sidenav">
   <div class="mm-sidenav-header">
-    <div class="mm-sidenav-brand">MIKHMON</div>
+    <div class="mm-sidenav-brand">MIKFAST</div>
     <div class="mm-sidenav-sub"><?= htmlspecialchars($identity, ENT_QUOTES); ?></div>
     <select class="connect mm-sidenav-session" aria-label="Session">
       <option id="MikhmonSession" value="<?= $session; ?>"><?= htmlspecialchars($session, ENT_QUOTES); ?></option>
@@ -471,6 +492,25 @@ $(document).ready(function(){
       var href2 = paceCss.getAttribute("href") || "";
       paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
     }
+
+    (function(){
+      var hcTheme = document.getElementById("mm-hc-theme");
+      if (!hcTheme) return;
+      var src = hcTheme.getAttribute("src") || "";
+      var nextSrc = src.replace(/hc\.(dark|light)\.js/i, "hc." + nextTheme + ".js");
+      if (nextSrc === src) nextSrc = "./js/highcharts/themes/hc." + nextTheme + ".js";
+
+      var s = document.createElement("script");
+      s.id = "mm-hc-theme";
+      s.src = nextSrc + (nextSrc.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
+      s.onload = function(){
+        try {
+          if (typeof mikhmon_initTrafficChart === "function") mikhmon_initTrafficChart();
+        } catch (e) {}
+      };
+      hcTheme.parentNode.insertBefore(s, hcTheme.nextSibling);
+      try { hcTheme.parentNode.removeChild(hcTheme); } catch (e) {}
+    })();
 
     try {
       fetch(nextUrl, {

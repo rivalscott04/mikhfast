@@ -30,7 +30,7 @@ if (!isset($_SESSION["mikhmon"])) {
         <h3><i class="fa fa-info-circle"></i> About</h3>
       </div>
       <div class="card-body">
-        <h3>MIKHMON V<?= $_SESSION['v']; ?></h3>
+        <h3>MIKFAST V<?= $_SESSION['v']; ?></h3>
 <p>
   Aplikasi ini dipersembahkan untuk pengusaha hotspot di manapun Anda berada.
   Semoga makin sukses.
@@ -58,7 +58,7 @@ if (!isset($_SESSION["mikhmon"])) {
   </ul>
 </p>
 <p>
-  Terima kasih untuk semua yang telah mendukung pengembangan MIKHMON.
+  Terima kasih untuk semua yang telah mendukung pengembangan MIKFAST.
 </p>
 <p>
   Ringkasan perubahan pada versi ini:

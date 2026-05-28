@@ -393,10 +393,23 @@ include('../lang/'.$langid.'.php');
     __mikhmon_cache_set($cacheKey, $rows);
   }
   ?>
-  <ul class="mm-list-compact">
+  <div style="font-size:12px; line-height:1.35;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <div style="font-weight:800; opacity:.92;">
+        Latest account events
+        <span style="font-weight:600; opacity:.7;">(<?= count((array)$rows); ?>/10)</span>
+      </div>
+      <div style="opacity:.7;">Updated <?= htmlspecialchars(date('H:i:s'), ENT_QUOTES); ?></div>
+    </div>
+    <div style="opacity:.72; margin-top:2px;">
+      RouterOS log topic: <code>account</code> (login/logout). Auto-refresh every 8s.
+    </div>
+  </div>
+
+  <ul class="mm-list-compact" style="margin-top:8px;">
     <?php
       if (!is_array($rows) || count($rows) === 0) {
-        echo "<li>-</li>";
+        echo "<li>No account events yet.</li>";
       } else {
         foreach ($rows as $r) {
           $t = isset($r['time']) ? $r['time'] : '';

@@ -1,8 +1,8 @@
-### MIKHMON V3 (Fork/Development)
+### MIKFAST V3 (Fork/Development)
 
-Mikhmon v3 adalah aplikasi web untuk membantu admin hotspot MikroTik (voucher, user, report, monitoring) lewat RouterOS API.
+MIKFAST v3 adalah aplikasi web untuk membantu admin hotspot MikroTik (voucher, user, report, monitoring) lewat RouterOS API.
 
-Repo ini adalah pengembangan dari **MIKHMON V3** dengan fokus ke **kompatibilitas RouterOS v6 & v7**, serta beberapa **optimasi komunikasi API** supaya lebih rapi dan lebih ringan.
+Repo ini adalah pengembangan dari **MIKFAST V3** dengan fokus ke **kompatibilitas RouterOS v6 & v7**, serta beberapa **optimasi komunikasi API** supaya lebih rapi dan lebih ringan.
 
 #### Yang kita kerjakan di repo ini
 - **Pondasi kompatibilitas ROS6/ROS7 (Adapter)**: komunikasi ke RouterOS dipusatkan lewat `lib/router/RouterService.php` yang memilih `Ros6Adapter` atau `Ros7Adapter` sehingga UI/module tidak perlu “tau” detail perbedaan versi.
@@ -16,13 +16,14 @@ Repo ini adalah pengembangan dari **MIKHMON V3** dengan fokus ke **kompatibilita
 
 ### Changelog (fork ini)
 #### Unreleased
-- Tambah `RouterService` + `RouterAdapterInterface` untuk memusatkan komunikasi RouterOS.
-- Tambah `Ros6Adapter` dan `Ros7Adapter` sebagai pondasi kompatibilitas RouterOS v6/v7.
-- Optimasi beberapa request RouterOS dengan pembatasan field (proplist) supaya payload lebih kecil.
+- **Redesign (by Rival)**: pembaruan tampilan/UX pada fork ini.
+- **Refactor (RouterOS API layer)**: memusatkan komunikasi RouterOS lewat `RouterService` + `RouterAdapterInterface` (module/UI tidak perlu menangani detail perbedaan versi).
+- **Compatibility (ROS v6/v7)**: menambahkan `Ros6Adapter` dan `Ros7Adapter` sebagai pondasi kompatibilitas RouterOS v6/v7.
+- **Performance/Optimization**: optimasi beberapa request RouterOS dengan pembatasan field (proplist) supaya payload lebih kecil dan lebih stabil.
 
 #### Credit / Penghargaan
-- **Author asli Mikhmon v3**: **Laksa19** 
+- **Author asli (upstream) v3**: **Laksa19** 
   - Website: `https://laksa19.github.io/`
-  - Repo upstream (referensi): `https://github.com/laksa19/mikhmonv3`
+  - Repo upstream (referensi): `https://github.com/laksa19/`
 
 ---
