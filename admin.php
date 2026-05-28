@@ -82,12 +82,28 @@ if ($id == "login" || substr($url, -1) == "p") {
     $pass = $_POST['pass'];
     if ($user == $useradm && $pass == decrypt($passadm)) {
       $_SESSION["mikhmon"] = $user;
-      // Use server-side redirect to avoid flaky JS redirect.
+      if (function_exists('session_regenerate_id')) {
+        @session_regenerate_id(true);
+      }
+      // Make sure session is persisted before redirecting.
+      if (function_exists('session_write_close')) {
+        @session_write_close();
+      }
+
+      // If this was triggered via SPA/AJAX, return a redirect instruction.
+      if ($__mikhmon_ajax) {
+        mikhmon_json(array(
+          "ok" => true,
+          "redirect" => "./admin.php?id=sessions",
+        ));
+      }
+
+      // Use server-side redirect when possible; fallback to JS.
       if (!headers_sent()) {
-        header("Location:./admin.php?id=sessions");
+        header("Location: ./admin.php?id=sessions");
         exit;
       }
-      echo "<script>window.location='./admin.php?id=sessions'</script>";
+      echo "<script>window.location.href='./admin.php?id=sessions'</script>";
     
     } else {
       $error = '<div style="width: 100%; padding:5px 0px 5px 0px; border-radius:5px;" class="bg-danger"><i class="fa fa-ban"></i> Alert!<br>Invalid username or password.</div>';
