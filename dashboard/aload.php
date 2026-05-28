@@ -179,7 +179,7 @@ include('../lang/'.$langid.'.php');
                       <?php
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memUsedPct ?>%;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
@@ -193,7 +193,7 @@ include('../lang/'.$langid.'.php');
                       <?php
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddUsedPct ?>%;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
@@ -518,14 +518,13 @@ else if ($load == "all") {
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
                     <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2)), ENT_QUOTES) ?>">
                       <?php
-                        $memLabel = ($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2);
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memUsedPct ?>%;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $memUsedPct ?>%
+                      <?= $memFreePct ?>%
                     </div>
                   </div>
 
@@ -533,14 +532,13 @@ else if ($load == "all") {
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
                     <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2)), ENT_QUOTES) ?>">
                       <?php
-                        $hddLabel = ($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2);
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddUsedPct ?>%;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $hddUsedPct ?>%
+                      <?= $hddFreePct ?>%
                     </div>
                   </div>
                 </div>
