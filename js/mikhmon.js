@@ -162,7 +162,7 @@ $("#loading").hide();
 
 var idleto,
   idtoEl = document.getElementById("idto"),
-  idto = idtoEl ? idtoEl.innerHTML : "disable";
+  idto = idtoEl ? (idtoEl.innerHTML || "").trim() : "disable";
 
 function idleTimer() {
   var timerEl = document.getElementById("timer");
@@ -196,8 +196,10 @@ function startTimer() {
   var timerEl = document.getElementById("timer");
   if (!logoutEl || !timerEl) return;
   var parts = timerEl.innerHTML.split(/[:]+/);
-  var minutes = parts[0];
-  var seconds = checkSecond(parts[1] - 1);
+  var minutes = parseInt(parts[0], 10);
+  if (isNaN(minutes)) minutes = 10;
+  var secRaw = parts.length > 1 ? parts[1] : "00";
+  var seconds = checkSecond(parseInt(secRaw, 10) - 1);
 
   if (seconds == 59) minutes -= 1;
   if (minutes == 0 && seconds == 0) {
@@ -214,13 +216,15 @@ function checkSecond(sec) {
   return sec;
 }
 
-idleto = idto == "" || idto == "0" ? "10:00" : idto + ":00";
+var idtoMinutes = parseInt(idto, 10);
+if (isNaN(idtoMinutes) || idtoMinutes <= 0) idtoMinutes = 10;
+idleto = idto === "disable" ? "10:00" : idtoMinutes + ":00";
 var timerElInit = document.getElementById("timer");
 if (timerElInit) timerElInit.innerHTML = idleto;
 
 var url = window.location.href,
   getID = url.split("=")[1];
-if (getID != "login" && idto != "disable") {
+if (getID != "login" && idto !== "disable") {
   idleTimer();
   startTimer();
 }
@@ -323,6 +327,9 @@ function mikhmon_ajaxSubmitForm(form) {
   try {
     if (window.location.href.indexOf("admin.php?id=login") !== -1) return false;
     if (form.querySelector && form.querySelector('button[name="login"],input[name="login"]')) return false;
+    // Never hijack settings save: must run classic redirect & server-render reliably.
+    if (form.getAttribute("name") === "settings") return false;
+    if (form.querySelector && form.querySelector('input[name="save"],button[name="save"]')) return false;
   } catch (e) {}
 
   var action = form.getAttribute("action") || window.location.href;

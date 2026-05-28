@@ -25,6 +25,12 @@ if (!isset($_SESSION["mikhmon"])) {
 
   include_once('./include/ajax.php');
   $mikhmon_config_write_error = "";
+  $mikhmon_flash = "";
+
+  if (isset($_SESSION['mikhmon_flash'])) {
+    $mikhmon_flash = $_SESSION['mikhmon_flash'];
+    unset($_SESSION['mikhmon_flash']);
+  }
 
   if ($id == "settings" && explode("-",$router)[0] == "new") {
     $data = '$data';
@@ -113,6 +119,11 @@ if (!isset($_SESSION["mikhmon"])) {
         ));
       }
     }
+    if ($writeOk === false) {
+      $_SESSION['mikhmon_flash'] = $mikhmon_config_write_error;
+    } else {
+      $_SESSION['mikhmon_flash'] = "Saved";
+    }
     echo "<script>window.location='" . $redirect . "'</script>";
   }
   // If config is missing/incomplete, do NOT redirect in a loop.
@@ -136,6 +147,12 @@ if (!isset($_SESSION["mikhmon"])) {
   }}
   
 </script>
+
+<?php if ($mikhmon_flash != "") { ?>
+  <div class="bg-primary pd-10 radius-5" style="margin:10px 0;">
+    <?= $mikhmon_flash; ?>
+  </div>
+<?php } ?>
 
 <?php if ($mikhmon_config_write_error != "") { ?>
   <div class="bg-danger pd-10 radius-5" style="margin:10px 0;">
