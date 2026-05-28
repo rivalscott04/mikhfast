@@ -274,7 +274,7 @@ if (file_exists('./info.php')) {
     <div class="mm-sidenav-brand">MIKHMON</div>
     <div class="mm-sidenav-sub"><?= htmlspecialchars($identity, ENT_QUOTES); ?></div>
     <select class="connect mm-sidenav-session" aria-label="Session">
-      <option id="MikhmonSession" value="<?= $session; ?>"><?= $hotspotname; ?></option>
+      <option id="MikhmonSession" value="<?= $session; ?>"><?= htmlspecialchars($session, ENT_QUOTES); ?></option>
         <?php
         foreach (file('./include/config.php') as $line) {
           $sesname = explode("'", $line)[1];
@@ -289,6 +289,7 @@ if (file_exists('./info.php')) {
         }
         ?>
     </select>
+    <div class="mm-sidenav-sub" style="margin-top:8px;">Hotspot: <?= htmlspecialchars($hotspotname, ENT_QUOTES); ?></div>
   </div>
   <a href="./?session=<?= $session; ?>" class="menu <?= $shome; ?>"><i class="fa fa-dashboard"></i> <?= $_dashboard ?></a>
   <!--hotspot-->
