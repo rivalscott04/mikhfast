@@ -504,23 +504,113 @@ body.theme-light .group-item:focus{
   box-shadow: 0 0 0 3px rgba(43,111,168,.14) !important;
 }
 
-/* Light theme: native <select> popup must not inherit dark form colors */
-body.theme-light select,
-body.theme-light select.form-control{
-  background-color: #FFF !important;
-  color: var(--mm-text) !important;
-  border-color: var(--mm-border) !important;
+html:has(body.theme-light){
+  color-scheme: light;
 }
-body.theme-light select option{
-  background-color: #FFF;
+
+/* Light theme: custom form select (native OS popup cannot be styled on macOS) */
+.mm-form-select{
+  position: relative;
+  display: block;
+  width: 100%;
+}
+.mm-form-select__native{
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: 0 !important;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+.mm-form-select__trigger{
+  width: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.mm-form-select__label{
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mm-form-select__caret{
+  flex: 0 0 auto;
+  font-size: 12px;
+  opacity: .65;
+  transition: transform .2s ease;
+}
+.mm-form-select--open .mm-form-select__caret{
+  transform: rotate(180deg);
+}
+.mm-form-select__menu{
+  position: fixed;
+  z-index: 10060;
+  max-height: min(280px, 50vh);
+  overflow: auto;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--mm-border-strong);
+  background: #FFF;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, .14);
+}
+.mm-form-select__menu[hidden]{
+  display: none !important;
+}
+.mm-form-select__item-text{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mm-form-select__item{
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--mm-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease;
 }
-body.theme-light select option:checked,
-body.theme-light select option:hover,
-body.theme-light select option:focus{
-  background-color: var(--mm-accent-soft);
+.mm-form-select__item:hover,
+.mm-form-select__item:focus{
+  outline: none;
+  background: var(--mm-accent-soft);
   color: var(--mm-accent-2);
 }
+.mm-form-select__item--active{
+  background: var(--mm-accent-soft);
+  color: var(--mm-accent-2);
+  font-weight: 700;
+}
+.mm-form-select__check{
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--mm-accent);
+  opacity: .95;
+}
+.mm-form-select--disabled .mm-form-select__trigger{
+  cursor: not-allowed;
+  opacity: .72;
+}
+
 body.theme-light .form-control:disabled,
 body.theme-light .group-item:disabled,
 body.theme-light input:disabled,

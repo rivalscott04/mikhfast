@@ -279,6 +279,10 @@ $(document).ready(function(){
       themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
     }
 
+    try {
+      if (typeof mikhmon_syncThemeFormSelects === "function") mikhmon_syncThemeFormSelects(nextTheme);
+    } catch (e) {}
+
     // 2b) Swap Highcharts theme + re-render traffic chart
     (function(){
       var hcTheme = document.getElementById("mm-hc-theme");
@@ -500,6 +504,10 @@ $(document).ready(function(){
       var href = themeCss.getAttribute("href") || "";
       themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
     }
+
+    try {
+      if (typeof mikhmon_syncThemeFormSelects === "function") mikhmon_syncThemeFormSelects(nextTheme);
+    } catch (e) {}
 
     (function(){
       var hcTheme = document.getElementById("mm-hc-theme");
