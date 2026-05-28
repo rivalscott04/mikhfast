@@ -64,16 +64,27 @@ if (!isset($_SESSION["mikhmon"])) {
     $sesname = (preg_replace('/\s+/', '-', $_POST['sessname']));
     $slivereport = ($_POST['livereport']);
 
-    $search = array('1' => "$session!$iphost", "$session@|@$userhost", "$session#|#$passwdhost", "$session%$hotspotname", "$session^$dnsname", "$session&$currency", "$session*$areload", "$session($iface", "$session)$infolp", "$session=$idleto", "'$session'", "$session@!@$livereport");
+    $configPath = "./include/config.php";
+    $configContent = file_get_contents($configPath);
 
-    $replace = array('1' => "$sesname!$siphost", "$sesname@|@$suserhost", "$sesname#|#$spasswdhost", "$sesname%$shotspotname", "$sesname^$sdnsname", "$sesname&$scurrency", "$sesname*$sreload", "$sesname($siface", "$sesname)$sinfolp", "$sesname=$sidleto", "'$sesname'", "$sesname@!@$slivereport");
+    // Rebuild the session line and replace only that line (avoid corrupting other sessions).
+    $newLine = "\n" . '$data' . "['" . $sesname . "'] = array ('1'=>'" . $sesname . "!" . $siphost . "','" . $sesname . "@|@" . $suserhost . "','" . $sesname . "#|#" . $spasswdhost . "','" . $sesname . "%" . $shotspotname . "','" . $sesname . "^" . $sdnsname . "','" . $sesname . "&" . $scurrency . "','" . $sesname . "*" . $sreload . "','" . $sesname . "(" . $siface . "','" . $sesname . ")" . $sinfolp . "','" . $sesname . "=" . $sidleto . "','" . $sesname . "@!@" . $slivereport . "');";
 
-    $max = count($search);
-    for ($i = 1; $i <= $max; $i++) {
-      $content = file_get_contents("./include/config.php");
-      $newcontent = str_replace((string)$search[$i], (string)$replace[$i], "$content");
-      file_put_contents("./include/config.php", "$newcontent");
+    $pattern = "/\\$data\\['" . preg_quote($session, "/") . "'\\]\\s*=\\s*array\\s*\\([^;]*\\);/m";
+    $updated = preg_replace($pattern, trim($newLine), $configContent, 1, $count);
+
+    // If session was renamed, also try matching by the old name occurrence inside the line.
+    if ($count === 0) {
+      $pattern2 = "/\\$data\\['" . preg_quote($session, "/") . "'\\].*?;/m";
+      $updated = preg_replace($pattern2, trim($newLine), $configContent, 1, $count);
     }
+
+    if ($count === 0) {
+      // Fallback: append new session line (do not destroy config).
+      $updated = rtrim($configContent) . "\n" . trim($newLine) . "\n";
+    }
+
+    file_put_contents($configPath, $updated);
     $_SESSION["connect"] = "";
     echo "<script>window.location='./admin.php?id=settings&session=" . $sesname . "'</script>";
   }
