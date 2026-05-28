@@ -19,6 +19,9 @@ session_start();
 // hide all error
 error_reporting(0);
 
+// Ensure AJAX helpers available (safe if already included by parent).
+@include_once(__DIR__ . '/../include/ajax.php');
+
 // check url
 $url2 = explode("&set-theme", $url)[0];
 
@@ -49,24 +52,48 @@ if (empty($gettheme)) {
 
 } else {
     if (in_array($gettheme, $mtheme)) {
-        include_once('./include/headhtml.php');
+        $_SESSION['theme'] = $gettheme;
+        $_SESSION['themecolor'] = $getthemecolor;
+
+        // Persist default theme file if possible (optional).
         $gen = '<?php $theme="' . $gettheme . '"; $themecolor="'.$getthemecolor.'";?>';
-        // Use absolute path so it works from any include context.
-        // If file is not writable (common on shared hosting), fall back to session-only.
         $stheme = __DIR__ . '/../include/theme.php';
         $handle = @fopen($stheme, 'w');
         if ($handle !== false) {
             @fwrite($handle, $gen);
             @fclose($handle);
         }
-        $_SESSION['theme'] = $gettheme;
-        $_SESSION['themecolor'] = $getthemecolor;
-        echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>Load '.$gettheme.' theme...</h3></center>';
+
+        $isAjax = function_exists('mikhmon_is_ajax') ? mikhmon_is_ajax() : false;
+        if ($isAjax && function_exists('mikhmon_json')) {
+            mikhmon_json(array(
+                "ok" => true,
+                "theme" => $gettheme,
+                "themecolor" => $getthemecolor,
+                "redirect" => $url2,
+            ));
+        }
+
+        // Fast redirect (no intermediate "loading theme" page).
+        if (!headers_sent()) {
+            header("Location: " . $url2);
+            exit;
+        }
         echo "<script>window.location='" . $url2 . "'</script>";
         
     } else {
-        include_once('./include/headhtml.php');
-        echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>'.$gettheme.' theme not found...</h3></center>';
+        $isAjax = function_exists('mikhmon_is_ajax') ? mikhmon_is_ajax() : false;
+        if ($isAjax && function_exists('mikhmon_json')) {
+            mikhmon_json(array(
+                "ok" => false,
+                "error" => "theme_not_found",
+                "redirect" => $url2,
+            ), 400);
+        }
+        if (!headers_sent()) {
+            header("Location: " . $url2);
+            exit;
+        }
         echo "<script>window.location='" . $url2 . "'</script>";
     }
 }

@@ -125,9 +125,48 @@ function connect(session) {
 }
 
 function stheme(url) {
-  // Theme/language changes should be a full navigation so CSS + server state
-  // apply consistently (AJAX load can leave UI in half-updated state).
-  window.location.href = url;
+  // Fast theme/lang switch:
+  // 1) hit setter via AJAX (no spinner page)
+  // 2) reload once to apply new CSS/JS assets
+  function stripParam(inputUrl, param) {
+    try {
+      var u = new URL(inputUrl, window.location.href);
+      u.searchParams.delete(param);
+      // also remove empty trailing ? if any
+      return u.toString();
+    } catch (e) {
+      // fallback for old browsers / odd URLs
+      var parts = String(inputUrl).split("&" + param + "=");
+      return parts[0];
+    }
+  }
+
+  // If fetch fails, fall back to classic navigation.
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json",
+    },
+    credentials: "same-origin",
+  })
+    .then(function (r) {
+      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
+      return r.json();
+    })
+    .then(function (data) {
+      // setter returns {redirect} to the clean URL
+      if (data && data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
+      // best-effort: strip known params
+      window.location.href = stripParam(stripParam(url, "set-theme"), "setlang");
+    })
+    .catch(function () {
+      window.location.href = url;
+    });
 }
 
 var _0x8202 = [
