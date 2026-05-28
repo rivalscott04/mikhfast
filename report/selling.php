@@ -348,6 +348,14 @@ $(document).ready(function(){
 				for ($i = 0; $i < $TotalReg; $i++) {
 					$getname = explode("-|-", $getData[$i]['name']);
 					if (substr($getname[2], 0, strlen($prefix)) == $prefix) {
+						// Backward-compatible parsing: older records may not include profile field.
+						if (isset($getname[8])) {
+							$profile = isset($getname[7]) ? $getname[7] : "";
+							$comment = $getname[8];
+						} else {
+							$profile = "";
+							$comment = isset($getname[7]) ? $getname[7] : "";
+						}
 						echo "<tr>";
 						echo "<td>";
 						$tgl = $getname[0];
@@ -362,11 +370,9 @@ $(document).ready(function(){
 						echo $username;
 						echo "</td>";
 						echo "<td>";
-						$profile = $getname[7];
 						echo $profile;
 						echo "</td>";
 						echo "<td>";
-						$comment = $getname[8];
 						echo $comment;
 						echo "</td>";
 						echo "<td style='text-align:right;'>";
@@ -379,6 +385,14 @@ $(document).ready(function(){
 			} else {
 				for ($i = 0; $i < $TotalReg; $i++) {
 					$getname = explode("-|-", $getData[$i]['name']);
+					// Backward-compatible parsing: older records may not include profile field.
+					if (isset($getname[8])) {
+						$profile = isset($getname[7]) ? $getname[7] : "";
+						$comment = $getname[8];
+					} else {
+						$profile = "";
+						$comment = isset($getname[7]) ? $getname[7] : "";
+					}
 					echo "<tr>";
 					echo "<td>";
 					$tgl = $getname[0];
@@ -393,11 +407,9 @@ $(document).ready(function(){
 					echo $username;
 					echo "</td>";
 					echo "<td>";
-					$profile = $getname[7];
 					echo $profile;
 					echo "</td>";
 					echo "<td>";
-					$comment = $getname[8];
 					echo $comment;
 					echo "</td>";
 					echo "<td style='text-align:right;'>";

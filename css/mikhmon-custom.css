@@ -1,0 +1,71 @@
+.mm-meter-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.mm-meter-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.mm-meter-label{
+  width:90px;
+  flex:0 0 90px;
+  font-size:12px;
+  opacity:.9;
+}
+
+.mm-meter-progress{
+  height:12px;
+  flex:1;
+  border-radius:999px;
+  overflow:hidden;
+  background: rgba(255,255,255,.08);
+}
+
+.mm-meter-fill{
+  height:100%;
+  border-radius:999px;
+}
+
+.mm-meter-value{
+  width:120px;
+  flex:0 0 120px;
+  text-align:right;
+  font-size:12px;
+  opacity:.95;
+  white-space:nowrap;
+}
+
+.mm-meter-subvalue{
+  display:block;
+  font-size:11px;
+  opacity:.75;
+  line-height:1.1;
+}
+
+/* Theme-aware colors: use existing theme accents when possible */
+.mm-meter-fill--primary{
+  background: var(--primary, #1da1f2);
+}
+
+.mm-meter-fill--warn{
+  background: var(--warning, #f0ad4e);
+}
+
+.mm-meter-fill--danger{
+  background: var(--danger, #d9534f);
+}
+
+/* Fallbacks for themes that don't define CSS variables */
+body .progress .progress-bar.mm-meter-fill--primary{ background-color:#2D9CDB !important; }
+body .progress .progress-bar.mm-meter-fill--warn{ background-color:#F2C94C !important; }
+body .progress .progress-bar.mm-meter-fill--danger{ background-color:#EB5757 !important; }
+
+body .progress .progress-bar.mm-meter-fill--primary,
+body .progress .progress-bar.mm-meter-fill--warn,
+body .progress .progress-bar.mm-meter-fill--danger{
+  background-image: linear-gradient(to right, rgba(255,255,255,.10), rgba(255,255,255,0));
+}

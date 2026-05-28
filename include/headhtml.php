@@ -34,6 +34,8 @@ error_reporting(0);
 		<link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css" />
 		<!-- Mikhmon UI -->
 		<link rel="stylesheet" href="css/mikhmon-ui.<?= $theme; ?>.min.css">
+		<!-- Custom overrides (theme-aware) -->
+		<link rel="stylesheet" href="css/mikhmon-custom.css">
 		<!-- favicon -->
 		<link rel="icon" href="./img/favicon.png" />
 		<!-- jQuery -->

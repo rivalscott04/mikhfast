@@ -166,7 +166,9 @@ if (!isset($_SESSION["mikhmon"])) {
                   $memUsedPct = ($memTotal > 0) ? (int) round(($memUsed / $memTotal) * 100) : 0;
                   if ($memUsedPct < 0) $memUsedPct = 0;
                   if ($memUsedPct > 100) $memUsedPct = 100;
-                  $memClass = ($memUsedPct >= 90) ? "bg-red" : (($memUsedPct >= 75) ? "bg-yellow" : "bg-blue");
+                  $memFreePct = ($memTotal > 0) ? (int) round(($memFree / $memTotal) * 100) : 0;
+                  if ($memFreePct < 0) $memFreePct = 0;
+                  if ($memFreePct > 100) $memFreePct = 100;
 
                   $hddFree = isset($resource['free-hdd-space']) ? (float) $resource['free-hdd-space'] : 0.0;
                   $hddTotal = isset($resource['total-hdd-space']) ? (float) $resource['total-hdd-space'] : 0.0;
@@ -174,49 +176,55 @@ if (!isset($_SESSION["mikhmon"])) {
                   $hddUsedPct = ($hddTotal > 0) ? (int) round(($hddUsed / $hddTotal) * 100) : 0;
                   if ($hddUsedPct < 0) $hddUsedPct = 0;
                   if ($hddUsedPct > 100) $hddUsedPct = 100;
-                  $hddClass = ($hddUsedPct >= 90) ? "bg-red" : (($hddUsedPct >= 75) ? "bg-yellow" : "bg-blue");
+                  $hddFreePct = ($hddTotal > 0) ? (int) round(($hddFree / $hddTotal) * 100) : 0;
+                  if ($hddFreePct < 0) $hddFreePct = 0;
+                  if ($hddFreePct > 100) $hddFreePct = 100;
 
                   $cpuTextParts = array($cpuLoad . "%");
                   if ($cpuCount > 0) $cpuTextParts[] = $cpuCount . "x";
                   if ($cpuFreq > 0) $cpuTextParts[] = $cpuFreq . " MHz";
                   $cpuText = implode(" ", $cpuTextParts);
                 ?>
-                <div>
-                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
-                    <div style="width:90px;flex:0 0 90px;"><?= $_cpu_load ?></div>
-                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
-                      <div class="progress-bar bg-blue" role="progressbar" style="width: <?= $cpuLoad ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
-                        <?= $cpuText ?>
+                <div class="mm-meter-list">
+                  <div class="mm-meter-row">
+                    <div class="mm-meter-label"><?= $_cpu_load ?></div>
+                    <div class="progress mm-meter-progress">
+                      <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
+                    </div>
+                    <div class="mm-meter-value">
+                      <?= $cpuLoad ?>%
+                      <?php if ($cpuFreq > 0) { ?>
+                        <span class="mm-meter-subvalue"><?= $cpuCount > 0 ? ($cpuCount . "x ") : "" ?><?= $cpuFreq ?> MHz</span>
+                      <?php } ?>
                     </div>
                   </div>
 
-                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
-                    <div style="width:90px;flex:0 0 90px;"><?= $_free_memory ?></div>
-                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
+                  <div class="mm-meter-row">
+                    <div class="mm-meter-label"><?= $_free_memory ?></div>
+                    <div class="progress mm-meter-progress">
                       <?php
-                        $memLabel = ($memTotal > 0)
-                          ? (formatBytes($memUsed, 2) . " / " . formatBytes($memTotal, 2))
-                          : formatBytes($memFree, 2);
+                        $memLabel = ($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2);
+                        // free-based: low free => danger
+                        $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar <?= $memClass ?>" role="progressbar" style="width: <?= $memUsedPct ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
-                        <?= $memLabel ?>
+                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
+                    <div class="mm-meter-value"><?= $memLabel ?></div>
                   </div>
 
-                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
-                    <div style="width:90px;flex:0 0 90px;"><?= $_free_hdd ?></div>
-                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
+                  <div class="mm-meter-row">
+                    <div class="mm-meter-label"><?= $_free_hdd ?></div>
+                    <div class="progress mm-meter-progress">
                       <?php
-                        $hddLabel = ($hddTotal > 0)
-                          ? (formatBytes($hddUsed, 2) . " / " . formatBytes($hddTotal, 2))
-                          : formatBytes($hddFree, 2);
+                        $hddLabel = ($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2);
+                        $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
-                      <div class="progress-bar <?= $hddClass ?>" role="progressbar" style="width: <?= $hddUsedPct ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
-                        <?= $hddLabel ?>
+                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
+                    <div class="mm-meter-value"><?= $hddLabel ?></div>
                   </div>
                 </div>
                 </div>
@@ -351,7 +359,8 @@ if (!isset($_SESSION["mikhmon"])) {
                           type: 'areaspline',
                           events: {
                             load: function () {
-                              setInterval(function () {
+                              // keep interval handle so SPA navigation can clear it
+                              window.__mikhmonTrafficInterval = setInterval(function () {
                                 requestDatta(sessiondata,interface);
                               }, 8000);
                             }				

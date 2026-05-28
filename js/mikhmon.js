@@ -279,6 +279,56 @@ function mikhmon_clearIntervals() {
     try { clearInterval(window.livereport); } catch (e) {}
     window.livereport = null;
   }
+  // Clear traffic monitor interval (Highcharts live updates)
+  if (window.__mikhmonTrafficInterval) {
+    try { clearInterval(window.__mikhmonTrafficInterval); } catch (e) {}
+    window.__mikhmonTrafficInterval = null;
+  }
+}
+
+function mikhmon_runInlineScripts(rootEl) {
+  // When HTML is injected via `innerHTML`, browsers do NOT execute <script>.
+  // Many pages rely on inline scripts (e.g., traffic chart on dashboard),
+  // so we re-insert them to ensure they run after AJAX navigation.
+  if (!rootEl || !rootEl.querySelectorAll) return;
+  var scripts = rootEl.querySelectorAll("script");
+  if (!scripts || !scripts.length) return;
+
+  for (var i = 0; i < scripts.length; i++) {
+    var old = scripts[i];
+    var s = document.createElement("script");
+
+    // copy attributes
+    if (old.attributes && old.attributes.length) {
+      for (var j = 0; j < old.attributes.length; j++) {
+        var attr = old.attributes[j];
+        try { s.setAttribute(attr.name, attr.value); } catch (e) {}
+      }
+    }
+
+    if (old.src) {
+      // avoid re-loading the same external script multiple times
+      try {
+        var srcAbs = new URL(old.getAttribute("src"), window.location.href).toString();
+        if (document.querySelector('script[src="' + srcAbs + '"]')) {
+          // keep a placeholder (remove old to avoid duplicate ids), but don't reload
+          try { old.parentNode && old.parentNode.removeChild(old); } catch (e) {}
+          continue;
+        }
+        s.src = srcAbs;
+        s.async = false;
+      } catch (e) {
+        s.src = old.src;
+        s.async = false;
+      }
+    } else {
+      s.text = old.text || old.textContent || old.innerHTML || "";
+    }
+
+    try {
+      old.parentNode && old.parentNode.replaceChild(s, old);
+    } catch (e) {}
+  }
 }
 
 function mikhmon_applyHtml(wrapperHtml) {
@@ -292,6 +342,8 @@ function mikhmon_applyHtml(wrapperHtml) {
 
   mikhmon_clearIntervals();
   wrapperEl.innerHTML = newWrapper.innerHTML;
+  // execute any inline scripts injected into the wrapper
+  try { mikhmon_runInlineScripts(wrapperEl); } catch (e) {}
 
   // re-init behaviors that are expected after navigation
   $(".main-container").fadeIn(0);
