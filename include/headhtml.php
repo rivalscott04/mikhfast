@@ -41,9 +41,6 @@ error_reporting(0);
 		<link rel="alternate icon" href="./img/favicon.png" />
 		<!-- jQuery -->
 		<script src="js/jquery.min.js"></script>
-		<!-- pace -->
-		<link id="mm-pace-css" href="css/pace.<?= $theme; ?>.css" rel="stylesheet" />
-		<script src="js/pace.min.js"></script>
 
 		
 	</head>

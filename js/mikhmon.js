@@ -194,7 +194,8 @@ function mikhmon_beginSessionSwitch(sessionRaw) {
 
   mikhmon_setSwitchingUI(true);
   mikhmon_disableDuringSwitch(document);
-  mikhmon_toast("Switching to: " + session + "…", { spinner: true, duration: 0, type: "info" });
+  // No spinner here: the page itself will shimmer (mm-switching).
+  mikhmon_toast("Switching to: " + session + "…", { spinner: false, duration: 0, type: "info" });
 }
 
 function printBT() {

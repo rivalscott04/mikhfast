@@ -291,11 +291,6 @@ $(document).ready(function(){
       var href = themeCss.getAttribute("href") || "";
       themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
     }
-    var paceCss = document.getElementById("mm-pace-css");
-    if (paceCss && paceCss.getAttribute) {
-      var href2 = paceCss.getAttribute("href") || "";
-      paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
-    }
 
     // 2b) Swap Highcharts theme + re-render traffic chart
     (function(){
@@ -509,11 +504,6 @@ $(document).ready(function(){
       var href = themeCss.getAttribute("href") || "";
       themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
     }
-    var paceCss = document.getElementById("mm-pace-css");
-    if (paceCss && paceCss.getAttribute) {
-      var href2 = paceCss.getAttribute("href") || "";
-      paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
-    }
 
     (function(){
       var hcTheme = document.getElementById("mm-hc-theme");
@@ -556,7 +546,7 @@ if (file_exists('./include/info.php')) {
 } ?>
 
 <div id="main">  
-<div id="loading" class="lds-dual-ring"></div>
+<div id="loading" class="lds-dual-ring" style="display:none;"></div>
 <?php
   // Keep content visible even if JS/AJAX fails.
   echo '<div class="main-container">';
