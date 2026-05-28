@@ -162,25 +162,35 @@ if ($id == "login" || substr($url, -1) == "p") {
     </script>';
 } elseif ($id == "connect"  && !empty($session)) {
   ini_set("max_execution_time",5);  
-  include_once('./include/menu.php');
   $API = new RouterosAPI();
   $API->debug = false;
   if ($API->connect($iphost, $userhost, decrypt($passwdhost))){
     $_SESSION["connect"] = "<b class='text-green'>Connected</b>";
-    echo "<script>window.location='./?session=" . $session . "'</script>";
+    $redirect = "./?session=" . $session;
+    if (!headers_sent()) {
+      header("Location:" . $redirect);
+      exit;
+    }
+    echo "<script>window.location='" . $redirect . "'</script>";
   } else {
     $_SESSION["connect"] = "<b class='text-red'>Not Connected</b>";
-    $nl = '\n';
+    // Avoid rendering an intermediate "settings-like" page.
+    // Set a flash message and redirect immediately.
     if ($currency == in_array($currency, $cekindo['indo'])) {
-      echo "<script>alert('MIKFAST not connected!".$nl."Silakan periksa kembali IP, User, Password dan port API harus enable.".$nl."Jika menggunakan koneksi VPN, pastikan VPN tersebut terkoneksi.')</script>";
-    }else{
-      echo "<script>alert('MIKFAST not connected!".$nl."Please check the IP, User, Password and port API must be enabled.')</script>";
+      $_SESSION['mikhmon_flash'] = "MIKFAST not connected! Silakan periksa kembali IP, User, Password dan port API harus enable. Jika menggunakan koneksi VPN, pastikan VPN tersebut terkoneksi.";
+    } else {
+      $_SESSION['mikhmon_flash'] = "MIKFAST not connected! Please check the IP, User, Password and ensure the API port is enabled.";
     }
-    if($c == "settings"){
-      echo "<script>window.location='./admin.php?id=settings&session=" . $session . "'</script>";
-    }else{
-      echo "<script>window.location='./admin.php?id=sessions'</script>";
+
+    $redirect = ($c == "settings")
+      ? ("./admin.php?id=settings&session=" . $session)
+      : "./admin.php?id=sessions";
+
+    if (!headers_sent()) {
+      header("Location:" . $redirect);
+      exit;
     }
+    echo "<script>window.location='" . $redirect . "'</script>";
   }
 } elseif ($id == "uplogo"  && !empty($session)) {
   include_once('./include/menu.php');
