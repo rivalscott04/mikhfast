@@ -254,7 +254,10 @@ if ($id == "login" || substr($url, -1) == "p") {
 <?php if ($id != "login") { ?>
   <script src="js/mikhmon-ui.<?= $theme; ?>.min.js"></script>
 <?php } ?>
-<script src="js/mikhmon.js?t=<?= str_replace(" ","_",date("Y-m-d H:i:s")); ?>"></script>
+<?php
+  $mikhmonJsPrefix = 'js/';
+  include __DIR__ . '/include/mikhmon-scripts.php';
+?>
 <?php
   if (file_exists('./include/info.php')) {
     include('./include/info.php');

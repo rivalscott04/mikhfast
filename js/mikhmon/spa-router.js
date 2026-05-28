@@ -1,0 +1,185 @@
+/* Mikhmon — SPA navigation + applyHtml */
+function mikhmon_runInlineScripts(rootEl) {
+  // When HTML is injected via `innerHTML`, browsers do NOT execute <script>.
+  // Many pages rely on inline scripts (e.g., traffic chart on dashboard),
+  // so we re-insert them to ensure they run after AJAX navigation.
+  if (!rootEl || !rootEl.querySelectorAll) return;
+  var scripts = rootEl.querySelectorAll("script");
+  if (!scripts || !scripts.length) return;
+
+  for (var i = 0; i < scripts.length; i++) {
+    var old = scripts[i];
+    var s = document.createElement("script");
+
+    // copy attributes
+    if (old.attributes && old.attributes.length) {
+      for (var j = 0; j < old.attributes.length; j++) {
+        var attr = old.attributes[j];
+        try { s.setAttribute(attr.name, attr.value); } catch (e) {}
+      }
+    }
+
+    if (old.src) {
+      // avoid re-loading the same external script multiple times
+      try {
+        var srcAbs = new URL(old.getAttribute("src"), window.location.href).toString();
+        if (document.querySelector('script[src="' + srcAbs + '"]')) {
+          // keep a placeholder (remove old to avoid duplicate ids), but don't reload
+          try { old.parentNode && old.parentNode.removeChild(old); } catch (e) {}
+          continue;
+        }
+        s.src = srcAbs;
+        s.async = false;
+      } catch (e) {
+        s.src = old.src;
+        s.async = false;
+      }
+    } else {
+      s.text = old.text || old.textContent || old.innerHTML || "";
+    }
+
+    try {
+      old.parentNode && old.parentNode.replaceChild(s, old);
+    } catch (e) {}
+  }
+}
+
+function mikhmon_applyHtml(wrapperHtml) {
+  if (!wrapperHtml) return;
+  var wrapperEl = document.querySelector(".wrapper");
+  if (!wrapperEl) return;
+  var tmp = document.createElement("div");
+  tmp.innerHTML = wrapperHtml;
+  var newWrapper = tmp.querySelector(".wrapper");
+  if (!newWrapper) return;
+
+  mikhmon_clearIntervals();
+  wrapperEl.innerHTML = newWrapper.innerHTML;
+  // execute any inline scripts injected into the wrapper
+  try { mikhmon_runInlineScripts(wrapperEl); } catch (e) {}
+  // init traffic chart if present
+  try { mikhmon_initTrafficChart(); } catch (e) {}
+  // init app log poller if present
+  try { mikhmon_initAppLog(); } catch (e) {}
+
+  // re-init behaviors that are expected after navigation
+  $(".main-container").fadeIn(0);
+  $("#loading").hide();
+  if (typeof makeAllSortable === "function") {
+    try { makeAllSortable(); } catch (e) {}
+  }
+  if (typeof mikhmon_bindAccordion === "function") {
+    try { mikhmon_bindAccordion(); } catch (e) {}
+  }
+  try { mikhmon_initFormSelects(wrapperEl); } catch (e) {}
+
+  // If we were in "switching" state, clear it after the new page is rendered.
+  try { mikhmon_setSwitchingUI(false); } catch (e) {}
+  try { mikhmon_hidePageSkeleton(); } catch (e) {}
+  try { mikhmon_disableDuringSwitch(wrapperEl); } catch (e) {}
+}
+
+function mikhmon_ajaxNavigate(href, opts) {
+  opts = opts || {};
+  var abs = mikhmon_absUrl(href);
+
+  // Premium feel: global skeleton shimmer during navigation.
+  // Keep it non-blocking and delayed so fast navigations don't flash.
+  try { mikhmon_beginNavigateUI(abs); } catch (e) {}
+
+  return fetch(abs, {
+    method: "GET",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json",
+    },
+    credentials: "same-origin",
+  })
+    .then(function (r) {
+      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
+      return r.json();
+    })
+    .then(function (data) {
+      if (data && data.redirect) {
+        if (!opts.fromPopState) history.pushState({ url: data.redirect }, "", data.redirect);
+        return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
+      }
+      if (data && data.html) {
+        mikhmon_applyHtml(data.html);
+        if (!opts.fromPopState) history.pushState({ url: abs }, "", abs);
+      }
+      if (data && data.flash) notify(data.flash);
+      try { mikhmon_endNavigateUI(); } catch (e) {}
+      return data;
+    })
+    .catch(function () {
+      // If AJAX fails, we're about to do a classic navigation; keep skeleton visible.
+      try {
+        if (window.__mmNavSkelTimer) clearTimeout(window.__mmNavSkelTimer);
+        window.__mmNavSkelTimer = null;
+        mikhmon_setSwitchingUI(true);
+      } catch (e) {}
+      // fallback to normal navigation if anything fails
+      window.location.href = abs;
+    });
+}
+
+function mikhmon_ajaxSubmitForm(form) {
+  var method = (form.getAttribute("method") || "GET").toUpperCase();
+  if (method !== "POST") return false;
+
+  // Never hijack the login form; keep it classic synchronous.
+  try {
+    if (window.location.href.indexOf("admin.php?id=login") !== -1) return false;
+    if (form.querySelector && form.querySelector('button[name="login"],input[name="login"]')) return false;
+    // Never hijack settings save: must run classic redirect & server-render reliably.
+    if (form.getAttribute("name") === "settings") return false;
+    if (form.querySelector && form.querySelector('input[name="save"],button[name="save"]')) return false;
+  } catch (e) {}
+
+  var action = form.getAttribute("action") || window.location.href;
+  var abs = mikhmon_absUrl(action);
+
+  var fd = new FormData(form);
+  notify("Saving...");
+
+  fetch(abs, {
+    method: "POST",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json",
+    },
+    body: fd,
+    credentials: "same-origin",
+  })
+    .then(function (r) {
+      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
+      return r.json();
+    })
+    .then(function (data) {
+      if (data && data.ok === false) {
+        notify(data.flash || "Error");
+        return data;
+      }
+      if (data && data.redirect) {
+        if (data && data.flash) notify(data.flash);
+        history.pushState({ url: data.redirect }, "", data.redirect);
+        return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
+      }
+      if (data && data.html) {
+        mikhmon_applyHtml(data.html);
+        history.pushState({ url: abs }, "", abs);
+      }
+      if (data && data.flash) notify(data.flash);
+      return data;
+    })
+    .catch(function () {
+      notify("Network error, reloading...");
+      // fallback to normal submit
+      form.submit();
+    });
+
+  return true;
+}

@@ -525,7 +525,10 @@ elseif ($ppp == "edit-profile") {
 <script src="./js/highcharts/highcharts.js"></script>
 <script id="mm-hc-theme" src="./js/highcharts/themes/hc.<?= $theme; ?>.js"></script>
 <script src="./js/mikhmon-ui.<?= $theme; ?>.min.js"></script>
-<script src="./js/mikhmon.js?t=<?= str_replace(" ","_",date("Y-m-d H:i:s")); ?>"></script>
+<?php
+  $mikhmonJsPrefix = './js/';
+  include __DIR__ . '/include/mikhmon-scripts.php';
+?>
 
 <?php
 if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?session") {

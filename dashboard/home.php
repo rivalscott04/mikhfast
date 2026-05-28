@@ -70,7 +70,7 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
   if ($livereport == "disable") {
-    // Keep Hotspot Log panel aligned with the Traffic chart height (see js/mikhmon.js: 320px)
+    // Keep Hotspot Log panel aligned with the Traffic chart height (see js/mikhmon/widget-traffic.js)
     // so the dashboard row doesn't force an extra page scroll.
     $logh = "320px";
     $lreport = "style='display:none;'";
