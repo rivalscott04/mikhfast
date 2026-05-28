@@ -78,6 +78,18 @@ $mikhmonPassRaw = mikhmon_find_in_array(isset($data['mikhmon']) ? $data['mikhmon
 $useradm = mikhmon_cfg_value($mikhmonUserRaw, "<|<");
 $passadm = mikhmon_cfg_value($mikhmonPassRaw, ">|>");
 
+$mikhmonQrbtRaw = mikhmon_find_in_array(isset($data['mikhmon']) ? $data['mikhmon'] : array(), "qrbt<|<");
+$qrbt = mikhmon_cfg_value($mikhmonQrbtRaw, "qrbt<|<");
+if ($qrbt === "") {
+    $quickbtFile = __DIR__ . "/quickbt.php";
+    if (is_file($quickbtFile)) {
+        include $quickbtFile;
+    }
+    if (!isset($qrbt) || $qrbt === "") {
+        $qrbt = "disable";
+    }
+}
+
 $cekindo['indo'] = array(
     'RP', 'Rp', 'rp', 'IDR', 'idr', 'RP.', 'Rp.', 'rp.', 'IDR.', 'idr.',
 );

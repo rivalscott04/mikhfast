@@ -65,9 +65,6 @@ if (!isset($_SESSION["mikhmon"])) {
   include('./include/lang.php');
   include('./lang/'.$langid.'.php');
 
-// quick bt
-  include('./include/quickbt.php');
-
 // load config
   include('./include/config.php');
   include('./include/readcfg.php');

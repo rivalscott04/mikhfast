@@ -22,34 +22,14 @@ if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
+  $mikhmon_flash = "";
+  if (isset($_SESSION['mikhmon_flash'])) {
+    $mikhmon_flash = $_SESSION['mikhmon_flash'];
+    unset($_SESSION['mikhmon_flash']);
+  }
+
 // array color
   $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-red', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
-
-  if (isset($_POST['save'])) {
-
-    $suseradm = ($_POST['useradm']);
-    $spassadm = encrypt($_POST['passadm']);
-    $logobt = ($_POST['logobt']);
-    $qrbt = ($_POST['qrbt']);
-
-    $cari = array('1' => "mikhmon<|<$useradm", "mikhmon>|>$passadm");
-    $ganti = array('1' => "mikhmon<|<$suseradm", "mikhmon>|>$spassadm");
-
-    for ($i = 1; $i < 3; $i++) {
-      $file = file("./include/config.php");
-      $content = file_get_contents("./include/config.php");
-      $newcontent = str_replace((string)$cari[$i], (string)$ganti[$i], "$content");
-      file_put_contents("./include/config.php", "$newcontent");
-    }
-
-  
-  $gen = '<?php $qrbt="' . $qrbt . '";?>';
-          $key = './include/quickbt.php';
-          $handle = fopen($key, 'w') or die('Cannot open file:  ' . $key);
-          $data = $gen;
-          fwrite($handle, $data);
-    echo "<script>window.location='./admin.php?id=sessions'</script>";
-  }
 
 }
 ?>
@@ -70,6 +50,9 @@ if (!isset($_SESSION["mikhmon"])) {
   			<h3 class="card-title"><i class="fa fa-gear"></i> <?= $_admin_settings ?> &nbsp; | &nbsp;&nbsp;<i onclick="location.reload();" class="fa fa-refresh pointer " title="Reload data"></i></h3>
   		</div>
       <div class="card-body">
+<?php if (!empty($mikhmon_flash)) { ?>
+        <div class="alert alert-success"><?= htmlspecialchars($mikhmon_flash, ENT_QUOTES, 'UTF-8'); ?></div>
+<?php } ?>
         <div class="row">
           <div class="col-6">
             <div class="card">

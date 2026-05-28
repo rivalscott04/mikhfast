@@ -49,9 +49,6 @@ include('./lang/isocodelang.php');
 include('./include/lang.php');
 include('./lang/'.$langid.'.php');
 
-// quick bt
-include('./include/quickbt.php');
-
 // theme
 include('./include/theme.php');
 include('./settings/settheme.php');
@@ -139,6 +136,10 @@ if ($id == "login" || substr($url, -1) == "p") {
 
 } elseif ($id == "sessions") {
   $_SESSION["connect"] = "";
+  if (isset($_POST['save'])) {
+    include_once('./settings/sessions-save.php');
+    exit;
+  }
   include_once('./include/menu.php');
   include_once('./settings/sessions.php');
   /*echo '
