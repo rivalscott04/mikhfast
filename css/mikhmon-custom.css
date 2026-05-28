@@ -283,6 +283,36 @@ body .progress .progress-bar.mm-meter-fill--danger{
 .card-header{ border-top-left-radius:14px; border-top-right-radius:14px; }
 .btn, .form-control, select, input[type="text"], input[type="password"], input[type="number"]{ border-radius:12px; }
 
+/* --- Card top accent (always visible, refresh/AJAX-safe) --- */
+.card{
+  position:relative; /* anchor ::before accent bar */
+  overflow:hidden;   /* keep bar within rounded corners */
+}
+.card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:4px;
+  z-index:2;
+  pointer-events:none;
+  background: linear-gradient(90deg,
+    #ff4d4d 0%,
+    #ffb74d 16%,
+    #fff176 32%,
+    #69f0ae 48%,
+    #40c4ff 64%,
+    #7c4dff 80%,
+    #ff4dd2 100%
+  );
+  opacity:.95;
+}
+.card-header{
+  position:relative;
+  z-index:3; /* ensure header stays above accent bar */
+}
+
 /* --- Sidebar active state (clearer, theme-aware) --- */
 #sidenav a.menu,
 #sidenav .dropdown-btn{
@@ -318,4 +348,121 @@ body .progress .progress-bar.mm-meter-fill--danger{
     background: color-mix(in srgb, var(--primary, #2D9CDB) 18%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2D9CDB) 32%, transparent) inset;
   }
+}
+
+/* --- Softer Light Theme (reduce eye strain) --- */
+.theme-light{
+  --mm-bg: #F6F7FB;
+  --mm-surface: #FFFFFF;
+  --mm-surface-2: #F3F5F9;
+  --mm-border: rgba(17, 24, 39, .10);
+  --mm-border-strong: rgba(17, 24, 39, .16);
+  --mm-text: #1F2937;
+  --mm-text-muted: rgba(31, 41, 55, .72);
+  --mm-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 8px 22px rgba(17,24,39,.06);
+}
+
+.theme-light body,
+body.theme-light{
+  background-color: var(--mm-bg) !important;
+  color: var(--mm-text) !important;
+}
+
+/* Surfaces */
+body.theme-light .card,
+body.theme-light .box,
+body.theme-light .table{
+  background-color: var(--mm-surface) !important;
+}
+
+body.theme-light .card,
+body.theme-light .box{
+  border-color: var(--mm-border) !important;
+  box-shadow: var(--mm-shadow);
+}
+
+body.theme-light .card-header{
+  background-color: var(--mm-surface-2) !important;
+  border-bottom-color: var(--mm-border) !important;
+}
+
+/* Inputs */
+body.theme-light .form-control,
+body.theme-light .group-item,
+body.theme-light .dropd{
+  background-color: #FFF !important;
+  color: var(--mm-text) !important;
+  border-color: var(--mm-border) !important;
+}
+body.theme-light .form-control::placeholder,
+body.theme-light .group-item::placeholder{
+  color: rgba(31,41,55,.55) !important;
+}
+body.theme-light .form-control:focus,
+body.theme-light .group-item:focus{
+  border-color: rgba(0,139,201,.35) !important;
+  box-shadow: 0 0 0 3px rgba(0,139,201,.14) !important;
+}
+
+/* Tables */
+body.theme-light .table-bordered td,
+body.theme-light .table-bordered th{
+  border-color: var(--mm-border) !important;
+}
+body.theme-light .table-hover:hover tbody tr:hover{
+  background-color: rgba(0,0,0,.03) !important;
+}
+
+/* Sidebar + menu hover (less harsh) */
+body.theme-light .sidenav{
+  background-color: #F5F6FA !important;
+  border-right-color: var(--mm-border) !important;
+}
+body.theme-light .dropdown-btn:hover,
+body.theme-light .sidenav a:hover{
+  background-color: rgba(0,0,0,.04) !important;
+}
+body.theme-light .active{
+  background: rgba(0,139,201,.10) !important;
+  color: #008BC9 !important;
+}
+
+/* Scrollbars (subtle) */
+body.theme-light ::-webkit-scrollbar-track{
+  background: var(--mm-bg);
+  border: 1px solid var(--mm-border);
+}
+body.theme-light ::-webkit-scrollbar-thumb{
+  background: rgba(31,41,55,.14);
+  border: 1px solid var(--mm-border);
+}
+
+/* Dashboard header bar adjust for light */
+body.theme-light .mm-dashheader{
+  background: rgba(255,255,255,.75);
+  border: 1px solid var(--mm-border);
+  box-shadow: var(--mm-shadow);
+}
+body.theme-light .mm-chip{
+  background: rgba(255,255,255,.85);
+  border-color: var(--mm-border);
+}
+body.theme-light .mm-btn-ghost{
+  background: rgba(255,255,255,.70) !important;
+  border-color: var(--mm-border) !important;
+}
+
+/* Light theme: remove gradients (flat colors) */
+body.theme-light .mm-meter-fill--primary,
+body.theme-light .mm-meter-fill--warn,
+body.theme-light .mm-meter-fill--danger,
+body.theme-light .progress .progress-bar.mm-meter-fill--primary,
+body.theme-light .progress .progress-bar.mm-meter-fill--warn,
+body.theme-light .progress .progress-bar.mm-meter-fill--danger{
+  background-image: none !important;
+}
+
+body.theme-light .mm-loaderbar__bar{
+  background: rgba(31,41,55,.20) !important;
+  animation: mm-loaderbar-move 1.1s ease-in-out infinite;
 }

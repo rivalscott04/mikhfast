@@ -536,6 +536,21 @@ else if ($load == "all") {
       </div>
     </div>
 
+    <?php
+      // Dashboard header (keep visible on AJAX refresh).
+      // Uses variables available in this scope: $session, $resource, $routerboard (hotspotname is in config/readcfg)
+      if (file_exists('../include/dashboard-header.php')) {
+        // Derive identity for header context (cached to avoid extra RouterOS calls).
+        $identity = __mikhmon_cache_get('dash:' . $session . ':identity', 30);
+        if (!is_string($identity) || $identity === '') {
+          $idObj = $router->getIdentity();
+          $identity = isset($idObj['name']) ? $idObj['name'] : '';
+          __mikhmon_cache_set('dash:' . $session . ':identity', $identity);
+        }
+        include('../include/dashboard-header.php');
+      }
+    ?>
+
     <!-- KPI row -->
     <div id="r_1" class="row">
       <div class="col-4">
@@ -676,7 +691,10 @@ else if ($load == "all") {
           </div>
           <div class="card-body">
             <div id="appLog" data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>">
-              <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
+              <div style="font-size:12px; opacity:.92; line-height:1.35;">
+                <div><b>Loading app log…</b></div>
+                <div style="opacity:.85; margin-top:4px;">Fetching latest RouterOS account events.</div>
+              </div>
             </div>
           </div>
         </div>

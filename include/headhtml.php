@@ -46,7 +46,7 @@ error_reporting(0);
 
 		
 	</head>
-	<body>
+	<body class="theme-<?= htmlspecialchars($theme, ENT_QUOTES); ?>">
 		<div class="wrapper">
 
 			

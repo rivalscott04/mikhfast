@@ -29,17 +29,10 @@ $gettheme = $_GET['set-theme'];
 $mtheme = array(
     "dark",
     "light",
-    "blue",
-    "green",
-    "pink",
-    
 );
 $theme_color = array(
     "#3a4149",
     "#008BC9",
-    "#008BC9",
-    "#4dbd74",
-    "#e83e8c",
 );
 
 

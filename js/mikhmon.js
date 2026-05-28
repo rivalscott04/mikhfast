@@ -359,10 +359,45 @@ function mikhmon_initAppLog() {
   var session = (el.getAttribute("data-session") || "").trim();
   if (!session) return;
 
+  function renderStatus(state, detail) {
+    var now = new Date();
+    var time = now.toLocaleTimeString();
+    var safeDetail = (detail === null || detail === undefined) ? "" : String(detail);
+    var text =
+      (state === "loading") ? "Loading app log…" :
+      (state === "error") ? "App log unavailable" :
+      "App log";
+
+    el.innerHTML =
+      '<div style="font-size:12px; opacity:.92; line-height:1.35;">' +
+        '<div><b>' + text + '</b></div>' +
+        (safeDetail ? ('<div style="opacity:.85; margin-top:4px;">' + safeDetail + '</div>') : '') +
+        '<div style="opacity:.7; margin-top:6px;">Last check: ' + time + '</div>' +
+      '</div>';
+  }
+
   function loadOnce() {
+    renderStatus("loading", "");
     try {
-      $("#appLog").load("./dashboard/aload.php?load=applog&session=" + encodeURIComponent(session));
-    } catch (e) {}
+      $.ajax({
+        url: "./dashboard/aload.php?load=applog&session=" + encodeURIComponent(session),
+        method: "GET",
+        cache: false,
+        success: function (html) {
+          // If response is empty, keep a helpful message instead of infinite loader.
+          if (!html || String(html).trim() === "") {
+            renderStatus("error", "Empty response.");
+            return;
+          }
+          el.innerHTML = html;
+        },
+        error: function () {
+          renderStatus("error", "Check connection / session, then refresh.");
+        }
+      });
+    } catch (e) {
+      renderStatus("error", "Failed to load.");
+    }
   }
 
   // initial load + poll
@@ -682,3 +717,9 @@ function mikhmon_bindAccordion() {
 }
 
 try { mikhmon_bindAccordion(); } catch (e) {}
+
+// Init widgets on full page load (not only after AJAX navigation).
+document.addEventListener("DOMContentLoaded", function () {
+  try { mikhmon_initTrafficChart(); } catch (e) {}
+  try { mikhmon_initAppLog(); } catch (e) {}
+});
