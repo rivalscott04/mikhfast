@@ -42,7 +42,8 @@ $theme_color = array(
 
 $themenum = array_search($gettheme, $mtheme);
 
-$getthemecolor = $theme_color[$themenum];
+// guard for invalid search result (false => null index)
+$getthemecolor = isset($theme_color[$themenum]) ? $theme_color[$themenum] : "";
 
 if (empty($gettheme)) {  
 
@@ -50,10 +51,14 @@ if (empty($gettheme)) {
     if (in_array($gettheme, $mtheme)) {
         include_once('./include/headhtml.php');
         $gen = '<?php $theme="' . $gettheme . '"; $themecolor="'.$getthemecolor.'";?>';
-        $stheme = './include/theme.php';
-        $handle = fopen($stheme, 'w') or die('Cannot open file:  ' . $stheme);
-        $data = $gen;
-        fwrite($handle, $data);
+        // Use absolute path so it works from any include context.
+        // If file is not writable (common on shared hosting), fall back to session-only.
+        $stheme = __DIR__ . '/../include/theme.php';
+        $handle = @fopen($stheme, 'w');
+        if ($handle !== false) {
+            @fwrite($handle, $gen);
+            @fclose($handle);
+        }
         $_SESSION['theme'] = $gettheme;
         $_SESSION['themecolor'] = $getthemecolor;
         echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>Load '.$gettheme.' theme...</h3></center>';
