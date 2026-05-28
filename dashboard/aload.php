@@ -133,6 +133,7 @@ include('../lang/'.$langid.'.php');
                   $cpuLoad = isset($resource['cpu-load']) ? (int) $resource['cpu-load'] : 0;
                   if ($cpuLoad < 0) $cpuLoad = 0;
                   if ($cpuLoad > 100) $cpuLoad = 100;
+                  $cpuFreePct = 100 - $cpuLoad;
                   $cpuCount = isset($resource['cpu-count']) ? (int) $resource['cpu-count'] : 0;
                   $cpuFreq = isset($resource['cpu-frequency']) ? (int) $resource['cpu-frequency'] : 0;
 
@@ -164,18 +165,18 @@ include('../lang/'.$langid.'.php');
                 <div class="mm-meter-list">
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_cpu_load ?></div>
-                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($cpuLoad . '% of 100% (' . $cpuText . ')', ENT_QUOTES) ?>">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $cpuLoad . '% | ' . $_free . ' : ' . $cpuFreePct . '% (' . $cpuText . ')', ENT_QUOTES) ?>">
                       <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $cpuLoad ?>%
+                      <?= $_used ?> : <?= $cpuLoad ?>%
                     </div>
                   </div>
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $memUsedPct . '% | ' . $_free . ' : ' . $memFreePct . '% (' . formatBytes($memUsed, 2) . ' / ' . formatBytes($memTotal, 2) . '), ' . $_free . ' ' . formatBytes($memFree, 2), ENT_QUOTES) ?>">
                       <?php
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -183,13 +184,13 @@ include('../lang/'.$langid.'.php');
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $memFreePct ?>%
+                      <?= $_used ?> : <?= $memUsedPct ?>%
                     </div>
                   </div>
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $hddUsedPct . '% | ' . $_free . ' : ' . $hddFreePct . '% (' . formatBytes($hddUsed, 2) . ' / ' . formatBytes($hddTotal, 2) . '), ' . $_free . ' ' . formatBytes($hddFree, 2), ENT_QUOTES) ?>">
                       <?php
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -197,7 +198,7 @@ include('../lang/'.$langid.'.php');
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $hddFreePct ?>%
+                      <?= $_used ?> : <?= $hddUsedPct ?>%
                     </div>
                   </div>
                 </div>
@@ -474,6 +475,7 @@ else if ($load == "all") {
                   $cpuLoad = isset($resource['cpu-load']) ? (int) $resource['cpu-load'] : 0;
                   if ($cpuLoad < 0) $cpuLoad = 0;
                   if ($cpuLoad > 100) $cpuLoad = 100;
+                  $cpuFreePct = 100 - $cpuLoad;
                   $cpuCount = isset($resource['cpu-count']) ? (int) $resource['cpu-count'] : 0;
                   $cpuFreq = isset($resource['cpu-frequency']) ? (int) $resource['cpu-frequency'] : 0;
 
@@ -510,13 +512,13 @@ else if ($load == "all") {
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $cpuLoad ?>%
+                      <?= $_used ?> : <?= $cpuLoad ?>%
                     </div>
                   </div>
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
-                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2)), ENT_QUOTES) ?>">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $memUsedPct . '% | ' . $_free . ' : ' . $memFreePct . '% (' . formatBytes($memFree, 2) . ' / ' . formatBytes($memTotal, 2) . ')', ENT_QUOTES) ?>">
                       <?php
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -524,13 +526,13 @@ else if ($load == "all") {
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $memFreePct ?>%
+                      <?= $_used ?> : <?= $memUsedPct ?>%
                     </div>
                   </div>
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
-                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2)), ENT_QUOTES) ?>">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $hddUsedPct . '% | ' . $_free . ' : ' . $hddFreePct . '% (' . formatBytes($hddFree, 2) . ' / ' . formatBytes($hddTotal, 2) . ')', ENT_QUOTES) ?>">
                       <?php
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -538,7 +540,7 @@ else if ($load == "all") {
                       </div>
                     </div>
                     <div class="mm-meter-value">
-                      <?= $hddFreePct ?>%
+                      <?= $_used ?> : <?= $hddUsedPct ?>%
                     </div>
                   </div>
                 </div>
