@@ -83,34 +83,53 @@ function cancelPage() {
   } catch (e) {}
 }
 
-function notify(msg) {
-  var notifyEl = $("#notify");
-  notifyEl.find(".message").text(msg);
-  notifyEl.show();
+function notifyHide() {
+  try {
+    if (window.__mikhmonNotifyInterval) clearInterval(window.__mikhmonNotifyInterval);
+  } catch (e) {}
+  window.__mikhmonNotifyInterval = null;
+  try {
+    if (window.__mikhmonNotifyTimeout) clearTimeout(window.__mikhmonNotifyTimeout);
+  } catch (e) {}
+  window.__mikhmonNotifyTimeout = null;
+  try {
+    $("#notify").hide();
+  } catch (e) {}
+}
 
-  var baseText = $(".message").text();
+function notify(msg, opts) {
+  opts = opts || {};
+  var notifyEl = $("#notify");
   var i = 0;
   // Prevent stacking infinite dot-intervals on repeated notify() calls
   try {
     if (window.__mikhmonNotifyInterval) clearInterval(window.__mikhmonNotifyInterval);
   } catch (e) {}
+  window.__mikhmonNotifyInterval = null;
   try {
     if (window.__mikhmonNotifyTimeout) clearTimeout(window.__mikhmonNotifyTimeout);
   } catch (e) {}
+  window.__mikhmonNotifyTimeout = null;
+
+  notifyEl.find(".message").text(msg);
+  notifyEl.show();
+
+  var baseText = notifyEl.find(".message").text();
 
   window.__mikhmonNotifyInterval = setInterval(function () {
-    $(".message").append("●");
+    notifyEl.find(".message").append("●");
     if (++i == 4) {
-      $(".message").html(baseText);
+      notifyEl.find(".message").html(baseText);
       i = 0;
     }
   }, 500);
 
-  // Auto-stop the animation so it can't "run forever" if a request stalls.
-  window.__mikhmonNotifyTimeout = setTimeout(function () {
-    try { clearInterval(window.__mikhmonNotifyInterval); } catch (e) {}
-    window.__mikhmonNotifyInterval = null;
-  }, 8000);
+  var autoHideMs = typeof opts.autoHideMs === "number" ? opts.autoHideMs : 8000;
+  if (autoHideMs > 0) {
+    window.__mikhmonNotifyTimeout = setTimeout(function () {
+      notifyHide();
+    }, autoHideMs);
+  }
 }
 
 // --- Modern non-blocking toast + session switching UX ---
@@ -449,6 +468,11 @@ function stheme(url) {
       return r.json();
     })
     .then(function (data) {
+      try { notifyHide(); } catch (e) {}
+      try {
+        var toastEl = document.getElementById("mmToast");
+        if (toastEl) toastEl.classList.remove("mm-toast--show");
+      } catch (e) {}
       // setter returns {redirect} to the clean URL
       if (data && data.redirect) {
         window.location.href = data.redirect;
@@ -458,6 +482,7 @@ function stheme(url) {
       window.location.href = stripParam(stripParam(url, "set-theme"), "setlang");
     })
     .catch(function () {
+      try { notifyHide(); } catch (e) {}
       window.location.href = url;
     });
 }
@@ -626,54 +651,65 @@ function mikhmon_initAppLog() {
   var session = (el.getAttribute("data-session") || "").trim();
   if (!session) return;
 
+  var msgLoading = el.getAttribute("data-msg-loading") || "Loading app log…";
+  var msgLoadingDetail = el.getAttribute("data-msg-loading-detail") || "";
+  var msgError = el.getAttribute("data-msg-error") || "App log unavailable";
+  var msgErrorConn = el.getAttribute("data-msg-error-conn") || "Check connection / session, then refresh.";
+  var msgEmpty = el.getAttribute("data-msg-empty") || "Empty response.";
+  var msgFailed = el.getAttribute("data-msg-failed") || "Failed to load.";
+
   function renderStatus(state, detail) {
     var now = new Date();
     var time = now.toLocaleTimeString();
     var safeDetail = (detail === null || detail === undefined) ? "" : String(detail);
     var text =
-      (state === "loading") ? "Loading app log…" :
-      (state === "error") ? "App log unavailable" :
-      "App log";
+      (state === "loading") ? msgLoading :
+      (state === "error") ? msgError :
+      "";
 
     el.innerHTML =
       '<div style="font-size:12px; opacity:.92; line-height:1.35;">' +
         '<div><b>' + text + '</b></div>' +
         (safeDetail ? ('<div style="opacity:.85; margin-top:4px;">' + safeDetail + '</div>') : '') +
-        (state === "loading"
-          ? '<div style="opacity:.78; margin-top:6px;">Showing the latest RouterOS <b>login/logout</b> events (topic: <code>account</code>), auto-refresh every 8s.</div>'
+        (state === "loading" && msgLoadingDetail
+          ? ('<div style="opacity:.78; margin-top:6px;">' + msgLoadingDetail + '</div>')
           : '') +
-        '<div style="opacity:.7; margin-top:6px;">Last check: ' + time + '</div>' +
+        '<div style="opacity:.7; margin-top:6px;">' + time + '</div>' +
       '</div>';
   }
 
-  function loadOnce() {
-    renderStatus("loading", "");
+  function loadOnce(isInitial) {
+    var hasContent = el.getAttribute("data-loaded") === "1";
+    if (!hasContent || isInitial) {
+      renderStatus("loading", msgLoadingDetail);
+    }
     try {
       $.ajax({
         url: "./dashboard/aload.php?load=applog&session=" + encodeURIComponent(session),
         method: "GET",
         cache: false,
         success: function (html) {
-          // If response is empty, keep a helpful message instead of infinite loader.
           if (!html || String(html).trim() === "") {
-            renderStatus("error", "Empty response.");
+            renderStatus("error", msgEmpty);
             return;
           }
           el.innerHTML = html;
+          el.setAttribute("data-loaded", "1");
         },
         error: function () {
-          renderStatus("error", "Check connection / session, then refresh.");
+          renderStatus("error", msgErrorConn);
         }
       });
     } catch (e) {
-      renderStatus("error", "Failed to load.");
+      renderStatus("error", msgFailed);
     }
   }
 
-  // initial load + poll
-  loadOnce();
   try { if (window.__mikhmonAppLogInterval) clearInterval(window.__mikhmonAppLogInterval); } catch (e) {}
-  window.__mikhmonAppLogInterval = setInterval(loadOnce, 8000);
+  loadOnce(true);
+  window.__mikhmonAppLogInterval = setInterval(function () {
+    loadOnce(false);
+  }, 8000);
 }
 
 function mikhmon_initTrafficChart() {
@@ -1096,10 +1132,13 @@ function mikhmon_bindLangDropdown() {
       e.preventDefault();
       mikhmon_closeLangDropdowns();
       var langRoot = item.closest("[data-mm-lang-dropdown]");
-      var loadingMsg =
-        (langRoot && langRoot.getAttribute("data-loading-msg")) || "Loading…";
-      if (typeof notify === "function") {
-        try { notify(loadingMsg); } catch (err) {}
+      if (typeof mikhmon_toast === "function") {
+        try {
+          mikhmon_toast(
+            (langRoot && langRoot.getAttribute("data-loading-msg")) || "Loading…",
+            { spinner: true, duration: 0, type: "info" }
+          );
+        } catch (err) {}
       }
       if (typeof stheme === "function") stheme(langUrl);
       return;
@@ -1133,10 +1172,12 @@ try { mikhmon_bindLangDropdown(); } catch (e) {}
 
 // Init widgets on full page load (not only after AJAX navigation).
 document.addEventListener("DOMContentLoaded", function () {
+  try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
   try { mikhmon_initTrafficChart(); } catch (e) {}
   try { mikhmon_initAppLog(); } catch (e) {}
 });
 window.addEventListener("pageshow", function () {
+  try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
 });

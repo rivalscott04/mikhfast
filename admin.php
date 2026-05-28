@@ -46,13 +46,13 @@ $ids = array(
 
 // lang
 include('./lang/isocodelang.php');
+include('./settings/setlang.php');
 include('./include/lang.php');
 include('./lang/'.$langid.'.php');
 
 // theme
 include('./include/theme.php');
 include('./settings/settheme.php');
-include('./settings/setlang.php');
 if ($_SESSION['theme'] == "") {
     $theme = $theme;
     $themecolor = $themecolor;

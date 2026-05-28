@@ -703,11 +703,16 @@ else if ($load == "all") {
             <h3 class="mm-panel-title"><i class="fa fa-align-justify"></i> App Log</h3>
           </div>
           <div class="card-body">
-            <div id="appLog" data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>">
-              <div style="font-size:12px; opacity:.92; line-height:1.35;">
-                <div><b>Loading app log…</b></div>
-                <div style="opacity:.85; margin-top:4px;">Fetching latest RouterOS account events.</div>
-              </div>
+            <div id="appLog"
+              data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>"
+              data-msg-loading="<?= htmlspecialchars((isset($_loading) ? $_loading : 'Loading') . '…', ENT_QUOTES) ?>"
+              data-msg-loading-detail="<?= htmlspecialchars(isset($_log) ? $_log . ' (account)' : 'RouterOS account log', ENT_QUOTES) ?>"
+              data-msg-error="<?= htmlspecialchars(isset($_log) ? $_log . ' unavailable' : 'App log unavailable', ENT_QUOTES) ?>"
+              data-msg-error-conn="<?= htmlspecialchars(isset($_connecting) ? $_connecting : 'Check connection', ENT_QUOTES) ?>"
+              data-msg-empty="<?= htmlspecialchars('Empty response.', ENT_QUOTES) ?>"
+              data-msg-failed="<?= htmlspecialchars('Failed to load.', ENT_QUOTES) ?>"
+            >
+              <div class="mm-loaderbar" aria-label="<?= htmlspecialchars(isset($_loading) ? $_loading : 'Loading', ENT_QUOTES) ?>"><div class="mm-loaderbar__bar"></div></div>
             </div>
           </div>
         </div>

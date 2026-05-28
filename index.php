@@ -63,9 +63,9 @@ if (!isset($_SESSION["mikhmon"])) {
 
 // lang
   include('./lang/isocodelang.php');
+  include('./settings/setlang.php');
   include('./include/lang.php');
   include('./lang/'.$langid.'.php');
-  include('./settings/setlang.php');
 
 // load config
   include('./include/config.php');
@@ -540,6 +540,9 @@ if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?sessio
         if (typeof mikhmon_initTrafficChart === "function") {
           mikhmon_initTrafficChart();
         }
+        if (typeof mikhmon_initAppLog === "function") {
+          mikhmon_initAppLog();
+        }
       } catch (e) {}
     });
     var interval1 = "' . ($areload * 1000) . '";
@@ -552,6 +555,9 @@ if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?sessio
         }
         if (typeof mikhmon_initTrafficChart === "function") {
           mikhmon_initTrafficChart();
+        }
+        if (typeof mikhmon_initAppLog === "function") {
+          mikhmon_initAppLog();
         }
       } catch (e) {}
     });
