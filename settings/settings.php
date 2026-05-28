@@ -100,11 +100,18 @@ if (!isset($_SESSION["mikhmon"])) {
     $_SESSION["connect"] = "";
     $redirect = "./admin.php?id=settings&session=" . $sesname;
     if (mikhmon_is_ajax()) {
-      mikhmon_json(array(
-        "ok" => $writeOk !== false,
-        "flash" => $writeOk !== false ? "OK" : $mikhmon_config_write_error,
-        "redirect" => $redirect,
-      ), $writeOk !== false ? 200 : 500);
+      if ($writeOk === false) {
+        mikhmon_json(array(
+          "ok" => false,
+          "flash" => $mikhmon_config_write_error,
+        ), 500);
+      } else {
+        mikhmon_json(array(
+          "ok" => true,
+          "flash" => "Saved",
+          "redirect" => $redirect,
+        ));
+      }
     }
     echo "<script>window.location='" . $redirect . "'</script>";
   }

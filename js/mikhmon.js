@@ -329,7 +329,7 @@ function mikhmon_ajaxSubmitForm(form) {
   var abs = mikhmon_absUrl(action);
 
   var fd = new FormData(form);
-  notify("Processing...");
+  notify("Saving...");
 
   fetch(abs, {
     method: "POST",
@@ -346,7 +346,12 @@ function mikhmon_ajaxSubmitForm(form) {
       return r.json();
     })
     .then(function (data) {
+      if (data && data.ok === false) {
+        notify(data.flash || "Error");
+        return data;
+      }
       if (data && data.redirect) {
+        if (data && data.flash) notify(data.flash);
         history.pushState({ url: data.redirect }, "", data.redirect);
         return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
       }
@@ -358,6 +363,7 @@ function mikhmon_ajaxSubmitForm(form) {
       return data;
     })
     .catch(function () {
+      notify("Network error, reloading...");
       // fallback to normal submit
       form.submit();
     });

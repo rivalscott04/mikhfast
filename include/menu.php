@@ -384,10 +384,8 @@ if (file_exists('./include/info.php')) {
 
 <div id="main">  
 <div id="loading" class="lds-dual-ring"></div>
-<?php if($hotspot == 'template-editor' || $id == 'editor'){
-echo '<div class="main-container">';
-}else{
-  echo '<div class="main-container" style="display:none">';
-}
+<?php
+  // Keep content visible even if JS/AJAX fails.
+  echo '<div class="main-container">';
 ?>
 
