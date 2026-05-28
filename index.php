@@ -538,6 +538,9 @@ if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?sessio
         if (typeof mikhmon_runInlineScripts === "function") {
           mikhmon_runInlineScripts(document.getElementById("reloadHome"));
         }
+        if (typeof mikhmon_initTrafficChart === "function") {
+          mikhmon_initTrafficChart();
+        }
       } catch (e) {}
     });
     var interval1 = "' . ($areload * 1000) . '";
@@ -547,6 +550,9 @@ if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?sessio
       try {
         if (typeof mikhmon_runInlineScripts === "function") {
           mikhmon_runInlineScripts(document.getElementById("reloadHome"));
+        }
+        if (typeof mikhmon_initTrafficChart === "function") {
+          mikhmon_initTrafficChart();
         }
       } catch (e) {}
     });

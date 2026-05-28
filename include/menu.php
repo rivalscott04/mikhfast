@@ -347,7 +347,24 @@ if (file_exists('./info.php')) {
   <!--traffic monitor-->
   <a href="./?interface=traffic-monitor&session=<?= $session; ?>" class="menu <?= $strafficmonitor; ?>"><i class=" fa fa-area-chart"></i> <?= $_traffic_monitor ?></a>
   <!--report-->
-  <a href="./?report=selling&idbl=<?= strtolower(date("M")) . date("Y"); ?>&session=<?= $session; ?>" class="menu <?= $sselling; ?>"><i class="nav-icon fa fa-money"></i> <?= $_report ?></a>
+  <?php
+    // Preserve last-used report filter (month/day) when navigating via menu.
+    // Menu is rendered before page routing, so we rely on session values from previous request.
+    $defaultIdbl = strtolower(date("M")) . date("Y");
+    $savedReport = isset($_SESSION['report']) ? $_SESSION['report'] : "";
+    $savedIdbl = isset($_SESSION['idbl']) ? $_SESSION['idbl'] : "";
+    // Basic sanity: idbl is expected as "mmmYYYY" (e.g. "may2026")
+    if (!is_string($savedIdbl) || !preg_match('/^[a-z]{3}\d{4}$/', $savedIdbl)) {
+      $savedIdbl = "";
+    }
+    $reportQuery = $savedReport;
+    if ($reportQuery === "" && $savedIdbl !== "") {
+      $reportQuery = "&idbl=" . $savedIdbl;
+    } elseif ($reportQuery === "") {
+      $reportQuery = "&idbl=" . $defaultIdbl;
+    }
+  ?>
+  <a href="./?report=selling<?= $reportQuery; ?>&session=<?= $session; ?>" class="menu <?= $sselling; ?>"><i class="nav-icon fa fa-money"></i> <?= $_report ?></a>
   <!--settings-->
   <div class="dropdown-btn <?= $ssett; ?>"><i class=" fa fa-gear"></i> <?= $_settings ?> 
     <i class="fa fa-caret-down"></i> &nbsp;
