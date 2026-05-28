@@ -200,7 +200,17 @@ if ($id == "login" || substr($url, -1) == "p") {
       fputs($f, $line);
   }
   fclose($f);
-  echo "<script>window.location='./admin.php?id=sessions'</script>";
+  $redirect = "./admin.php?id=sessions";
+  if ($__mikhmon_ajax) {
+    // When rendered via SPA/AJAX, inline <script> redirect won't execute.
+    // Return a JSON redirect so the UI updates immediately.
+    mikhmon_json(array(
+      "ok" => true,
+      "flash" => "Deleted",
+      "redirect" => $redirect,
+    ));
+  }
+  echo "<script>window.location='" . $redirect . "'</script>";
 } elseif ($id == "about") {
   include_once('./include/menu.php');
   include_once('./include/about.php');

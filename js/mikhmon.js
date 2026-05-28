@@ -69,6 +69,20 @@ function loader() {
   document.getElementById("loader").style = "display:inline;";
 }
 
+function cancelPage() {
+  try {
+    window.stop();
+  } catch (e) {}
+
+  try {
+    if (window.dashboard) clearInterval(window.dashboard);
+  } catch (e) {}
+
+  try {
+    if (window.livereport) clearInterval(window.livereport);
+  } catch (e) {}
+}
+
 function notify(msg) {
   var notifyEl = $("#notify");
   notifyEl.find(".message").text(msg);
@@ -285,6 +299,9 @@ function mikhmon_applyHtml(wrapperHtml) {
   if (typeof makeAllSortable === "function") {
     try { makeAllSortable(); } catch (e) {}
   }
+  if (typeof mikhmon_bindAccordion === "function") {
+    try { mikhmon_bindAccordion(); } catch (e) {}
+  }
 }
 
 function mikhmon_ajaxNavigate(href, opts) {
@@ -410,3 +427,34 @@ window.addEventListener("popstate", function (e) {
   var stateUrl = (e.state && e.state.url) || window.location.href;
   mikhmon_ajaxNavigate(stateUrl, { fromPopState: true });
 });
+
+// --- Sidebar accordion (dropdown-btn) ---
+// Theme scripts bind click handlers once on initial load. Because this app can
+// replace `.wrapper` via AJAX navigation, those handlers can be lost. We bind
+// a delegated handler once so accordion always works.
+function mikhmon_bindAccordion() {
+  if (window.__mikhmonAccordionBound) return;
+  window.__mikhmonAccordionBound = true;
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest(".dropdown-btn") : null;
+    if (!btn) return;
+    // Only handle sidebar buttons (avoid false positives inside content).
+    var inSideNav = btn.closest && btn.closest("#sidenav");
+    if (!inSideNav) return;
+
+    btn.classList.toggle("active");
+    var container = btn.nextElementSibling;
+    if (!container) return;
+    // expected markup is `.dropdown-container`
+    if (container.classList && !container.classList.contains("dropdown-container")) return;
+
+    if (container.style.display === "block") {
+      container.style.display = "none";
+    } else {
+      container.style.display = "block";
+    }
+  });
+}
+
+try { mikhmon_bindAccordion(); } catch (e) {}

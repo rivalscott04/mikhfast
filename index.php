@@ -533,7 +533,7 @@ if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?sessio
   echo '<script>
     $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3");  
     var interval1 = "' . ($areload * 1000) . '";
-    var dashboard = setInterval(function() {
+    window.dashboard = setInterval(function() {
       
     $("#r_1").load("./dashboard/aload.php?session=' . $session . '&load=sysresource #r_1"); 
     $("#r_2").load("./dashboard/aload.php?session=' . $session . '&load=hotspot #r_2"); 
@@ -552,20 +552,11 @@ if ($livereport == "enable" || $livereport == "") {
     }
   echo  '
     var interval2 = "65432";
-    var livereport = setInterval(function() {
+    window.livereport = setInterval(function() {
     $("#r_4").load("./report/livereport.php?session=' . $session . ' #r_4"); 
   }, interval2);
  ';}
   echo ' 
-  function cancelPage(){
-    window.stop();
-    clearInterval(dashboard);';
-    if ($livereport == "enable" || $livereport == "") {
-    echo '
-    clearInterval(livereport);';
-    }
-  echo '
-    }
 </script>';
 
 } elseif ($hotspot == "active" && $serveractive != "") {
