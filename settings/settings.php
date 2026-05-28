@@ -37,12 +37,6 @@ if (!isset($_SESSION["mikhmon"])) {
     } else {
       @fwrite($f, $line);
       @fclose($f);
-      $search = "'$'data";
-      $replace = (string)"$data";
-      $file = file("./include/config.php");
-      $content = file_get_contents("./include/config.php");
-      $newcontent = str_replace((string)$search, (string)$replace, "$content");
-      file_put_contents("./include/config.php", "$newcontent");
       echo "<script>window.location='./admin.php?id=settings&session=" . $router . "'</script>";
     }
   }
@@ -74,8 +68,8 @@ if (!isset($_SESSION["mikhmon"])) {
 
     $replace = array('1' => "$sesname!$siphost", "$sesname@|@$suserhost", "$sesname#|#$spasswdhost", "$sesname%$shotspotname", "$sesname^$sdnsname", "$sesname&$scurrency", "$sesname*$sreload", "$sesname($siface", "$sesname)$sinfolp", "$sesname=$sidleto", "'$sesname'", "$sesname@!@$slivereport");
 
-    for ($i = 1; $i < 15; $i++) {
-      $file = file("./include/config.php");
+    $max = count($search);
+    for ($i = 1; $i <= $max; $i++) {
       $content = file_get_contents("./include/config.php");
       $newcontent = str_replace((string)$search[$i], (string)$replace[$i], "$content");
       file_put_contents("./include/config.php", "$newcontent");
