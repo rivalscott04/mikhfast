@@ -219,7 +219,7 @@ $(document).ready(function(){
 <div class="col-12">
 <div class="card">
 <div class="card-header">
-	<h3><i class=" fa fa-money"></i> <?= $_selling_report ?> <?= ucfirst($idhr) . ucfirst(substr($idbl,0,3).' '.substr($idbl,3,5));	if ($prefix != "") {echo " prefix [" . $prefix . "]";} ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></small></h3>
+	<h3><i class=" fa fa-money"></i> <?= $_selling_report ?> <?= ucfirst($idhr) . ucfirst(substr($idbl,0,3).' '.substr($idbl,3,5));	if ($prefix != "") {echo " prefix [" . $prefix . "]";} ?> <small id="loader" style="display: none;"><span class="mm-loaderbar" aria-label="Loading"><span class="mm-loaderbar__bar"></span></span></small></h3>
 </div>
 <div class="card-body">
 <div class="row">

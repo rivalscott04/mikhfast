@@ -157,7 +157,7 @@ $getquickprint = $API->comm("/system/script/print", array("?.id" => "$qpid"));
 <div class="col-4">
 <div class="card box-bordered">
 	<div class="card-header">
-	<h3><i class="fa fa-ticket"></i> <?php if(isset($qpid)){echo $_edit;}else{echo $_add;} echo ' '. $_quick_print ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></small></h3> 
+	<h3><i class="fa fa-ticket"></i> <?php if(isset($qpid)){echo $_edit;}else{echo $_add;} echo ' '. $_quick_print ?> <small id="loader" style="display: none;"><span class="mm-loaderbar" aria-label="Loading"><span class="mm-loaderbar__bar"></span></span></small></h3> 
 	</div>
 	<div class="card-body">
 <form autocomplete="off" method="post" action="">

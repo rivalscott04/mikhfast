@@ -211,7 +211,10 @@ if (!isset($_SESSION["mikhmon"])) {
                       <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
-                    <div class="mm-meter-value"><?= $memLabel ?></div>
+                    <div class="mm-meter-value">
+                      <?= $memUsedPct ?>%
+                      <span class="mm-meter-subvalue"><?= $memLabel ?></span>
+                    </div>
                   </div>
 
                   <div class="mm-meter-row">
@@ -224,7 +227,10 @@ if (!isset($_SESSION["mikhmon"])) {
                       <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
-                    <div class="mm-meter-value"><?= $hddLabel ?></div>
+                    <div class="mm-meter-value">
+                      <?= $hddUsedPct ?>%
+                      <span class="mm-meter-subvalue"><?= $hddLabel ?></span>
+                    </div>
                   </div>
                 </div>
                 </div>
@@ -433,7 +439,7 @@ if (!isset($_SESSION["mikhmon"])) {
                           ".$_today." " . $_SESSION[$session.'totalHr'] . "vcr : " . $currency . " " . $_SESSION[$session.'dincome']. "<br/>
                           ".$_this_month." " . $_SESSION[$session.'totalBl'] . "vcr : " . $currency . " " . $_SESSION[$session.'mincome']; 
                           }else{
-                            echo "<div id='loader' ><i><span> <i class='fa fa-circle-o-notch fa-spin'></i> ". $_processing." </i></div>";
+                            echo "<div class='mm-loaderbar' aria-label='Loading'><div class='mm-loaderbar__bar'></div></div>";
                           }
                           ?>                       
                         </div>
@@ -459,7 +465,7 @@ if (!isset($_SESSION["mikhmon"])) {
                         <tbody>
                           <tr>
                             <td colspan="3" class="text-center">
-                            <div id="loader" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></div>
+                            <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
                             </td>
                           </tr>
                       </tbody>

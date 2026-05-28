@@ -26,15 +26,33 @@ if (!isset($_SESSION["mikhmon"])) {
 		include_once('./lib/router/RouterService.php');
 		$router = new RouterService($API);
 	}
-	$log = $router->getHotspotLogsAll();
-	$TotalReg = count($log);
+	// Loading the full RouterOS log can be very slow on busy routers.
+	// Default to a reasonable limit; allow explicit full load via ?all=1.
+	$all = isset($_GET['all']) ? (string) $_GET['all'] : "0";
+	if ($all === "1") {
+		$log = $router->getHotspotLogsAll();
+	} else {
+		$log = $router->getHotspotLogs(200);
+	}
+	$TotalReg = is_array($log) ? count($log) : 0;
 }
 ?>
 <div class="row">
 <div class="col-12">
 <div class="card">
 <div class="card-header">
-    <h3><i class=" fa fa-align-justify"></i> <?= $_hotspot_log ?> &nbsp; | &nbsp;&nbsp;<i onclick="location.reload();" class="fa fa-refresh pointer " title="Reload data"></i></h3>
+    <h3>
+		<i class=" fa fa-align-justify"></i> <?= $_hotspot_log ?>
+		<?php if ($all !== "1") { ?>
+			<small style="opacity:.85;">(showing latest 200)</small>
+		<?php } else { ?>
+			<small style="opacity:.85;">(showing all)</small>
+		<?php } ?>
+		&nbsp; | &nbsp;&nbsp;<i onclick="location.reload();" class="fa fa-refresh pointer " title="Reload data"></i>
+		<?php if ($all !== "1") { ?>
+			&nbsp; | &nbsp;&nbsp;<a class="pointer" href="./?hotspot=log&session=<?= $session; ?>&all=1" title="Load all logs (may be slow)">Load all</a>
+		<?php } ?>
+	</h3>
 </div>
 <div class="card-body">
 

@@ -69,3 +69,30 @@ body .progress .progress-bar.mm-meter-fill--warn,
 body .progress .progress-bar.mm-meter-fill--danger{
   background-image: linear-gradient(to right, rgba(255,255,255,.10), rgba(255,255,255,0));
 }
+
+/* Minimal animated loader bar (no text) */
+.mm-loaderbar{
+  display:inline-flex;
+  width:96px;
+  height:10px;
+  border-radius:999px;
+  overflow:hidden;
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08) inset;
+  vertical-align: middle;
+}
+
+.mm-loaderbar__bar{
+  width:55%;
+  height:100%;
+  border-radius:inherit;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0));
+  transform: translateX(-120%);
+  animation: mm-loaderbar-move 1.1s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes mm-loaderbar-move{
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}

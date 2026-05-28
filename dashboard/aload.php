@@ -186,7 +186,10 @@ include('../lang/'.$langid.'.php');
                       <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memFreePct ?>%;" aria-valuenow="<?= $memFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
-                    <div class="mm-meter-value"><?= $memLabel ?></div>
+                    <div class="mm-meter-value">
+                      <?= $memUsedPct ?>%
+                      <span class="mm-meter-subvalue"><?= $memLabel ?></span>
+                    </div>
                   </div>
 
                   <div class="mm-meter-row">
@@ -199,7 +202,10 @@ include('../lang/'.$langid.'.php');
                       <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddFreePct ?>%;" aria-valuenow="<?= $hddFreePct ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
-                    <div class="mm-meter-value"><?= $hddLabel ?></div>
+                    <div class="mm-meter-value">
+                      <?= $hddUsedPct ?>%
+                      <span class="mm-meter-subvalue"><?= $hddLabel ?></span>
+                    </div>
                   </div>
                 </div>
                 </div>

@@ -134,7 +134,7 @@ if (!isset($_SESSION["mikhmon"])) {
 <div class="col-8">
 <div class="card box-bordered">
   <div class="card-header">
-    <h3><i class="fa fa-plus"></i> <?= $_add.' '.$_user_profile ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> Processing... </i></small></h3>
+    <h3><i class="fa fa-plus"></i> <?= $_add.' '.$_user_profile ?> <small id="loader" style="display: none;"><span class="mm-loaderbar" aria-label="Loading"><span class="mm-loaderbar__bar"></span></span></small></h3>
   </div>
   <div class="card-body">
 <form autocomplete="off" method="post" action="">
