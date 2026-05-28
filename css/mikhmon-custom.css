@@ -412,24 +412,35 @@ body.theme-light .card-header{
   border-bottom-color: var(--mm-border) !important;
 }
 
-/* KPI / colored boxes: use soft tints in light theme */
-body.theme-light .box.bg-red{
-  background-color:#FEE2E2 !important;
-  color:#7F1D1D !important;
-}
-body.theme-light .box.bg-yellow{
-  background-color:#FEF3C7 !important;
-  color:#78350F !important;
-}
-body.theme-light .box.bg-green{
-  background-color:#DCFCE7 !important;
-  color:#14532D !important;
-}
+/* KPI cards in light: neutral surface + subtle accent (no colorful blocks) */
+body.theme-light .box.bg-red,
+body.theme-light .box.bg-yellow,
+body.theme-light .box.bg-green,
 body.theme-light .box.bg-blue{
-  background-color:#DBEAFE !important;
-  color:#1E3A8A !important;
+  background-color: var(--mm-surface) !important;
+  color: var(--mm-text) !important;
+  border: 1px solid var(--mm-border) !important;
+  box-shadow: var(--mm-shadow);
+  position: relative;
+  overflow: hidden;
 }
 
+/* subtle top accent line */
+body.theme-light .box.bg-red::before,
+body.theme-light .box.bg-yellow::before,
+body.theme-light .box.bg-green::before,
+body.theme-light .box.bg-blue::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:3px;
+  background: var(--mm-accent);
+  opacity:.9;
+}
+
+/* keep KPI links readable */
 body.theme-light .box.bg-red a,
 body.theme-light .box.bg-yellow a,
 body.theme-light .box.bg-green a,
@@ -437,10 +448,18 @@ body.theme-light .box.bg-blue a{
   color: inherit !important;
 }
 
-/* Tone down huge KPI number contrast */
+/* KPI typography */
 body.theme-light .mm-kpi__value{
-  color: currentColor;
-  opacity:.92;
+  color: var(--mm-text) !important;
+  opacity: .96;
+}
+body.theme-light .mm-kpi__label{
+  color: var(--mm-text-muted) !important;
+  opacity: 1;
+}
+body.theme-light .mm-kpi__icon{
+  color: var(--mm-accent-2) !important;
+  opacity: .85;
 }
 
 /* Inputs */
@@ -533,6 +552,25 @@ body.theme-light .btn:focus,
 body.theme-light button:focus{
   outline:none;
   box-shadow: 0 0 0 3px rgba(43,111,168,.18);
+}
+
+/* Sidebar text should be consistent (avoid global link color override) */
+body.theme-light #sidenav a,
+body.theme-light #sidenav .dropdown-btn{
+  color: var(--mm-text) !important;
+}
+body.theme-light #sidenav a:link,
+body.theme-light #sidenav a:visited{
+  color: var(--mm-text) !important;
+}
+body.theme-light #sidenav a:hover,
+body.theme-light #sidenav a:active{
+  color: var(--mm-accent-2) !important;
+}
+body.theme-light #sidenav a i,
+body.theme-light #sidenav .dropdown-btn i{
+  color: inherit !important;
+  opacity: .92;
 }
 
 /* Scrollbars (subtle) */

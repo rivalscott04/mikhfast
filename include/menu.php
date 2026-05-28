@@ -417,9 +417,12 @@ $(document).ready(function(){
     notify("<?= $_connecting ?>");
     connect(this.value)
   });
-  $(".stheme").change(function(){
+  $(".mm-theme-toggle").click(function(){
     notify("<?= $_loading_theme ?>");
-    stheme(this.value)
+    var isDark = document.body && document.body.classList && document.body.classList.contains("theme-dark");
+    var nextUrl = isDark ? (this.dataset.lightUrl || "") : (this.dataset.darkUrl || "");
+    if (!nextUrl) return;
+    stheme(nextUrl);
   });
 });
 </script>
