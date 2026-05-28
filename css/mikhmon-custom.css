@@ -705,6 +705,14 @@ body.theme-light .mm-theme-toggle__icon--moon{
 body.theme-light .mm-theme-toggle__icon--sun{ color: rgba(245,158,11,.92); }
 body.theme-light .mm-theme-toggle__icon--moon{ color: rgba(17,24,39,.55); }
 
+/* Navbar clips children by default (overflow:hidden) — allow dropdown to escape */
+.navbar{
+  overflow: visible !important;
+}
+.navbar:has(.mm-lang-dropdown--open){
+  z-index: 10050;
+}
+
 /* --- Navbar language dropdown --- */
 .mm-lang-dropdown{
   position:relative;
@@ -757,8 +765,8 @@ body.theme-light .mm-theme-toggle__icon--moon{ color: rgba(17,24,39,.55); }
   transform: rotate(180deg);
 }
 .mm-lang-dropdown__menu{
-  position:absolute;
-  top:calc(100% + 8px);
+  position:fixed;
+  top:0;
   right:0;
   min-width:190px;
   max-height:min(320px, calc(100vh - 90px));
@@ -769,6 +777,7 @@ body.theme-light .mm-theme-toggle__icon--moon{ color: rgba(17,24,39,.55); }
   background:rgba(24,28,33,.96);
   box-shadow:0 14px 34px rgba(0,0,0,.32);
   backdrop-filter: blur(10px);
+  z-index: 10051;
 }
 .mm-lang-dropdown__menu[hidden]{ display:none !important; }
 .mm-lang-dropdown__item{

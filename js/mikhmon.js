@@ -1034,6 +1034,25 @@ function mikhmon_bindAccordion() {
 
 try { mikhmon_bindAccordion(); } catch (e) {}
 
+function mikhmon_positionLangMenu(root) {
+  var trigger = root.querySelector(".mm-lang-dropdown__trigger");
+  var menu = root.querySelector(".mm-lang-dropdown__menu");
+  if (!trigger || !menu) return;
+
+  var rect = trigger.getBoundingClientRect();
+  var gap = 8;
+  var menuWidth = menu.offsetWidth || 190;
+  var left = rect.right - menuWidth;
+  if (left < 8) left = 8;
+  if (left + menuWidth > window.innerWidth - 8) {
+    left = window.innerWidth - menuWidth - 8;
+  }
+
+  menu.style.top = Math.round(rect.bottom + gap) + "px";
+  menu.style.left = Math.round(left) + "px";
+  menu.style.right = "auto";
+}
+
 function mikhmon_closeLangDropdowns(exceptRoot) {
   var roots = document.querySelectorAll("[data-mm-lang-dropdown]");
   for (var i = 0; i < roots.length; i++) {
@@ -1058,6 +1077,10 @@ function mikhmon_toggleLangDropdown(root) {
   menu.hidden = !willOpen;
   root.classList.toggle("mm-lang-dropdown--open", willOpen);
   trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  if (willOpen) {
+    // Measure while visible, then pin below trigger (escapes navbar overflow).
+    mikhmon_positionLangMenu(root);
+  }
 }
 
 function mikhmon_bindLangDropdown() {
@@ -1097,6 +1120,11 @@ function mikhmon_bindLangDropdown() {
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") mikhmon_closeLangDropdowns();
+  });
+
+  window.addEventListener("resize", function () {
+    var open = document.querySelector(".mm-lang-dropdown--open[data-mm-lang-dropdown]");
+    if (open) mikhmon_positionLangMenu(open);
   });
 }
 
