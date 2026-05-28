@@ -188,7 +188,7 @@ if (!isset($_SESSION["mikhmon"])) {
                 <div class="mm-meter-list">
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_cpu_load ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($cpuLoad . '% of 100% (' . $cpuText . ')', ENT_QUOTES) ?>">
                       <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
@@ -199,7 +199,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars(formatBytes($memFree, 2) . ' / ' . formatBytes($memTotal, 2), ENT_QUOTES) ?>">
                       <?php
                         // free-based: low free => danger
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
@@ -214,7 +214,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars(formatBytes($hddFree, 2) . ' / ' . formatBytes($hddTotal, 2), ENT_QUOTES) ?>">
                       <?php
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
                       ?>
@@ -350,11 +350,44 @@ if (!isset($_SESSION["mikhmon"])) {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr>
-                            <td colspan="3" class="text-center">
-                            <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
-                            </td>
-                          </tr>
+                          <?php
+                            // Render initial log rows too (so dashboard works even before AJAX refresh).
+                            $router->ensureHotspotLoggingToDisk();
+                            $log = $router->getHotspotLogs(20);
+
+                            $printed = 0;
+                            for ($i = 0; $i < 20; $i++) {
+                              if (!isset($log[$i])) break;
+                              if (!isset($log[$i]['message'])) continue;
+                              if (substr($log[$i]['message'], 0, 2) != "->") continue;
+
+                              $mess = explode(":", $log[$i]['message']);
+                              $time = isset($log[$i]['time']) ? $log[$i]['time'] : '';
+
+                              echo "<tr>";
+                              echo "<td>" . $time . "</td>";
+                              echo "<td>";
+                              if (count($mess) > 6) {
+                                echo $mess[1] . ":" . $mess[2] . ":" . $mess[3] . ":" . $mess[4] . ":" . $mess[5] . ":" . $mess[6];
+                              } else {
+                                echo isset($mess[1]) ? $mess[1] : '';
+                              }
+                              echo "</td>";
+                              echo "<td>";
+                              if (count($mess) > 6) {
+                                echo str_replace("trying to", "", (isset($mess[7]) ? $mess[7] : '') . " " . (isset($mess[8]) ? $mess[8] : '') . " " . (isset($mess[9]) ? $mess[9] : '') . " " . (isset($mess[10]) ? $mess[10] : ''));
+                              } else {
+                                echo str_replace("trying to", "", (isset($mess[2]) ? $mess[2] : '') . " " . (isset($mess[3]) ? $mess[3] : '') . " " . (isset($mess[4]) ? $mess[4] : '') . " " . (isset($mess[5]) ? $mess[5] : ''));
+                              }
+                              echo "</td>";
+                              echo "</tr>";
+                              $printed++;
+                            }
+
+                            if ($printed === 0) {
+                              echo "<tr><td colspan='3' class='text-center'>-</td></tr>";
+                            }
+                          ?>
                       </tbody>
                     </table>
                   </div>

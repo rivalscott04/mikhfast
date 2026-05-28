@@ -23,22 +23,6 @@ if (!isset($_SESSION["mikhmon"])) {
 } else {
 }
 ?>
-<style>
-.iFWrapper {
-	position: relative;
-	padding-bottom: 56.25%; /* 16:9 */
-	padding-top: 25px;
-	height: 0;
-}
-.iFWrapper iframe {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-  height: 100%;
-  border :none;
-}
-</style>
 <div class="row">
   <div class="col-12">
     <div class="card">
@@ -57,6 +41,9 @@ if (!isset($_SESSION["mikhmon"])) {
       Author : Laksamadi Guko
     </li>
     <li>
+      Modified by : Rival
+    </li>
+    <li>
       Licence : <a href="https://github.com/laksa19/mikhmonv2/blob/master/LICENSE">GPLv2</a>
     </li>
     <li>
@@ -73,22 +60,27 @@ if (!isset($_SESSION["mikhmon"])) {
 <p>
   Terima kasih untuk semua yang telah mendukung pengembangan MIKHMON.
 </p>
+<p>
+  Ringkasan perubahan pada versi ini:
+  <ul>
+    <li>
+      Optimasi loading dashboard: beberapa data (system resource, hitungan hotspot, dan log) dibuat cache singkat supaya tidak bolak-balik request ke RouterOS setiap refresh.
+    </li>
+    <li>
+      Tampilan System Information diperbarui jadi lebih mudah dibaca (CPU / RAM / HDD dengan indikator bar + persentase).
+    </li>
+    <li>
+      Hotspot log di dashboard dibuat lebih stabil: log disiapkan lebih dulu dan tetap tampil walau proses reload/AJAX belum jalan.
+    </li>
+    <li>
+      Template Editor voucher ditingkatkan: perubahan editor dipastikan ikut tersimpan saat klik Save, dan bisa simpan cepat dengan Ctrl+S / Cmd+S.
+    </li>
+  </ul>
+</p>
 <div>
     <i>Copyright &copy; <i> 2018 Laksamadi Guko</i></i>
 </div>
 </div>
-</div>
-</div>
-<div class="col-12">
-<div class="card">
-  <div class="card-header">
-  <h3><i class="fa fa-info-circle"></i> Changelog</h3>
-  </div>
-  <div class="card-body">
-  <div class="iFWrapper">
-    <iframe src="https://laksa19.github.io/mikhmonv3" ></iframe>
-  </div>
-  </div>
 </div>
 </div>
 </div>

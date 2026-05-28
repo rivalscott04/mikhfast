@@ -164,7 +164,7 @@ include('../lang/'.$langid.'.php');
                 <div class="mm-meter-list">
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_cpu_load ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($cpuLoad . '% of 100% (' . $cpuText . ')', ENT_QUOTES) ?>">
                       <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
@@ -519,7 +519,7 @@ else if ($load == "all") {
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_memory ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2)), ENT_QUOTES) ?>">
                       <?php
                         $memLabel = ($memTotal > 0) ? (formatBytes($memFree, 2) . " / " . formatBytes($memTotal, 2)) : formatBytes($memFree, 2);
                         $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
@@ -535,7 +535,7 @@ else if ($load == "all") {
 
                   <div class="mm-meter-row">
                     <div class="mm-meter-label"><?= $_free_hdd ?></div>
-                    <div class="progress mm-meter-progress">
+                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars((($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2)), ENT_QUOTES) ?>">
                       <?php
                         $hddLabel = ($hddTotal > 0) ? (formatBytes($hddFree, 2) . " / " . formatBytes($hddTotal, 2)) : formatBytes($hddFree, 2);
                         $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
