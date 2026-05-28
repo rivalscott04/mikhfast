@@ -424,6 +424,69 @@ else if ($load == "all") {
     __mikhmon_cache_set($logKey, $log);
   }
 
+  // income (use same data source as Report -> Selling / Resume)
+  // read monthly scripts (owner = monYYYY), sum price field in script name
+  $incomeKey = 'dash:' . $session . ':income';
+  $incomeCached = __mikhmon_cache_get($incomeKey, 10);
+  if (is_array($incomeCached)) {
+    $TotalRBl = $incomeCached['totalBl'];
+    $TotalRHr = $incomeCached['totalHr'];
+    $tBl = $incomeCached['tBl'];
+    $tHr = $incomeCached['tHr'];
+  } else {
+    $thisD = date("d");
+    $thisM = strtolower(date("M"));
+    $thisY = date("Y");
+    if (strlen($thisD) == 1) $thisD = "0" . $thisD;
+
+    $idhr = $thisM . "/" . $thisD . "/" . $thisY;
+    $idbl = $thisM . $thisY;
+
+    $tBl = 0.0;
+    $tHr = 0.0;
+    $TotalRBl = 0;
+    $TotalRHr = 0;
+
+    // keep payload minimal
+    $getSRBl = $API->comm("/system/script/print", array(
+      "?owner" => "$idbl",
+      ".proplist" => "name,source",
+    ));
+    $TotalRBl = is_array($getSRBl) ? count($getSRBl) : 0;
+
+    if (is_array($getSRBl)) {
+      foreach ($getSRBl as $row) {
+        if (!isset($row['name'])) continue;
+        $parts = explode("-|-", $row['name']);
+        if (!isset($parts[3])) continue;
+        $price = (float) $parts[3];
+        $tBl += $price;
+        if (isset($parts[0]) && $parts[0] === $idhr) {
+          $tHr += $price;
+          $TotalRHr += count((array) (isset($row['source']) ? $row['source'] : null));
+        }
+      }
+    }
+
+    __mikhmon_cache_set($incomeKey, array(
+      'totalBl' => $TotalRBl,
+      'totalHr' => $TotalRHr,
+      'tBl' => $tBl,
+      'tHr' => $tHr,
+    ));
+  }
+
+  // store in session (used by dashboard KPI + existing report widgets)
+  $_SESSION[$session . 'totalBl'] = (string) $TotalRBl;
+  $_SESSION[$session . 'totalHr'] = (string) $TotalRHr;
+  if ($currency == in_array($currency, $cekindo['indo'])) {
+    $_SESSION[$session . 'mincome'] = number_format((float) $tBl, 0, ",", ".");
+    $_SESSION[$session . 'dincome'] = number_format((float) $tHr, 0, ",", ".");
+  } else {
+    $_SESSION[$session . 'mincome'] = number_format((float) $tBl, 2);
+    $_SESSION[$session . 'dincome'] = number_format((float) $tHr, 2);
+  }
+
   if ($livereport == "disable") {
     $logh = "457px";
     $lreport = "style='display:none;'";
@@ -434,186 +497,165 @@ else if ($load == "all") {
   ?>
 
   <div id="reloadHome">
+    <!-- keep live report refresh logic intact (hidden container) -->
+    <div id="r_4" style="display:none">
+      <div id="reloadLreport">
+        <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
     <div id="r_1" class="row">
       <div class="col-4">
-        <div class="box bmh-75 box-bordered">
-          <div class="box-group">
-            <div class="box-group-icon"><i class="fa fa-calendar"></i></div>
-              <div class="box-group-area">
-              <span ><?= $_system_date_time ?><br>
-                    <?php 
-                    echo ucfirst($clock['date']) . " " . $clock['time'] . "<br>
-                    ".$_uptime." : " . formatDTM($resource['uptime']);
-                    ?>
-                </span>
+        <div class="box bg-red bmh-75">
+          <a onclick="cancelPage()" href="./?hotspot=active&session=<?= $session; ?>">
+            <div class="mm-kpi">
+              <div class="mm-kpi__left">
+                <div class="mm-kpi__value"><?= (int) $counthotspotactive; ?></div>
+                <div class="mm-kpi__label"><?= $_hotspot_active ?></div>
               </div>
+              <div class="mm-kpi__icon"><i class="fa fa-wifi"></i></div>
             </div>
-          </div>
+          </a>
         </div>
-      <div class="col-4">
-        <div class="box bmh-75 box-bordered">
-          <div class="box-group">
-          <div class="box-group-icon"><i class="fa fa-info-circle"></i></div>
-              <div class="box-group-area">
-                <span >
-                    <?php
-                    echo $_board_name." : " . $resource['board-name'] . "<br/>
-                    ".$_model." : " . $routerboard['model'] . "<br/>
-                    Router OS : " . $resource['version'];
-                    ?>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-    <div class="col-4">
-      <div class="box bmh-75 box-bordered">
-        <div class="box-group">
-          <div class="box-group-icon"><i class="fa fa-server"></i></div>
-              <div class="box-group-area">
-                <?php
-                  $cpuLoad = isset($resource['cpu-load']) ? (int) $resource['cpu-load'] : 0;
-                  if ($cpuLoad < 0) $cpuLoad = 0;
-                  if ($cpuLoad > 100) $cpuLoad = 100;
-                  $cpuFreePct = 100 - $cpuLoad;
-                  $cpuCount = isset($resource['cpu-count']) ? (int) $resource['cpu-count'] : 0;
-                  $cpuFreq = isset($resource['cpu-frequency']) ? (int) $resource['cpu-frequency'] : 0;
-
-                  $memFree = isset($resource['free-memory']) ? (float) $resource['free-memory'] : 0.0;
-                  $memTotal = isset($resource['total-memory']) ? (float) $resource['total-memory'] : 0.0;
-                  $memUsed = ($memTotal > 0) ? max(0.0, ($memTotal - $memFree)) : 0.0;
-                  $memUsedPct = ($memTotal > 0) ? (int) round(($memUsed / $memTotal) * 100) : 0;
-                  if ($memUsedPct < 0) $memUsedPct = 0;
-                  if ($memUsedPct > 100) $memUsedPct = 100;
-                  $memFreePct = ($memTotal > 0) ? (int) round(($memFree / $memTotal) * 100) : 0;
-                  if ($memFreePct < 0) $memFreePct = 0;
-                  if ($memFreePct > 100) $memFreePct = 100;
-
-                  $hddFree = isset($resource['free-hdd-space']) ? (float) $resource['free-hdd-space'] : 0.0;
-                  $hddTotal = isset($resource['total-hdd-space']) ? (float) $resource['total-hdd-space'] : 0.0;
-                  $hddUsed = ($hddTotal > 0) ? max(0.0, ($hddTotal - $hddFree)) : 0.0;
-                  $hddUsedPct = ($hddTotal > 0) ? (int) round(($hddUsed / $hddTotal) * 100) : 0;
-                  if ($hddUsedPct < 0) $hddUsedPct = 0;
-                  if ($hddUsedPct > 100) $hddUsedPct = 100;
-                  $hddFreePct = ($hddTotal > 0) ? (int) round(($hddFree / $hddTotal) * 100) : 0;
-                  if ($hddFreePct < 0) $hddFreePct = 0;
-                  if ($hddFreePct > 100) $hddFreePct = 100;
-
-                  $cpuTextParts = array($cpuLoad . "%");
-                  if ($cpuCount > 0) $cpuTextParts[] = $cpuCount . "x";
-                  if ($cpuFreq > 0) $cpuTextParts[] = $cpuFreq . " MHz";
-                  $cpuText = implode(" ", $cpuTextParts);
-                ?>
-                <div class="mm-meter-list">
-                  <div class="mm-meter-row">
-                    <div class="mm-meter-label"><?= $_cpu_load ?></div>
-                    <div class="progress mm-meter-progress">
-                      <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
-                      </div>
-                    </div>
-                    <div class="mm-meter-value">
-                      <?= $_used ?> : <?= $cpuLoad ?>%
-                    </div>
-                  </div>
-
-                  <div class="mm-meter-row">
-                    <div class="mm-meter-label"><?= $_free_memory ?></div>
-                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $memUsedPct . '% | ' . $_free . ' : ' . $memFreePct . '% (' . formatBytes($memFree, 2) . ' / ' . formatBytes($memTotal, 2) . ')', ENT_QUOTES) ?>">
-                      <?php
-                        $memTone = ($memFreePct <= 10) ? "mm-meter-fill--danger" : (($memFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
-                      ?>
-                      <div class="progress-bar mm-meter-fill <?= $memTone ?>" role="progressbar" style="width: <?= $memUsedPct ?>%;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
-                      </div>
-                    </div>
-                    <div class="mm-meter-value">
-                      <?= $_used ?> : <?= $memUsedPct ?>%
-                    </div>
-                  </div>
-
-                  <div class="mm-meter-row">
-                    <div class="mm-meter-label"><?= $_free_hdd ?></div>
-                    <div class="progress mm-meter-progress" title="<?= htmlspecialchars($_used . ' : ' . $hddUsedPct . '% | ' . $_free . ' : ' . $hddFreePct . '% (' . formatBytes($hddFree, 2) . ' / ' . formatBytes($hddTotal, 2) . ')', ENT_QUOTES) ?>">
-                      <?php
-                        $hddTone = ($hddFreePct <= 10) ? "mm-meter-fill--danger" : (($hddFreePct <= 25) ? "mm-meter-fill--warn" : "mm-meter-fill--primary");
-                      ?>
-                      <div class="progress-bar mm-meter-fill <?= $hddTone ?>" role="progressbar" style="width: <?= $hddUsedPct ?>%;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
-                      </div>
-                    </div>
-                    <div class="mm-meter-value">
-                      <?= $_used ?> : <?= $hddUsedPct ?>%
-                    </div>
-                  </div>
-                </div>
-                </div>
-              </div>
-            </div>
-          </div> 
       </div>
+
+      <div class="col-4">
+        <div class="box bg-yellow bmh-75">
+          <a onclick="cancelPage()" href="./?hotspot=users&profile=all&session=<?= $session; ?>">
+            <div class="mm-kpi">
+              <div class="mm-kpi__left">
+                <div class="mm-kpi__value"><?= (int) $countallusers; ?></div>
+                <div class="mm-kpi__label"><?= $_hotspot_users ?></div>
+              </div>
+              <div class="mm-kpi__icon"><i class="fa fa-users"></i></div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="box bg-green bmh-75">
+          <a onclick="cancelPage()" href="./?report=selling&session=<?= $session; ?>">
+            <div class="mm-kpi">
+              <div class="mm-kpi__left">
+                <?php
+                  $mincome = isset($_SESSION[$session.'mincome']) ? $_SESSION[$session.'mincome'] : null;
+                  $dincome = isset($_SESSION[$session.'dincome']) ? $_SESSION[$session.'dincome'] : null;
+                  $monthText = ($mincome !== null && $mincome !== '') ? ($currency . " " . $mincome) : null;
+                  $todayText = ($dincome !== null && $dincome !== '') ? ($currency . " " . $dincome) : null;
+                ?>
+                <div style="font-size:12px; opacity:.9; line-height:1.25;">
+                  <div><b><?= $_this_month ?></b>: <?= $monthText ? $monthText : "<span class='mm-loaderbar' aria-label='Loading'><span class='mm-loaderbar__bar'></span></span>"; ?></div>
+                  <div><b><?= $_today ?></b>: <?= $todayText ? $todayText : "<span class='mm-loaderbar' aria-label='Loading'><span class='mm-loaderbar__bar'></span></span>"; ?></div>
+                </div>
+              </div>
+              <div class="mm-kpi__icon" style="text-align:right;">
+                <i class="fa fa-money"></i>
+                <div style="font-size:12px; opacity:.9; margin-top:2px;"><?= $_income ?></div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Small panels row -->
+    <div class="row">
+      <div class="col-4">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mm-panel-title"><i class="fa fa-tachometer"></i> Resource</h3>
+          </div>
+          <div class="card-body">
+            <?php
+              $cpuLoad = isset($resource['cpu-load']) ? (int) $resource['cpu-load'] : 0;
+              if ($cpuLoad < 0) $cpuLoad = 0;
+              if ($cpuLoad > 100) $cpuLoad = 100;
+              $cpuCount = isset($resource['cpu-count']) ? (int) $resource['cpu-count'] : 0;
+              $cpuFreq = isset($resource['cpu-frequency']) ? (int) $resource['cpu-frequency'] : 0;
+
+              $memFree = isset($resource['free-memory']) ? (float) $resource['free-memory'] : 0.0;
+              $memTotal = isset($resource['total-memory']) ? (float) $resource['total-memory'] : 0.0;
+              $memUsed = ($memTotal > 0) ? max(0.0, ($memTotal - $memFree)) : 0.0;
+              $memUsedPct = ($memTotal > 0) ? (int) round(($memUsed / $memTotal) * 100) : 0;
+              if ($memUsedPct < 0) $memUsedPct = 0;
+              if ($memUsedPct > 100) $memUsedPct = 100;
+
+              $hddFree = isset($resource['free-hdd-space']) ? (float) $resource['free-hdd-space'] : 0.0;
+              $hddTotal = isset($resource['total-hdd-space']) ? (float) $resource['total-hdd-space'] : 0.0;
+              $hddUsed = ($hddTotal > 0) ? max(0.0, ($hddTotal - $hddFree)) : 0.0;
+              $hddUsedPct = ($hddTotal > 0) ? (int) round(($hddUsed / $hddTotal) * 100) : 0;
+              if ($hddUsedPct < 0) $hddUsedPct = 0;
+              if ($hddUsedPct > 100) $hddUsedPct = 100;
+
+              $cpuTextParts = array($cpuLoad . "%");
+              if ($cpuCount > 0) $cpuTextParts[] = $cpuCount . "x";
+              if ($cpuFreq > 0) $cpuTextParts[] = $cpuFreq . " " . "MHz";
+              $cpuText = implode(" ", $cpuTextParts);
+            ?>
+            <div class="mm-meter-list">
+              <div class="mm-meter-row">
+                <div class="mm-meter-label"><?= $_cpu_load ?></div>
+                <div class="progress mm-meter-progress" title="<?= htmlspecialchars($cpuText, ENT_QUOTES) ?>">
+                  <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $cpuLoad ?>%;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="mm-meter-value"><?= $cpuLoad ?>%</div>
+              </div>
+
+              <div class="mm-meter-row">
+                <div class="mm-meter-label">Memory</div>
+                <div class="progress mm-meter-progress" title="<?= htmlspecialchars(formatBytes($memUsed, 2) . ' / ' . formatBytes($memTotal, 2), ENT_QUOTES) ?>">
+                  <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $memUsedPct ?>%;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="mm-meter-value"><?= formatBytes($memUsed, 2) ?></div>
+              </div>
+
+              <div class="mm-meter-row">
+                <div class="mm-meter-label">HDD</div>
+                <div class="progress mm-meter-progress" title="<?= htmlspecialchars(formatBytes($hddUsed, 2) . ' / ' . formatBytes($hddTotal, 2), ENT_QUOTES) ?>">
+                  <div class="progress-bar mm-meter-fill mm-meter-fill--primary" role="progressbar" style="width: <?= $hddUsedPct ?>%;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="mm-meter-value"><?= formatBytes($hddUsed, 2) ?></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mm-panel-title"><i class="fa fa-info-circle"></i> System Info</h3>
+          </div>
+          <div class="card-body" style="font-size:12px; line-height:1.45;">
+            <div><b><?= $_uptime ?></b>: <?= formatDTM($resource['uptime']); ?></div>
+            <div><b><?= $_board_name ?></b>: <?= htmlspecialchars($resource['board-name']); ?></div>
+            <div><b><?= $_model ?></b>: <?= htmlspecialchars($routerboard['model']); ?></div>
+            <div><b>Router OS</b>: <?= htmlspecialchars($resource['version']); ?></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mm-panel-title"><i class="fa fa-align-justify"></i> App Log</h3>
+          </div>
+          <div class="card-body">
+            <ul class="mm-list-compact">
+              <li><?= date("H:i:s") ?> - Loading Hotspot Info</li>
+              <li><?= date("H:i:s") ?> - Loading Traffic Monitor</li>
+              <li><?= date("H:i:s") ?> - Loading System Log</li>
+              <li><?= date("H:i:s") ?> - Loading Report</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="row">
       <div class="col-8">
-        <div id="r_2" class="row">
-          <div class="card">
-            <div class="card-header"><h3><i class="fa fa-wifi"></i> Hotspot</h3></div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-3 col-box-6">
-                  <div class="box bg-blue bmh-75">
-                    <a onclick="cancelPage()" href="./?hotspot=active&session=<?= $session; ?>">
-                      <h1><?= $counthotspotactive; ?>
-                          <span style="font-size: 15px;"><?= $hunit; ?></span>
-                        </h1>
-                      <div>
-                        <i class="fa fa-laptop"></i> <?= $_hotspot_active ?>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-                <div class="col-3 col-box-6">
-                  <div class="box bg-green bmh-75">
-                    <a onclick="cancelPage()" href="./?hotspot=users&profile=all&session=<?= $session; ?>">
-                      <h1><?= $countallusers; ?>
-                        <span style="font-size: 15px;"><?= $uunit; ?></span>
-                      </h1>
-                      <div>
-                        <i class="fa fa-users"></i> <?= $_hotspot_users ?>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-                <div class="col-3 col-box-6">
-                  <div class="box bg-yellow bmh-75">
-                    <a onclick="cancelPage()" href="./?hotspot-user=add&session=<?= $session; ?>">
-                      <div>
-                        <h1><i class="fa fa-user-plus"></i>
-                            <span style="font-size: 15px;"><?= $_add ?></span>
-                        </h1>
-                      </div>
-                      <div>
-                          <i class="fa fa-user-plus"></i> <?= $_hotspot_users ?>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-                <div class="col-3 col-box-6">
-                  <div class="box bg-red bmh-75">
-                    <a onclick="cancelPage()" href="./?hotspot-user=generate&session=<?= $session; ?>">
-                      <div>
-                        <h1><i class="fa fa-user-plus"></i>
-                            <span style="font-size: 15px;"><?= $_generate ?></span>
-                        </h1>
-                      </div>
-                      <div>
-                          <i class="fa fa-user-plus"></i> <?= $_hotspot_users ?>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="card">
           <div class="card-header"><h3><i class="fa fa-area-chart"></i> <?= $_traffic ?> </h3></div>
           <div class="card-body">
@@ -627,21 +669,6 @@ else if ($load == "all") {
       </div>
 
       <div class="col-4">
-        <div id="r_4" class="row">
-          <div <?= $lreport; ?> class="box bmh-75 box-bordered">
-            <div class="box-group">
-              <div class="box-group-icon"><i class="fa fa-money"></i></div>
-              <div class="box-group-area">
-                <span>
-                  <div id="reloadLreport">
-                    <div class="mm-loaderbar" aria-label="Loading"><div class="mm-loaderbar__bar"></div></div>
-                  </div>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div id="r_3" class="row">
           <div class="card">
             <div class="card-header">

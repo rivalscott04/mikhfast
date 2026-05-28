@@ -112,3 +112,47 @@ body .progress .progress-bar.mm-meter-fill--danger{
   0%   { transform: translateX(-120%); }
   100% { transform: translateX(220%); }
 }
+
+/* Dashboard KPI cards (layout-only, keep theme colors) */
+.mm-kpi{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.mm-kpi__left{
+  min-width:0;
+}
+.mm-kpi__value{
+  font-size:44px;
+  line-height:1;
+  font-weight:700;
+  letter-spacing:.5px;
+}
+.mm-kpi__label{
+  margin-top:2px;
+  font-size:13px;
+  opacity:.9;
+}
+.mm-kpi__icon{
+  font-size:28px;
+  opacity:.8;
+  flex:0 0 auto;
+}
+
+/* Dashboard small panels */
+.mm-panel-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+}
+.mm-list-compact{
+  margin:0;
+  padding-left:18px;
+}
+.mm-list-compact li{
+  margin:2px 0;
+  font-size:12px;
+  opacity:.95;
+}
