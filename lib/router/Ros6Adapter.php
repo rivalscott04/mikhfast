@@ -26,7 +26,22 @@ class Ros6Adapter implements RouterAdapterInterface
 
     public function getSystemResource()
     {
-        $res = $this->client->comm("/system/resource/print", array(), array("uptime", "board-name", "version", "cpu-load", "free-memory", "free-hdd-space"));
+        $res = $this->client->comm(
+            "/system/resource/print",
+            array(),
+            array(
+                "uptime",
+                "board-name",
+                "version",
+                "cpu-load",
+                "cpu-frequency",
+                "cpu-count",
+                "free-memory",
+                "total-memory",
+                "free-hdd-space",
+                "total-hdd-space",
+            )
+        );
         return (is_array($res) && isset($res[0])) ? $res[0] : array();
     }
 

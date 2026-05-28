@@ -153,13 +153,72 @@ if (!isset($_SESSION["mikhmon"])) {
         <div class="box-group">
           <div class="box-group-icon"><i class="fa fa-server"></i></div>
               <div class="box-group-area">
-                <span >
-                    <?php
-                    echo $_cpu_load." : " . $resource['cpu-load'] . "%<br/>
-                    ".$_free_memory." : " . formatBytes($resource['free-memory'], 2) . "<br/>
-                    ".$_free_hdd." : " . formatBytes($resource['free-hdd-space'], 2)
-                    ?>
-                </span>
+                <?php
+                  $cpuLoad = isset($resource['cpu-load']) ? (int) $resource['cpu-load'] : 0;
+                  if ($cpuLoad < 0) $cpuLoad = 0;
+                  if ($cpuLoad > 100) $cpuLoad = 100;
+                  $cpuCount = isset($resource['cpu-count']) ? (int) $resource['cpu-count'] : 0;
+                  $cpuFreq = isset($resource['cpu-frequency']) ? (int) $resource['cpu-frequency'] : 0;
+
+                  $memFree = isset($resource['free-memory']) ? (float) $resource['free-memory'] : 0.0;
+                  $memTotal = isset($resource['total-memory']) ? (float) $resource['total-memory'] : 0.0;
+                  $memUsed = ($memTotal > 0) ? max(0.0, ($memTotal - $memFree)) : 0.0;
+                  $memUsedPct = ($memTotal > 0) ? (int) round(($memUsed / $memTotal) * 100) : 0;
+                  if ($memUsedPct < 0) $memUsedPct = 0;
+                  if ($memUsedPct > 100) $memUsedPct = 100;
+                  $memClass = ($memUsedPct >= 90) ? "bg-red" : (($memUsedPct >= 75) ? "bg-yellow" : "bg-blue");
+
+                  $hddFree = isset($resource['free-hdd-space']) ? (float) $resource['free-hdd-space'] : 0.0;
+                  $hddTotal = isset($resource['total-hdd-space']) ? (float) $resource['total-hdd-space'] : 0.0;
+                  $hddUsed = ($hddTotal > 0) ? max(0.0, ($hddTotal - $hddFree)) : 0.0;
+                  $hddUsedPct = ($hddTotal > 0) ? (int) round(($hddUsed / $hddTotal) * 100) : 0;
+                  if ($hddUsedPct < 0) $hddUsedPct = 0;
+                  if ($hddUsedPct > 100) $hddUsedPct = 100;
+                  $hddClass = ($hddUsedPct >= 90) ? "bg-red" : (($hddUsedPct >= 75) ? "bg-yellow" : "bg-blue");
+
+                  $cpuTextParts = array($cpuLoad . "%");
+                  if ($cpuCount > 0) $cpuTextParts[] = $cpuCount . "x";
+                  if ($cpuFreq > 0) $cpuTextParts[] = $cpuFreq . " MHz";
+                  $cpuText = implode(" ", $cpuTextParts);
+                ?>
+                <div>
+                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+                    <div style="width:90px;flex:0 0 90px;"><?= $_cpu_load ?></div>
+                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
+                      <div class="progress-bar bg-blue" role="progressbar" style="width: <?= $cpuLoad ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $cpuLoad ?>" aria-valuemin="0" aria-valuemax="100">
+                        <?= $cpuText ?>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+                    <div style="width:90px;flex:0 0 90px;"><?= $_free_memory ?></div>
+                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
+                      <?php
+                        $memLabel = ($memTotal > 0)
+                          ? (formatBytes($memUsed, 2) . " / " . formatBytes($memTotal, 2))
+                          : formatBytes($memFree, 2);
+                      ?>
+                      <div class="progress-bar <?= $memClass ?>" role="progressbar" style="width: <?= $memUsedPct ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $memUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
+                        <?= $memLabel ?>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+                    <div style="width:90px;flex:0 0 90px;"><?= $_free_hdd ?></div>
+                    <div class="progress" style="height:18px;flex:1;border-radius:3px;overflow:hidden;">
+                      <?php
+                        $hddLabel = ($hddTotal > 0)
+                          ? (formatBytes($hddUsed, 2) . " / " . formatBytes($hddTotal, 2))
+                          : formatBytes($hddFree, 2);
+                      ?>
+                      <div class="progress-bar <?= $hddClass ?>" role="progressbar" style="width: <?= $hddUsedPct ?>%;display:flex;align-items:center;padding:0 8px;white-space:nowrap;" aria-valuenow="<?= $hddUsedPct ?>" aria-valuemin="0" aria-valuemax="100">
+                        <?= $hddLabel ?>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>

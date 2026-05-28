@@ -436,12 +436,19 @@ function mikhmon_bindAccordion() {
   if (window.__mikhmonAccordionBound) return;
   window.__mikhmonAccordionBound = true;
 
+  // Capture phase so we can block theme handlers on `.dropdown-btn`
+  // (theme binds per-element listeners that can "double toggle").
   document.addEventListener("click", function (e) {
     var btn = e.target && e.target.closest ? e.target.closest(".dropdown-btn") : null;
     if (!btn) return;
     // Only handle sidebar buttons (avoid false positives inside content).
     var inSideNav = btn.closest && btn.closest("#sidenav");
     if (!inSideNav) return;
+
+    // Prevent other click handlers (theme) from running.
+    if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+    if (typeof e.preventDefault === "function") e.preventDefault();
 
     btn.classList.toggle("active");
     var container = btn.nextElementSibling;
@@ -454,21 +461,7 @@ function mikhmon_bindAccordion() {
     } else {
       container.style.display = "block";
     }
-  });
+  }, true);
 }
-
-// Fallback helper for inline onclick in PHP templates.
-// Returns false so it can be used from onclick="return ...".
-window.mikhmon_toggleDropdown = function (btn) {
-  try {
-    if (!btn) return false;
-    btn.classList && btn.classList.toggle("active");
-    var container = btn.nextElementSibling;
-    if (!container) return false;
-    if (container.classList && !container.classList.contains("dropdown-container")) return false;
-    container.style.display = container.style.display === "block" ? "none" : "block";
-  } catch (e) {}
-  return false;
-};
 
 try { mikhmon_bindAccordion(); } catch (e) {}
