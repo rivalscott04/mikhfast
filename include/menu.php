@@ -265,29 +265,31 @@ if (file_exists('./info.php')) {
     }
     ?>
   </select>
-  <select class="connect optfa ses text-right mr-t-10 pd-5">
-    <option id="MikhmonSession" value="<?= $session; ?>"><?= $hotspotname; ?></option>
-      <?php
-      foreach (file('./include/config.php') as $line) {
-        $sesname = explode("'", $line)[1];
-        if ($sesname == "" || $sesname== "mikhmon") {
-        } else {
-        if($sesname == $session){
-          echo '<option value="' . $sesname. '">'.$sesname. ' &#x2666;</option>';
-        }else{
-          echo '<option value="' . $sesname. '">'.$sesname. '</option>';
-        }
-        }
-      }
-      ?>
-    
-  </select>
   <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
 </div>
 </div>
 
 <div id="sidenav" class="sidenav">
-  <div class="menu text-center align-middle card-header" style="border-radius:0;"><h3><?= $identity; ?></h3></div>
+  <div class="mm-sidenav-header">
+    <div class="mm-sidenav-brand">MIKHMON</div>
+    <div class="mm-sidenav-sub"><?= htmlspecialchars($identity, ENT_QUOTES); ?></div>
+    <select class="connect mm-sidenav-session" aria-label="Session">
+      <option id="MikhmonSession" value="<?= $session; ?>"><?= $hotspotname; ?></option>
+        <?php
+        foreach (file('./include/config.php') as $line) {
+          $sesname = explode("'", $line)[1];
+          if ($sesname == "" || $sesname== "mikhmon") {
+          } else {
+          if($sesname == $session){
+            echo '<option value="' . $sesname. '">'.$sesname. ' &#x2666;</option>';
+          }else{
+            echo '<option value="' . $sesname. '">'.$sesname. '</option>';
+          }
+          }
+        }
+        ?>
+    </select>
+  </div>
   <a href="./?session=<?= $session; ?>" class="menu <?= $shome; ?>"><i class="fa fa-dashboard"></i> <?= $_dashboard ?></a>
   <!--hotspot-->
   <div class="dropdown-btn <?= $susers . $suserprof . $sactive . $shosts . $sipbind . $scookies; ?>"><i class="fa fa-wifi"></i> Hotspot
