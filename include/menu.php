@@ -243,7 +243,9 @@ $(document).ready(function(){
 <div id="notify"><div class="message"></div></div>
 <div id="temp"></div>
 <?php 
-include('./info.php');
+if (file_exists('./info.php')) {
+  include('./info.php');
+}
 } else { ?>
 
 <div id="navbar" class="navbar">
@@ -375,7 +377,9 @@ $(document).ready(function(){
 <div id="notify"><div class="message"></div></div>
 <div id="temp"></div>
 <?php 
-include('./include/info.php');
+if (file_exists('./include/info.php')) {
+  include('./include/info.php');
+}
 } ?>
 
 <div id="main">  
