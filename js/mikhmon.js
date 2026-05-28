@@ -486,6 +486,19 @@ function mikhmon_initTrafficChart() {
   try { if (window.__mikhmonTrafficInterval) clearInterval(window.__mikhmonTrafficInterval); } catch (e) {}
   try { if (window.__mikhmonTrafficChart && typeof window.__mikhmonTrafficChart.destroy === "function") window.__mikhmonTrafficChart.destroy(); } catch (e) {}
 
+  // Ensure the currently loaded Highcharts theme is applied.
+  // Theme switching swaps the theme script at runtime; re-applying here keeps the chart in sync.
+  try {
+    if (Highcharts && Highcharts.theme) Highcharts.setOptions(Highcharts.theme);
+  } catch (e) {}
+
+  var body = document.body;
+  var isDark = false;
+  try { isDark = !!(body && body.classList && body.classList.contains("theme-dark")); } catch (e) {}
+  var chartText = isDark ? "#f3f4f5" : "#3E3E3E";
+  var grid = isDark ? "#2f353a" : "#c1c1c1";
+  var bg = isDark ? "#3a4149" : "#FFFFFF";
+
   Highcharts.setOptions({
     global: { useUTC: false },
     chart: { height: 320 }
@@ -496,6 +509,7 @@ function mikhmon_initTrafficChart() {
       renderTo: "trafficMonitor",
       animation: Highcharts.svg,
       type: "areaspline",
+      backgroundColor: bg,
       events: {
         load: function () {
           window.__mikhmonTrafficInterval = setInterval(function () {
@@ -522,12 +536,24 @@ function mikhmon_initTrafficChart() {
       }
     },
     title: { text: "Interface " + iface },
-    xAxis: { type: "datetime", tickPixelInterval: 150, maxZoom: 20 * 1000 },
+    xAxis: {
+      type: "datetime",
+      tickPixelInterval: 150,
+      maxZoom: 20 * 1000,
+      lineColor: grid,
+      tickColor: grid,
+      gridLineColor: grid,
+      labels: { style: { color: chartText } }
+    },
     yAxis: {
       minPadding: 0.2,
       maxPadding: 0.2,
       title: { text: null },
+      lineColor: grid,
+      tickColor: grid,
+      gridLineColor: grid,
       labels: {
+        style: { color: chartText },
         formatter: function () {
           var bytes = this.value;
           var sizes = ["bps", "kbps", "Mbps", "Gbps", "Tbps"];
@@ -541,7 +567,11 @@ function mikhmon_initTrafficChart() {
       { name: "Tx", data: [], marker: { symbol: "circle" } },
       { name: "Rx", data: [], marker: { symbol: "circle" } }
     ],
-    tooltip: { shared: true }
+    tooltip: {
+      shared: true,
+      backgroundColor: isDark ? "rgba(58, 65, 73, 0.75)" : "rgba(254, 254, 254, 0.75)",
+      style: { color: chartText }
+    }
   });
 }
 

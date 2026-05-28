@@ -22,6 +22,7 @@ $_close = "Cerrar";
 $_comment = "Comentario";
 $_confirm = "Confirmar";
 $_connecting = "Conectando";
+$_session_switched = "Cambiado a: %s";
 $_cpu_load = "Carga CPU";
 $_currency = "Moneda";
 $_dashboard = "Tablero";

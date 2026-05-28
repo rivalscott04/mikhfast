@@ -22,6 +22,7 @@ $_close = "Sarado";
 $_comment = "Komento";
 $_confirm = "Patunayan";
 $_connecting = "Kumukonekta";
+$_session_switched = "Lumipat sa: %s";
 $_cpu_load = "CPU Load";
 $_currency = "Salapi";
 $_dashboard = "Dashboard";

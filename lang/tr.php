@@ -22,6 +22,7 @@ $_close = "Kapat";
 $_comment = "Yorum Yap";
 $_confirm = "Onayla";
 $_connecting = "Bağlanıyor";
+$_session_switched = "Şuna geçildi: %s";
 $_cpu_load = "CPU Yükü";
 $_currency = "Para birimi";
 $_dashboard = "Gösterge Paneli";

@@ -22,6 +22,7 @@ $_close = "Tutup";
 $_comment = "Komentar";
 $_confirm = "Konfirmasi";
 $_connecting = "Mengkoneksikan";
+$_session_switched = "Berhasil pindah ke: %s";
 $_cpu_load = "Beban CPU";
 $_currency = "Mata Uang";
 $_dashboard = "Dasbor";

@@ -166,6 +166,12 @@ if ($id == "login" || substr($url, -1) == "p") {
   $API->debug = false;
   if ($API->connect($iphost, $userhost, decrypt($passwdhost))){
     $_SESSION["connect"] = "<b class='text-green'>Connected</b>";
+    // One-time toast on the next page load (dashboard).
+    $tpl = isset($_session_switched) ? (string) $_session_switched : "Switched to: %s";
+    $_SESSION['mm_toast'] = array(
+      'type' => 'ok',
+      'msg' => sprintf($tpl, $session),
+    );
     $redirect = "./?session=" . $session;
     if (!headers_sent()) {
       header("Location:" . $redirect);

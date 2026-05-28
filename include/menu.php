@@ -333,6 +333,18 @@ $(document).ready(function(){
 </script>
 <div id="notify"><div class="message"></div></div>
 <div id="temp"></div>
+<?php
+  // One-time toast message after full redirects (e.g., session switch).
+  if (isset($_SESSION['mm_toast']) && is_array($_SESSION['mm_toast'])) {
+    $mmToastType = isset($_SESSION['mm_toast']['type']) ? (string) $_SESSION['mm_toast']['type'] : 'info';
+    $mmToastMsg = isset($_SESSION['mm_toast']['msg']) ? (string) $_SESSION['mm_toast']['msg'] : '';
+    unset($_SESSION['mm_toast']);
+    // Encode safely for inline JS.
+    $mmToastTypeJs = json_encode($mmToastType, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    $mmToastMsgJs = json_encode($mmToastMsg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    echo "<script>(function(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:1600,spinner:false});}}catch(e){}})();</script>";
+  }
+?>
 <?php 
 if (file_exists('./info.php')) {
   include('./info.php');
