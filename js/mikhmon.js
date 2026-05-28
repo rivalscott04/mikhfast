@@ -90,7 +90,10 @@ function printBT() {
 }
 
 function connect(session) {
-  $("#temp").load("./admin.php?id=connect&session=" + session);
+  // Connect must be a full navigation (not AJAX).
+  // `admin.php` wraps AJAX requests into JSON for SPA navigation; jQuery `.load()`
+  // expects HTML and can get stuck showing "Connecting".
+  window.location.href = "./admin.php?id=connect&session=" + session;
 }
 
 function stheme(url) {
