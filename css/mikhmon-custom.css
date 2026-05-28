@@ -318,6 +318,7 @@ body .progress .progress-bar.mm-meter-fill--danger{
 #sidenav .dropdown-btn{
   border-radius:12px;
   margin:4px 10px;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
 #sidenav a.menu.active,
@@ -350,6 +351,26 @@ body .progress .progress-bar.mm-meter-fill--danger{
   }
 }
 
+/* --- Consistent interactions (hover/focus/active) --- */
+/* Use theme variables when present (light overrides below). */
+#sidenav a.menu:focus,
+#sidenav .dropdown-btn:focus{
+  outline:none;
+  box-shadow: 0 0 0 3px rgba(45,156,219,.18);
+}
+
+/* Hover state for both links and dropdown buttons */
+#sidenav a.menu:hover,
+#sidenav .dropdown-btn:hover{
+  background: rgba(45,156,219,.10);
+}
+
+/* Focus-visible (keyboard) */
+#sidenav a.menu:focus-visible,
+#sidenav .dropdown-btn:focus-visible{
+  box-shadow: 0 0 0 3px rgba(45,156,219,.22);
+}
+
 /* --- Softer Light Theme (reduce eye strain) --- */
 .theme-light{
   --mm-bg: #F6F7FB;
@@ -360,6 +381,10 @@ body .progress .progress-bar.mm-meter-fill--danger{
   --mm-text: #1F2937;
   --mm-text-muted: rgba(31, 41, 55, .72);
   --mm-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 8px 22px rgba(17,24,39,.06);
+  /* Muted blue accent (avoid neon) */
+  --mm-accent: #2B6FA8;
+  --mm-accent-2: #1F5E93;
+  --mm-accent-soft: rgba(43,111,168,.12);
 }
 
 .theme-light body,
@@ -375,8 +400,9 @@ body.theme-light .table{
   background-color: var(--mm-surface) !important;
 }
 
+/* Apply surface styling only to non-colored boxes */
 body.theme-light .card,
-body.theme-light .box{
+body.theme-light .box:not([class*="bg-"]){
   border-color: var(--mm-border) !important;
   box-shadow: var(--mm-shadow);
 }
@@ -384,6 +410,37 @@ body.theme-light .box{
 body.theme-light .card-header{
   background-color: var(--mm-surface-2) !important;
   border-bottom-color: var(--mm-border) !important;
+}
+
+/* KPI / colored boxes: use soft tints in light theme */
+body.theme-light .box.bg-red{
+  background-color:#FEE2E2 !important;
+  color:#7F1D1D !important;
+}
+body.theme-light .box.bg-yellow{
+  background-color:#FEF3C7 !important;
+  color:#78350F !important;
+}
+body.theme-light .box.bg-green{
+  background-color:#DCFCE7 !important;
+  color:#14532D !important;
+}
+body.theme-light .box.bg-blue{
+  background-color:#DBEAFE !important;
+  color:#1E3A8A !important;
+}
+
+body.theme-light .box.bg-red a,
+body.theme-light .box.bg-yellow a,
+body.theme-light .box.bg-green a,
+body.theme-light .box.bg-blue a{
+  color: inherit !important;
+}
+
+/* Tone down huge KPI number contrast */
+body.theme-light .mm-kpi__value{
+  color: currentColor;
+  opacity:.92;
 }
 
 /* Inputs */
@@ -400,8 +457,8 @@ body.theme-light .group-item::placeholder{
 }
 body.theme-light .form-control:focus,
 body.theme-light .group-item:focus{
-  border-color: rgba(0,139,201,.35) !important;
-  box-shadow: 0 0 0 3px rgba(0,139,201,.14) !important;
+  border-color: rgba(43,111,168,.35) !important;
+  box-shadow: 0 0 0 3px rgba(43,111,168,.14) !important;
 }
 
 /* Tables */
@@ -420,11 +477,62 @@ body.theme-light .sidenav{
 }
 body.theme-light .dropdown-btn:hover,
 body.theme-light .sidenav a:hover{
-  background-color: rgba(0,0,0,.04) !important;
+  background-color: var(--mm-accent-soft) !important;
+  color: var(--mm-accent-2) !important;
 }
 body.theme-light .active{
-  background: rgba(0,139,201,.10) !important;
-  color: #008BC9 !important;
+  background: var(--mm-accent-soft) !important;
+  color: var(--mm-accent-2) !important;
+}
+
+/* Sidebar active indicator bar should match accent */
+body.theme-light #sidenav a.menu.active::before,
+body.theme-light #sidenav .dropdown-btn.active::before{
+  background: var(--mm-accent) !important;
+}
+
+/* Sidebar hover/focus rings consistent with accent */
+body.theme-light #sidenav a.menu:focus,
+body.theme-light #sidenav .dropdown-btn:focus,
+body.theme-light #sidenav a.menu:focus-visible,
+body.theme-light #sidenav .dropdown-btn:focus-visible{
+  box-shadow: 0 0 0 3px rgba(43,111,168,.20) !important;
+}
+
+/* Sidebar active state border/outline consistent */
+body.theme-light #sidenav a.menu.active,
+body.theme-light #sidenav .dropdown-btn.active{
+  box-shadow: 0 0 0 1px rgba(43,111,168,.22) inset !important;
+}
+
+/* Navbar in light: calmer blue */
+body.theme-light .navbar{
+  background-color: var(--mm-accent) !important;
+  border-bottom-color: rgba(17,24,39,.10) !important;
+}
+body.theme-light .navbar-hover:hover{
+  background-color: var(--mm-accent-2) !important;
+}
+body.theme-light .navbar-left a,
+body.theme-light .navbar-right a{
+  color: rgba(255,255,255,.92) !important;
+}
+body.theme-light .ses{
+  background-color: transparent !important;
+  color: rgba(255,255,255,.92) !important;
+}
+
+/* Links/buttons in light: use muted accent consistently */
+body.theme-light a{
+  color: var(--mm-accent-2);
+}
+body.theme-light a:hover{
+  color: var(--mm-accent-2);
+}
+body.theme-light .btn:focus,
+body.theme-light button:focus{
+  outline:none;
+  box-shadow: 0 0 0 3px rgba(43,111,168,.18);
 }
 
 /* Scrollbars (subtle) */
@@ -465,4 +573,72 @@ body.theme-light .progress .progress-bar.mm-meter-fill--danger{
 body.theme-light .mm-loaderbar__bar{
   background: rgba(31,41,55,.20) !important;
   animation: mm-loaderbar-move 1.1s ease-in-out infinite;
+}
+
+/* --- Theme toggle (sun/moon) --- */
+.mm-theme-toggle{
+  appearance:none;
+  -webkit-appearance:none;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.10);
+  padding: 0;
+  margin: 10px 8px 0 0;
+  height: 30px;
+  width: 58px;
+  border-radius: 999px;
+  cursor:pointer;
+  transition: background-color .25s ease, border-color .25s ease, transform .12s ease;
+}
+.mm-theme-toggle:active{ transform: scale(.98); }
+.mm-theme-toggle:focus{
+  outline:none;
+  box-shadow: 0 0 0 3px rgba(0,139,201,.18);
+}
+.mm-theme-toggle__track{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+}
+.mm-theme-toggle__thumb{
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), background-color .25s ease;
+  will-change: transform;
+}
+.mm-theme-toggle__icon{
+  position:absolute;
+  top:50%;
+  transform: translateY(-50%);
+  font-size:14px;
+  line-height:1;
+  opacity:.9;
+  transition: opacity .25s ease, color .25s ease;
+}
+.mm-theme-toggle__icon--sun{ left:9px; color: rgba(255,255,255,.85); }
+.mm-theme-toggle__icon--moon{ right:9px; color: rgba(255,255,255,.85); }
+
+/* state: dark (thumb right) */
+body.theme-dark .mm-theme-toggle__thumb{
+  transform: translateX(28px);
+}
+
+/* light navbar: make toggle blend in */
+body.theme-light .mm-theme-toggle{
+  border-color: rgba(17,24,39,.14);
+  background: rgba(255,255,255,.72);
+}
+body.theme-light .mm-theme-toggle__thumb{
+  background: #111827;
+  box-shadow: 0 6px 16px rgba(17,24,39,.16);
+}
+body.theme-light .mm-theme-toggle__icon--sun,
+body.theme-light .mm-theme-toggle__icon--moon{
+  color: rgba(17,24,39,.70);
 }

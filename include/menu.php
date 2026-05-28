@@ -181,13 +181,26 @@ if($idleto != "disable"){
 </div>
  <div class="navbar-right">
   <a id="logout" href="./admin.php?id=logout" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
-  <select class="stheme ses text-right mr-t-10 pd-5">
-    <option> <?= $_theme?></option>
-    <?php for ($i = 0; $i < count($mtheme); $i++) {
-      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucfirst($mtheme[$i]),'</option>';
-    }
-    ?>
-  </select>
+  <?php
+    $mmThemeBase = explode("&set-theme", $url)[0];
+    $mmThemeDarkUrl = $mmThemeBase . "&set-theme=dark";
+    $mmThemeLightUrl = $mmThemeBase . "&set-theme=light";
+  ?>
+  <button
+    type="button"
+    class="mm-theme-toggle"
+    aria-label="<?= htmlspecialchars($_theme, ENT_QUOTES); ?>"
+    aria-pressed="<?= ($theme === "dark") ? "true" : "false"; ?>"
+    data-dark-url="<?= htmlspecialchars($mmThemeDarkUrl, ENT_QUOTES); ?>"
+    data-light-url="<?= htmlspecialchars($mmThemeLightUrl, ENT_QUOTES); ?>"
+    title="<?= htmlspecialchars($_theme, ENT_QUOTES); ?>"
+  >
+    <span class="mm-theme-toggle__track" aria-hidden="true">
+      <span class="mm-theme-toggle__icon mm-theme-toggle__icon--sun"><i class="fa fa-sun-o"></i></span>
+      <span class="mm-theme-toggle__icon mm-theme-toggle__icon--moon"><i class="fa fa-moon-o"></i></span>
+      <span class="mm-theme-toggle__thumb"></span>
+    </span>
+  </button>
   <select class="slang ses text-right mr-t-10 pd-5">
     <option> <?= $language ?></option>
     <?php 
@@ -230,9 +243,12 @@ $(document).ready(function(){
     notify("<?= $_connecting ?>");
     connect(this.id)
   });
-  $(".stheme").change(function(){
+  $(".mm-theme-toggle").click(function(){
     notify("<?= $_loading_theme ?>");
-    stheme(this.value)
+    var isDark = document.body && document.body.classList && document.body.classList.contains("theme-dark");
+    var nextUrl = isDark ? (this.dataset.lightUrl || "") : (this.dataset.darkUrl || "");
+    if (!nextUrl) return;
+    stheme(nextUrl);
   });
   $(".slang").change(function(){
     notify("<?= $_loading ?>");
@@ -258,13 +274,26 @@ if (file_exists('./info.php')) {
 </div>
  <div class="navbar-right">
   <a id="logout" href="./?hotspot=logout&session=<?= $session; ?>" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
-  <select class="stheme ses text-right mr-t-10 pd-5">
-    <option> <?= $_theme ?></option>
-    <?php for ($i = 0; $i < count($mtheme); $i++) {
-      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucfirst($mtheme[$i]),'</option>';
-    }
-    ?>
-  </select>
+  <?php
+    $mmThemeBase = explode("&set-theme", $url)[0];
+    $mmThemeDarkUrl = $mmThemeBase . "&set-theme=dark";
+    $mmThemeLightUrl = $mmThemeBase . "&set-theme=light";
+  ?>
+  <button
+    type="button"
+    class="mm-theme-toggle"
+    aria-label="<?= htmlspecialchars($_theme, ENT_QUOTES); ?>"
+    aria-pressed="<?= ($theme === "dark") ? "true" : "false"; ?>"
+    data-dark-url="<?= htmlspecialchars($mmThemeDarkUrl, ENT_QUOTES); ?>"
+    data-light-url="<?= htmlspecialchars($mmThemeLightUrl, ENT_QUOTES); ?>"
+    title="<?= htmlspecialchars($_theme, ENT_QUOTES); ?>"
+  >
+    <span class="mm-theme-toggle__track" aria-hidden="true">
+      <span class="mm-theme-toggle__icon mm-theme-toggle__icon--sun"><i class="fa fa-sun-o"></i></span>
+      <span class="mm-theme-toggle__icon mm-theme-toggle__icon--moon"><i class="fa fa-moon-o"></i></span>
+      <span class="mm-theme-toggle__thumb"></span>
+    </span>
+  </button>
   <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
 </div>
 </div>
