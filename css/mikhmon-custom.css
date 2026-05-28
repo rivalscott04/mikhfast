@@ -157,6 +157,90 @@ body .progress .progress-bar.mm-meter-fill--danger{
   opacity:.95;
 }
 
+/* --- Dashboard header bar (above KPI cards) --- */
+.mm-dashheader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 14px;
+  margin: 0 0 12px;
+  border-radius:14px;
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+}
+
+.mm-dashheader__left{
+  min-width:0;
+}
+
+.mm-dashheader__title{
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.2px;
+  line-height:1.15;
+}
+
+.mm-dashheader__subtitle{
+  margin-top:4px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:12px;
+  opacity:.9;
+}
+
+.mm-dashheader__meta{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+
+.mm-dashheader__right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.mm-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.16);
+  white-space:nowrap;
+}
+.mm-chip i{ font-size:10px; }
+.mm-chip--ok i{ color:#2ecc71; }
+.mm-chip--muted i{ color:rgba(255,255,255,.55); }
+
+.mm-btn-ghost{
+  border-radius:12px !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(0,0,0,.14) !important;
+  color: inherit !important;
+}
+.mm-btn-ghost:hover{
+  background: rgba(0,0,0,.22) !important;
+}
+
+@media (max-width: 900px){
+  .mm-dashheader{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .mm-dashheader__right{
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+}
+
 /* --- Modern sidebar header (brand + session) --- */
 .mm-sidenav-header{
   padding:14px 12px 12px;

@@ -36,6 +36,46 @@ if (!isset($_SESSION["mikhmon"])) {
 	$remdata = ($_POST['remdata']);
 	$prefix = $_GET['prefix'];
 	
+	function __mikhmon_ros7_iso_from_idhr($idhr) {
+		// idhr format in UI: mon/DD/YYYY (e.g. may/28/2026)
+		if (!is_string($idhr) || $idhr === "") return "";
+		$parts = explode("/", $idhr);
+		if (count($parts) !== 3) return "";
+		$mon = strtolower(trim($parts[0]));
+		$day = trim($parts[1]);
+		$year = trim($parts[2]);
+		$monMap = array(
+			"jan" => "01", "feb" => "02", "mar" => "03", "apr" => "04",
+			"may" => "05", "jun" => "06", "jul" => "07", "aug" => "08",
+			"sep" => "09", "oct" => "10", "nov" => "11", "dec" => "12",
+		);
+		if (!isset($monMap[$mon])) return "";
+		$mm = $monMap[$mon];
+		if (strlen($day) === 1) $day = "0".$day;
+		if (strlen($day) !== 2) return "";
+		if (strlen($year) !== 4) return "";
+		return $year . "-" . $mm . "-" . $day;
+	}
+
+	function __mikhmon_normalize_date_for_display($dateStr) {
+		// Accept both "mon/DD/YYYY" and "YYYY-MM-DD". Return display string.
+		$s = is_string($dateStr) ? trim($dateStr) : "";
+		if ($s === "") return "";
+		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+			$y = substr($s, 0, 4);
+			$m = substr($s, 5, 2);
+			$d = substr($s, 8, 2);
+			$monMap = array(
+				"01" => "jan", "02" => "feb", "03" => "mar", "04" => "apr",
+				"05" => "may", "06" => "jun", "07" => "jul", "08" => "aug",
+				"09" => "sep", "10" => "oct", "11" => "nov", "12" => "dec",
+			);
+			$mon = isset($monMap[$m]) ? $monMap[$m] : "";
+			return $mon ? ($mon . "/" . $d . "/" . $y) : $s;
+		}
+		return $s;
+	}
+
 
 	if ($API->connect($iphost, $userhost, decrypt($passwdhost))) {
 		$gettimezone = $API->comm("/system/clock/print", array(
@@ -47,14 +87,20 @@ if (!isset($_SESSION["mikhmon"])) {
 
 	if (isset($remdata)) {
 		if (strlen($idhr) > "0") {
+			// Support both ROS6 (mon/DD/YYYY) and ROS7 (YYYY-MM-DD) sources.
+			$idhrIso = __mikhmon_ros7_iso_from_idhr($idhr);
 			$ARREMD = $API->comm("/system/script/print", array(
-				"?source" => "$idhr",
-				".proplist" => ".id",
+				"?comment" => "mikhmon",
+				".proplist" => ".id,source",
 			));
-			for ($i = 0; $i < count($ARREMD); $i++) {
-				$API->comm("/system/script/remove", array(
-					".id" => $ARREMD[$i]['.id'],
-				));
+			if (is_array($ARREMD)) {
+				for ($i = 0; $i < count($ARREMD); $i++) {
+					$src = isset($ARREMD[$i]['source']) ? $ARREMD[$i]['source'] : "";
+					if ($src !== $idhr && ($idhrIso === "" || $src !== $idhrIso)) continue;
+					$API->comm("/system/script/remove", array(
+						".id" => $ARREMD[$i]['.id'],
+					));
+				}
 			}
 		} elseif (strlen($idbl) > "0") {
 			$ARREMD = $API->comm("/system/script/print", array(
@@ -77,10 +123,19 @@ if (!isset($_SESSION["mikhmon"])) {
 		$fprefix = "";
 	}
 	if (strlen($idhr) > "0") {
+		// Support both ROS6 (mon/DD/YYYY) and ROS7 (YYYY-MM-DD) sources.
+		$idhrIso = __mikhmon_ros7_iso_from_idhr($idhr);
 		$getData = $API->comm("/system/script/print", array(
-			"?source" => "$idhr",
-			".proplist" => "name",
+			"?comment" => "mikhmon",
+			".proplist" => "name,source",
 		));
+		if (!is_array($getData)) $getData = array();
+		$tmp = array();
+		for ($i = 0; $i < count($getData); $i++) {
+			$src = isset($getData[$i]['source']) ? $getData[$i]['source'] : "";
+			if ($src === $idhr || ($idhrIso !== "" && $src === $idhrIso)) $tmp[] = $getData[$i];
+		}
+		$getData = $tmp;
 		$TotalReg = count($getData);
 		$filedownload = $idhr;
 		$shf = "hidden";
@@ -362,7 +417,7 @@ $(document).ready(function(){
 						}
 						echo "<tr>";
 						echo "<td>";
-						$tgl = $getname[0];
+						$tgl = __mikhmon_normalize_date_for_display($getname[0]);
 						echo $tgl;
 						echo "</td>";
 						echo "<td>";
@@ -399,7 +454,7 @@ $(document).ready(function(){
 					}
 					echo "<tr>";
 					echo "<td>";
-					$tgl = $getname[0];
+					$tgl = __mikhmon_normalize_date_for_display($getname[0]);
 					echo $tgl;
 					echo "</td>";
 					echo "<td>";

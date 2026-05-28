@@ -118,6 +118,14 @@ if (!isset($_SESSION["mikhmon"])) {
     <!-- keep live report refresh logic intact (hidden container) -->
     <div id="r_4" style="display:none"></div>
 
+    <?php
+      // Dashboard header (compact, reusable)
+      // Uses variables already available in this scope: $session, $identity, $hotspotname, $resource, $routerboard
+      if (file_exists('./include/dashboard-header.php')) {
+        include('./include/dashboard-header.php');
+      }
+    ?>
+
     <!-- KPI row -->
     <div id="r_1" class="row">
       <div class="col-4">
