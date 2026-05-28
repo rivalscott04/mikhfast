@@ -21,23 +21,42 @@ error_reporting(0);
 if (substr($_SERVER["REQUEST_URI"], -11) == "readcfg.php") {
     header("Location:./");
 };
-// read config
+// read config (defensive parsing: config.php formats vary)
+function mikhmon_cfg_value($raw, $delimiter) {
+    if (!is_string($raw)) return "";
+    $parts = explode($delimiter, $raw, 2);
+    return isset($parts[1]) ? $parts[1] : "";
+}
+
+function mikhmon_find_in_array($arr, $needle) {
+    if (!is_array($arr)) return "";
+    foreach ($arr as $v) {
+        if (is_string($v) && strpos($v, $needle) !== false) return $v;
+    }
+    return "";
+}
+
 // If a session key is missing (or config is incomplete), avoid redirect loops and still render admin pages.
 $__mikhmon_has_session_cfg = isset($session) && $session !== "" && isset($data) && is_array($data) && isset($data[$session]) && is_array($data[$session]);
 
 if ($__mikhmon_has_session_cfg) {
-    $iphost = explode('!', $data[$session][1])[1];
-    $userhost = explode('@|@', $data[$session][2])[1];
-    $passwdhost = explode('#|#', $data[$session][3])[1];
-    $hotspotname = explode('%', $data[$session][4])[1];
-    $dnsname = explode('^', $data[$session][5])[1];
-    $currency = explode('&', $data[$session][6])[1];
-    $areload = explode('*', $data[$session][7])[1];
-    $iface = explode('(', $data[$session][8])[1];
-    $infolp = explode(')', $data[$session][9])[1];
-    $idleto = explode('=', $data[$session][10])[1];
-    $sesname = explode('+', $data[$session][10])[1];
-    $livereport = explode('@!@', $data[$session][11])[1];
+    $iphost = mikhmon_cfg_value(isset($data[$session][1]) ? $data[$session][1] : "", "!");
+    $userhost = mikhmon_cfg_value(isset($data[$session][2]) ? $data[$session][2] : "", "@|@");
+    $passwdhost = mikhmon_cfg_value(isset($data[$session][3]) ? $data[$session][3] : "", "#|#");
+    $hotspotname = mikhmon_cfg_value(isset($data[$session][4]) ? $data[$session][4] : "", "%");
+    $dnsname = mikhmon_cfg_value(isset($data[$session][5]) ? $data[$session][5] : "", "^");
+    $currency = mikhmon_cfg_value(isset($data[$session][6]) ? $data[$session][6] : "", "&");
+    $areload = mikhmon_cfg_value(isset($data[$session][7]) ? $data[$session][7] : "", "*");
+    $iface = mikhmon_cfg_value(isset($data[$session][8]) ? $data[$session][8] : "", "(");
+    $infolp = mikhmon_cfg_value(isset($data[$session][9]) ? $data[$session][9] : "", ")");
+    $idleto = mikhmon_cfg_value(isset($data[$session][10]) ? $data[$session][10] : "", "=");
+    $sesname = $session;
+    $livereport = mikhmon_cfg_value(isset($data[$session][11]) ? $data[$session][11] : "", "@!@");
+    if ($currency === "") $currency = "Rp";
+    if ($areload === "") $areload = "10";
+    if ($iface === "") $iface = "1";
+    if ($idleto === "") $idleto = "10";
+    if ($livereport === "") $livereport = "disable";
 } else {
     $iphost = "";
     $userhost = "";
@@ -53,8 +72,11 @@ if ($__mikhmon_has_session_cfg) {
     $livereport = "disable";
 }
 
-$useradm = explode('<|<', $data['mikhmon'][1])[1];
-$passadm = explode('>|>', $data['mikhmon'][2])[1];
+// admin creds: don't depend on numeric indices
+$mikhmonUserRaw = mikhmon_find_in_array(isset($data['mikhmon']) ? $data['mikhmon'] : array(), "<|<");
+$mikhmonPassRaw = mikhmon_find_in_array(isset($data['mikhmon']) ? $data['mikhmon'] : array(), ">|>");
+$useradm = mikhmon_cfg_value($mikhmonUserRaw, "<|<");
+$passadm = mikhmon_cfg_value($mikhmonPassRaw, ">|>");
 
 $cekindo['indo'] = array(
     'RP', 'Rp', 'rp', 'IDR', 'idr', 'RP.', 'Rp.', 'rp.', 'IDR.', 'idr.',
