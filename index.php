@@ -531,13 +531,12 @@ elseif ($ppp == "edit-profile") {
 <?php
 if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?session") {
   echo '<script>
-    $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3");  
+    // Batch refresh to reduce RouterOS API connections (single request updates multiple widgets).
+    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome");
     var interval1 = "' . ($areload * 1000) . '";
     window.dashboard = setInterval(function() {
       
-    $("#r_1").load("./dashboard/aload.php?session=' . $session . '&load=sysresource #r_1"); 
-    $("#r_2").load("./dashboard/aload.php?session=' . $session . '&load=hotspot #r_2"); 
-    $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3"); 
+    $("#reloadHome").load("./dashboard/aload.php?session=' . $session . '&load=all #reloadHome");
     
   }, interval1);
 

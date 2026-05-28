@@ -290,12 +290,12 @@ if (file_exists('./info.php')) {
   <div class="menu text-center align-middle card-header" style="border-radius:0;"><h3><?= $identity; ?></h3></div>
   <a href="./?session=<?= $session; ?>" class="menu <?= $shome; ?>"><i class="fa fa-dashboard"></i> <?= $_dashboard ?></a>
   <!--hotspot-->
-  <div class="dropdown-btn <?= $susers . $suserprof . $sactive . $shosts . $sipbind . $scookies; ?>"><i class="fa fa-wifi"></i> Hotspot
+  <div class="dropdown-btn <?= $susers . $suserprof . $sactive . $shosts . $sipbind . $scookies; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class="fa fa-wifi"></i> Hotspot
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $umenu . $upmenu . $hamenu . $hmenu . $ibmenu . $cmenu; ?>">
    <!--users--> 
-  <div class="dropdown-btn <?= $susers; ?>"><i class="fa fa-users"></i> <?= $_users ?>
+  <div class="dropdown-btn <?= $susers; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class="fa fa-users"></i> <?= $_users ?>
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $umenu; ?>">
@@ -304,7 +304,7 @@ if (file_exists('./info.php')) {
     <a href="./?hotspot-user=generate&session=<?= $session; ?>" class="<?= $sgenuser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus"></i> <?= $_generate ?> </a>        
   </div>
   <!--profile-->
-  <div class="dropdown-btn <?= $suserprof; ?>"><i class=" fa fa-pie-chart"></i>  <?= $_user_profile ?>
+  <div class="dropdown-btn <?= $suserprof; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class=" fa fa-pie-chart"></i>  <?= $_user_profile ?>
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $upmenu; ?>">
@@ -326,7 +326,7 @@ if (file_exists('./info.php')) {
   <!--vouchers-->
   <a href="./?hotspot=users-by-profile&session=<?= $session; ?>" class="menu <?= $susersbp; ?>"> <i class="fa fa-ticket"></i> <?= $_vouchers ?> </a>
    <!--log-->
-  <div class="dropdown-btn <?= $log; ?>"><i class=" fa fa-align-justify"></i> <?= $_log ?>
+  <div class="dropdown-btn <?= $log; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class=" fa fa-align-justify"></i> <?= $_log ?>
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $lmenu; ?>">
@@ -334,7 +334,7 @@ if (file_exists('./info.php')) {
     <a href="./?report=userlog&idbl=<?= strtolower(date("M")) . date("Y"); ?>&session=<?= $session; ?>" class=" <?= $sulog; ?>"> <i class="fa fa-users "></i> <?= $_user_log ?> </a>
   </div>
   <!--system-->
-  <div class="dropdown-btn <?= $sysmenu; ?>"><i class=" fa fa-gear"></i> <?= $_system ?>
+  <div class="dropdown-btn <?= $sysmenu; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class=" fa fa-gear"></i> <?= $_system ?>
     <i class="fa fa-caret-down"></i> &nbsp;
   </div>
   <div class="dropdown-container <?= $schmenu; ?>">
@@ -349,7 +349,7 @@ if (file_exists('./info.php')) {
   <!--report-->
   <a href="./?report=selling&idbl=<?= strtolower(date("M")) . date("Y"); ?>&session=<?= $session; ?>" class="menu <?= $sselling; ?>"><i class="nav-icon fa fa-money"></i> <?= $_report ?></a>
   <!--settings-->
-  <div class="dropdown-btn <?= $ssett; ?>"><i class=" fa fa-gear"></i> <?= $_settings ?> 
+  <div class="dropdown-btn <?= $ssett; ?>" onclick="return window.mikhmon_toggleDropdown && window.mikhmon_toggleDropdown(this)"><i class=" fa fa-gear"></i> <?= $_settings ?> 
     <i class="fa fa-caret-down"></i> &nbsp;
   </div>
   <div class="dropdown-container <?= $settmenu; ?>">

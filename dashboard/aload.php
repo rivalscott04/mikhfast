@@ -43,20 +43,53 @@ include('../lang/'.$langid.'.php');
   $API->connect($iphost, $userhost, decrypt($passwdhost));
   $router = new RouterService($API, null, $session);
 
+  // --- tiny session cache to avoid repeated RouterOS calls ---
+  // This endpoint is polled frequently by the dashboard. Caching for a few seconds
+  // dramatically reduces RouterOS API load (especially when multiple widgets refresh).
+  function __mikhmon_cache_get($key, $ttlSeconds)
+  {
+    if (!isset($_SESSION) || !isset($_SESSION[$key])) return null;
+    $item = $_SESSION[$key];
+    if (!is_array($item) || !isset($item['t']) || !isset($item['v'])) return null;
+    if ((time() - (int) $item['t']) > (int) $ttlSeconds) return null;
+    return $item['v'];
+  }
+
+  function __mikhmon_cache_set($key, $val)
+  {
+    if (!isset($_SESSION)) return;
+    $_SESSION[$key] = array('t' => time(), 'v' => $val);
+  }
+
 
 
   if ($load == "sysresource") {
 
 // get MikroTik system clock
-    $clock = $router->getSystemClock();
-    $timezone = $clock['time-zone-name'];
-    date_default_timezone_set($timezone);
+    $cacheKey = 'dash:' . $session . ':sysresource';
+    $cached = __mikhmon_cache_get($cacheKey, 3);
+    if (is_array($cached)) {
+      $clock = $cached['clock'];
+      $resource = $cached['resource'];
+      $routerboard = $cached['routerboard'];
+    } else {
+      $clock = $router->getSystemClock();
+      // get system resource MikroTik
+      $resource = $router->getSystemResource();
+      // get routeboard info
+      $routerboard = $router->getRouterboard();
+      __mikhmon_cache_set($cacheKey, array(
+        'clock' => $clock,
+        'resource' => $resource,
+        'routerboard' => $routerboard,
+      ));
+    }
 
-// get system resource MikroTik
-    $resource = $router->getSystemResource();
+    $timezone = isset($clock['time-zone-name']) ? $clock['time-zone-name'] : '';
+    if ($timezone !== '') {
+      date_default_timezone_set($timezone);
+    }
 
-// get routeboard info
-    $routerboard = $router->getRouterboard();
     ?>
     
     <div id="r_1" class="row">
@@ -113,7 +146,16 @@ include('../lang/'.$langid.'.php');
 } else if ($load == "hotspot") {
 
 // get & counting hotspot users
-  $countallusers = $router->countHotspotUsers();
+  $cacheKey = 'dash:' . $session . ':hotspot_counts';
+  $cached = __mikhmon_cache_get($cacheKey, 3);
+  if (is_array($cached)) {
+    $countallusers = $cached['users'];
+    $counthotspotactive = $cached['active'];
+  } else {
+    $countallusers = $router->countHotspotUsers();
+    $counthotspotactive = $router->countHotspotActive();
+    __mikhmon_cache_set($cacheKey, array('users' => $countallusers, 'active' => $counthotspotactive));
+  }
   if ($countallusers < 2) {
     $uunit = "item";
   } elseif ($countallusers > 1) {
@@ -121,7 +163,6 @@ include('../lang/'.$langid.'.php');
   }
 
 // get & counting hotspot active
-  $counthotspotactive = $router->countHotspotActive();
   if ($counthotspotactive < 2) {
     $hunit = "item";
   } elseif ($counthotspotactive > 1) {
@@ -194,11 +235,17 @@ include('../lang/'.$langid.'.php');
 <?php 
 } else if ($load == "logs") {
 
-  // move hotspot log to disk
-  $router->ensureHotspotLoggingToDisk();
-  
-  // get hotspot log
-  $log = $router->getHotspotLogs(20);
+  $cacheKey = 'dash:' . $session . ':logs20';
+  $cached = __mikhmon_cache_get($cacheKey, 5);
+  if (is_array($cached)) {
+    $log = $cached;
+  } else {
+    // move hotspot log to disk (idempotent)
+    $router->ensureHotspotLoggingToDisk();
+    // get hotspot log
+    $log = $router->getHotspotLogs(20);
+    __mikhmon_cache_set($cacheKey, $log);
+  }
   //$THotspotLog = count($getlog);
 
   if ($livereport == "disable") {
@@ -266,6 +313,219 @@ include('../lang/'.$langid.'.php');
                 </div>
 
 <?php 
+}
+
+// Batch load (single RouterOS connection) for dashboard refresh.
+else if ($load == "all") {
+  // sysresource
+  $sysKey = 'dash:' . $session . ':sysresource';
+  $sysCached = __mikhmon_cache_get($sysKey, 3);
+  if (is_array($sysCached)) {
+    $clock = $sysCached['clock'];
+    $resource = $sysCached['resource'];
+    $routerboard = $sysCached['routerboard'];
+  } else {
+    $clock = $router->getSystemClock();
+    $resource = $router->getSystemResource();
+    $routerboard = $router->getRouterboard();
+    __mikhmon_cache_set($sysKey, array('clock' => $clock, 'resource' => $resource, 'routerboard' => $routerboard));
+  }
+  $timezone = isset($clock['time-zone-name']) ? $clock['time-zone-name'] : '';
+  if ($timezone !== '') {
+    date_default_timezone_set($timezone);
+  }
+
+  // hotspot counts
+  $hsKey = 'dash:' . $session . ':hotspot_counts';
+  $hsCached = __mikhmon_cache_get($hsKey, 3);
+  if (is_array($hsCached)) {
+    $countallusers = $hsCached['users'];
+    $counthotspotactive = $hsCached['active'];
+  } else {
+    $countallusers = $router->countHotspotUsers();
+    $counthotspotactive = $router->countHotspotActive();
+    __mikhmon_cache_set($hsKey, array('users' => $countallusers, 'active' => $counthotspotactive));
+  }
+  $uunit = ($countallusers < 2) ? "item" : "items";
+  $hunit = ($counthotspotactive < 2) ? "item" : "items";
+
+  // logs
+  $logKey = 'dash:' . $session . ':logs20';
+  $log = __mikhmon_cache_get($logKey, 5);
+  if (!is_array($log)) {
+    $router->ensureHotspotLoggingToDisk();
+    $log = $router->getHotspotLogs(20);
+    __mikhmon_cache_set($logKey, $log);
+  }
+
+  if ($livereport == "disable") {
+    $logh = "457px";
+  } else {
+    $logh = "350px";
+  }
+  ?>
+
+  <div id="reloadHome">
+    <div id="r_1" class="row">
+      <div class="col-4">
+        <div class="box bmh-75 box-bordered">
+          <div class="box-group">
+            <div class="box-group-icon"><i class="fa fa-calendar"></i></div>
+              <div class="box-group-area">
+              <span ><?= $_system_date_time ?><br>
+                    <?php 
+                    echo ucfirst($clock['date']) . " " . $clock['time'] . "<br>
+                    ".$_uptime." : " . formatDTM($resource['uptime']);
+                    ?>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div class="col-4">
+        <div class="box bmh-75 box-bordered">
+          <div class="box-group">
+          <div class="box-group-icon"><i class="fa fa-info-circle"></i></div>
+              <div class="box-group-area">
+                <span >
+                    <?php
+                    echo $_board_name." : " . $resource['board-name'] . "<br/>
+                    ".$_model." : " . $routerboard['model'] . "<br/>
+                    Router OS : " . $resource['version'];
+                    ?>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+    <div class="col-4">
+      <div class="box bmh-75 box-bordered">
+        <div class="box-group">
+          <div class="box-group-icon"><i class="fa fa-server"></i></div>
+              <div class="box-group-area">
+                <span >
+                    <?php
+                    echo $_cpu_load." : " . $resource['cpu-load'] . "%<br/>
+                    ".$_free_memory." : " . formatBytes($resource['free-memory'], 2) . "<br/>
+                    ".$_free_hdd." : " . formatBytes($resource['free-hdd-space'], 2)
+                    ?>
+                </span>
+                </div>
+              </div>
+            </div>
+          </div> 
+      </div>
+
+    <div id="r_2" class="card">
+      <div class="card-header"><h3><i class="fa fa-wifi"></i> Hotspot</h3></div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-3 col-box-6">
+            <div class="box bg-blue bmh-75">
+              <a href="./?hotspot=active&session=<?= $session; ?>">
+                <h1><?= $counthotspotactive; ?>
+                    <span style="font-size: 15px;"><?= $hunit; ?></span>
+                  </h1>
+                <div>
+                  <i class="fa fa-laptop"></i> <?= $_hotspot_active ?>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="col-3 col-box-6">
+          <div class="box bg-green bmh-75">
+            <a href="./?hotspot=users&profile=all&session=<?= $session; ?>">
+                  <h1><?= $countallusers; ?>
+                    <span style="font-size: 15px;"><?= $uunit; ?></span>
+                  </h1>
+            <div>
+                  <i class="fa fa-users"></i> <?= $_hotspot_users ?>
+                </div>
+            </a>
+          </div>
+        </div>
+        <div class="col-3 col-box-6">
+          <div class="box bg-yellow bmh-75">
+            <a href="./?hotspot-user=add&session=<?= $session; ?>">
+              <div>
+                <h1><i class="fa fa-user-plus"></i>
+                    <span style="font-size: 15px;"><?= $_add ?></span>
+                </h1>
+              </div>
+              <div>
+                  <i class="fa fa-user-plus"></i> <?= $_hotspot_users ?>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="col-3 col-box-6">
+          <div class="box bg-red bmh-75">
+            <a href="./?hotspot-user=generate&session=<?= $session; ?>">
+              <div>
+                <h1><i class="fa fa-user-plus"></i>
+                    <span style="font-size: 15px;"><?= $_generate ?></span>
+                </h1>
+              </div>
+              <div>
+                  <i class="fa fa-user-plus"></i> <?= $_hotspot_users ?>
+              </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+    <div id="r_3" class="row">
+      <div class="card">
+        <div class="card-header">
+          <h3><a href="./?hotspot=log&session=<?= $session; ?>" title="Open Hotspot Log" ><i class="fa fa-align-justify"></i> <?= $_hotspot_log ?></a></h3></div>
+            <div class="card-body">
+              <div style="padding: 5px; height: <?= $logh; ?> ;" class="mr-t-10 overflow">
+                <table class="table table-sm table-bordered table-hover" style="font-size: 12px; td.padding:2px;">
+                  <thead>
+                    <tr>
+                    <th><?= $_time; ?></th>
+                    <th><?= $_users ?> (IP)</th>
+                    <th><?= $_messages ?></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          <?php
+          for ($i = 0; $i < 20; $i++) {
+            if (!isset($log[$i])) break;
+            $mess = explode(":", $log[$i]['message']);
+            $time = $log[$i]['time'];
+            echo "<tr>";
+            if (substr($log[$i]['message'], 0, 2) == "->") {
+              echo "<td>" . $time . "</td>";
+              echo "<td>";
+              if (count($mess) > 6) {
+                echo $mess[1] . ":" . $mess[2] . ":" . $mess[3] . ":" . $mess[4] . ":" . $mess[5] . ":" . $mess[6];
+              } else {
+                echo $mess[1];
+              }
+              echo "</td>";
+              echo "<td>";
+              if (count($mess) > 6) {
+                echo str_replace("trying to", "", $mess[7] . " " . $mess[8] . " " . $mess[9] . " " . $mess[10]);
+              } else {
+                echo str_replace("trying to", "", $mess[2] . " " . $mess[3] . " " . $mess[4] . " " . $mess[5]);
+              }
+              echo "</td>";
+            }
+            echo "</tr>";
+          }
+          ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+  </div>
+
+<?php
 }
 
 }

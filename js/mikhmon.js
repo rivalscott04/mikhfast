@@ -457,4 +457,18 @@ function mikhmon_bindAccordion() {
   });
 }
 
+// Fallback helper for inline onclick in PHP templates.
+// Returns false so it can be used from onclick="return ...".
+window.mikhmon_toggleDropdown = function (btn) {
+  try {
+    if (!btn) return false;
+    btn.classList && btn.classList.toggle("active");
+    var container = btn.nextElementSibling;
+    if (!container) return false;
+    if (container.classList && !container.classList.contains("dropdown-container")) return false;
+    container.style.display = container.style.display === "block" ? "none" : "block";
+  } catch (e) {}
+  return false;
+};
+
 try { mikhmon_bindAccordion(); } catch (e) {}
