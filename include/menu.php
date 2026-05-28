@@ -173,7 +173,10 @@ if($idleto != "disable"){
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="javascript:void(0)">MIKFAST</a>
+    <a id="brand" class="text-center" href="javascript:void(0)">
+      <img src="img/mikfast.svg" alt="MIKFAST" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;">
+      MIKFAST
+    </a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -318,7 +321,10 @@ if (file_exists('./info.php')) {
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">MIKFAST</a>
+    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">
+      <img src="img/mikfast.svg" alt="MIKFAST" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;">
+      MIKFAST
+    </a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -352,7 +358,10 @@ if (file_exists('./info.php')) {
 
 <div id="sidenav" class="sidenav">
   <div class="mm-sidenav-header">
-    <div class="mm-sidenav-brand">MIKFAST</div>
+    <div class="mm-sidenav-brand">
+      <img src="img/mikfast.svg" alt="MIKFAST" style="width:22px;height:22px;vertical-align:-4px;margin-right:8px;">
+      MIKFAST
+    </div>
     <div class="mm-sidenav-sub"><?= htmlspecialchars($identity, ENT_QUOTES); ?></div>
     <select class="connect mm-sidenav-session" aria-label="Session">
       <option id="MikhmonSession" value="<?= $session; ?>"><?= htmlspecialchars($session, ENT_QUOTES); ?></option>
@@ -373,42 +382,34 @@ if (file_exists('./info.php')) {
     <div class="mm-sidenav-sub" style="margin-top:8px;">Hotspot: <?= htmlspecialchars($hotspotname, ENT_QUOTES); ?></div>
   </div>
   <a href="./?session=<?= $session; ?>" class="menu <?= $shome; ?>"><i class="fa fa-dashboard"></i> <?= $_dashboard ?></a>
-  <!--hotspot-->
-  <div class="dropdown-btn <?= $susers . $suserprof . $sactive . $shosts . $sipbind . $scookies; ?>"><i class="fa fa-wifi"></i> Hotspot
+  <!--hotspot (balanced + simpler)-->
+  <div class="dropdown-btn <?= $susers . $suserprof . $susersbp . $squick . $sactive . $slog . $shosts . $sipbind . $scookies . $slease; ?>"><i class="fa fa-wifi"></i> Hotspot
     <i class="fa fa-caret-down"></i>
   </div>
-  <div class="dropdown-container <?= $umenu . $upmenu . $hamenu . $hmenu . $ibmenu . $cmenu; ?>">
-   <!--users--> 
-  <div class="dropdown-btn <?= $susers; ?>"><i class="fa fa-users"></i> <?= $_users ?>
-    <i class="fa fa-caret-down"></i>
-  </div>
-  <div class="dropdown-container <?= $umenu; ?>">
-    <a href="./?hotspot=users&profile=all&session=<?= $session; ?>" class="<?= $susersl; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_user_list ?> </a>
-    <a href="./?hotspot-user=add&session=<?= $session; ?>" class="<?= $sadduser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus "></i> <?= $_add_user ?> </a>
-    <a href="./?hotspot-user=generate&session=<?= $session; ?>" class="<?= $sgenuser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus"></i> <?= $_generate ?> </a>        
-  </div>
-  <!--profile-->
-  <div class="dropdown-btn <?= $suserprof; ?>"><i class=" fa fa-pie-chart"></i>  <?= $_user_profile ?>
-    <i class="fa fa-caret-down"></i>
-  </div>
-  <div class="dropdown-container <?= $upmenu; ?>">
-    <a href="./?hotspot=user-profiles&session=<?= $session; ?>" class=" <?= $suserprofiles; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_user_profile_list ?> </a>
-    <a href="./?user-profile=add&session=<?= $session; ?>" class=" <?= $sadduserprof; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-plus-square "></i> <?= $_add_user_profile ?> </a>
+  <div class="dropdown-container <?= $umenu . $upmenu . $hamenu . $lmenu . $hmenu . $ibmenu . $cmenu; ?>">
+    <div class="mm-menu-group">Users</div>
+    <a href="./?hotspot=users&profile=all&session=<?= $session; ?>" class="<?= $susersl; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list"></i> <?= $_user_list ?> </a>
+    <a href="./?hotspot-user=add&session=<?= $session; ?>" class="<?= $sadduser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus"></i> <?= $_add_user ?> </a>
+    <a href="./?hotspot-user=generate&session=<?= $session; ?>" class="<?= $sgenuser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-magic"></i> <?= $_generate ?> </a>
 
+    <div class="mm-menu-group">Voucher</div>
+    <a href="./?hotspot=users-by-profile&session=<?= $session; ?>" class="<?= $susersbp; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-ticket"></i> <?= $_vouchers ?> </a>
+    <a href="./?hotspot=quick-print&session=<?= $session; ?>" class="<?= $squick; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-print"></i> <?= $_quick_print ?> </a>
+
+    <div class="mm-menu-group"><?= $_user_profile ?></div>
+    <a href="./?hotspot=user-profiles&session=<?= $session; ?>" class="<?= $suserprofiles; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list"></i> <?= $_user_profile_list ?> </a>
+    <a href="./?user-profile=add&session=<?= $session; ?>" class="<?= $sadduserprof; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-plus-square"></i> <?= $_add_user_profile ?> </a>
+
+    <div class="mm-menu-group">Monitor</div>
+    <a href="./?hotspot=active&session=<?= $session; ?>" class="<?= $sactive; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-bolt"></i> <?= $_hotspot_active ?></a>
+    <a href="./?hotspot=log&session=<?= $session; ?>" class="<?= $slog; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list-alt"></i> <?= $_hotspot_log ?></a>
+
+    <div class="mm-menu-group">Advanced</div>
+    <a href="./?hotspot=hosts&session=<?= $session; ?>" class="<?= $shosts; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-desktop"></i> <?= $_hosts ?></a>
+    <a href="./?hotspot=ipbinding&session=<?= $session; ?>" class="<?= $sipbind; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-link"></i> <?= $_ip_bindings ?></a>
+    <a href="./?hotspot=cookies&session=<?= $session; ?>" class="<?= $scookies; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-cookie"></i> <?= $_hotspot_cookies ?></a>
+    <a href="./?hotspot=dhcp-leases&session=<?= $session; ?>" class="<?= $slease; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-exchange"></i> <?= $_dhcp_leases ?></a>
   </div>
-  <!--active-->
-  <a href="./?hotspot=active&session=<?= $session; ?>" class="menu <?= $sactive; ?>"><i class=" fa fa-wifi"></i> <?= $_hotspot_active ?></a>
-  <!--hosts-->
-  <a href="./?hotspot=hosts&session=<?= $session; ?>" class="menu <?= $shosts; ?>"><i class=" fa fa-laptop"></i> <?= $_hosts ?></a>
-  <!--ip bindings-->
-  <a href="./?hotspot=ipbinding&session=<?= $session; ?>" class="menu <?= $sipbind; ?>"><i class=" fa fa-address-book"></i> <?= $_ip_bindings ?></a>
-  <!--cookies-->
-   <a href="./?hotspot=cookies&session=<?= $session; ?>" class="menu <?= $scookies; ?>"><i class=" fa fa-hourglass"></i> <?= $_hotspot_cookies ?></a>
-  </div>
-  <!--quick print-->
-  <a href="./?hotspot=quick-print&session=<?= $session; ?>" class="menu <?= $squick; ?>"> <i class="fa fa-print"></i> <?= $_quick_print ?> </a>
-  <!--vouchers-->
-  <a href="./?hotspot=users-by-profile&session=<?= $session; ?>" class="menu <?= $susersbp; ?>"> <i class="fa fa-ticket"></i> <?= $_vouchers ?> </a>
    <!--log-->
   <div class="dropdown-btn <?= $log; ?>"><i class=" fa fa-align-justify"></i> <?= $_log ?>
     <i class="fa fa-caret-down"></i>

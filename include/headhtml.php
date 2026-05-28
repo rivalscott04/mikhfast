@@ -36,8 +36,9 @@ error_reporting(0);
 		<link id="mm-theme-css" rel="stylesheet" href="css/mikhmon-ui.<?= $theme; ?>.min.css">
 		<!-- Custom overrides (theme-aware) -->
 		<link rel="stylesheet" href="css/mikhmon-custom.css">
-		<!-- favicon -->
-		<link rel="icon" href="./img/favicon.png" />
+		<!-- favicon / brand mark -->
+		<link rel="icon" href="./img/mikfast.svg" type="image/svg+xml" />
+		<link rel="alternate icon" href="./img/favicon.png" />
 		<!-- jQuery -->
 		<script src="js/jquery.min.js"></script>
 		<!-- pace -->

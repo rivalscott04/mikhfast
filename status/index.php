@@ -61,7 +61,8 @@ if ($currency == in_array($currency, $cekindo['indo'])) {
 <link rel="stylesheet" type="text/css" href="../css/font-awesome/css/font-awesome.min.css" />
 <!-- Mikfast UI -->
 <link rel="stylesheet" href="../css/mikhmon-ui.<?= $theme; ?>.min.css">
-<link rel="icon" href="../img/favicon.png" />
+<link rel="icon" href="../img/mikfast.svg" type="image/svg+xml" />
+<link rel="alternate icon" href="../img/favicon.png" />
 <script>
 function goBack() {
     window.history.back();

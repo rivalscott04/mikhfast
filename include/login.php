@@ -27,7 +27,7 @@ session_start();
     </div>
     <div class="card-body">
       <div class="text-center pd-5">
-        <img src="img/favicon.png" alt="MIKFAST Logo">
+        <img src="img/mikfast.svg" alt="MIKFAST Logo" style="width:84px;height:84px;">
       </div>
       <div  class="text-center">
       <span style="font-size: 25px; margin: 10px;">MIKFAST</span>

@@ -321,6 +321,16 @@ body .progress .progress-bar.mm-meter-fill--danger{
   transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
+/* Sidebar group labels inside dropdown containers */
+#sidenav .mm-menu-group{
+  margin:10px 14px 6px 14px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  opacity:.72;
+}
+
 #sidenav a.menu.active,
 #sidenav .dropdown-btn.active{
   font-weight:800;
