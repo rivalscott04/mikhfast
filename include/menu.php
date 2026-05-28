@@ -244,11 +244,42 @@ $(document).ready(function(){
     connect(this.id)
   });
   $(".mm-theme-toggle").click(function(){
-    notify("<?= $_loading_theme ?>");
-    var isDark = document.body && document.body.classList && document.body.classList.contains("theme-dark");
+    var body = document.body;
+    if (!body || !body.classList) return;
+
+    var isDark = body.classList.contains("theme-dark");
+    var nextTheme = isDark ? "light" : "dark";
     var nextUrl = isDark ? (this.dataset.lightUrl || "") : (this.dataset.darkUrl || "");
     if (!nextUrl) return;
-    stheme(nextUrl);
+
+    // 1) Instant UI update: swap body class (also animates toggle)
+    body.classList.toggle("theme-dark", nextTheme === "dark");
+    body.classList.toggle("theme-light", nextTheme === "light");
+    this.setAttribute("aria-pressed", nextTheme === "dark" ? "true" : "false");
+
+    // 2) Swap theme CSS files without reload
+    var themeCss = document.getElementById("mm-theme-css");
+    if (themeCss && themeCss.getAttribute) {
+      var href = themeCss.getAttribute("href") || "";
+      themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
+    }
+    var paceCss = document.getElementById("mm-pace-css");
+    if (paceCss && paceCss.getAttribute) {
+      var href2 = paceCss.getAttribute("href") || "";
+      paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
+    }
+
+    // 3) Persist selection in session (no loader, no redirect)
+    try {
+      fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json",
+        },
+        credentials: "same-origin",
+      }).catch(function(){});
+    } catch (e) {}
   });
   $(".slang").change(function(){
     notify("<?= $_loading ?>");
@@ -418,11 +449,39 @@ $(document).ready(function(){
     connect(this.value)
   });
   $(".mm-theme-toggle").click(function(){
-    notify("<?= $_loading_theme ?>");
-    var isDark = document.body && document.body.classList && document.body.classList.contains("theme-dark");
+    var body = document.body;
+    if (!body || !body.classList) return;
+
+    var isDark = body.classList.contains("theme-dark");
+    var nextTheme = isDark ? "light" : "dark";
     var nextUrl = isDark ? (this.dataset.lightUrl || "") : (this.dataset.darkUrl || "");
     if (!nextUrl) return;
-    stheme(nextUrl);
+
+    body.classList.toggle("theme-dark", nextTheme === "dark");
+    body.classList.toggle("theme-light", nextTheme === "light");
+    this.setAttribute("aria-pressed", nextTheme === "dark" ? "true" : "false");
+
+    var themeCss = document.getElementById("mm-theme-css");
+    if (themeCss && themeCss.getAttribute) {
+      var href = themeCss.getAttribute("href") || "";
+      themeCss.setAttribute("href", href.replace(/mikhmon-ui\.(dark|light)\.min\.css/i, "mikhmon-ui." + nextTheme + ".min.css"));
+    }
+    var paceCss = document.getElementById("mm-pace-css");
+    if (paceCss && paceCss.getAttribute) {
+      var href2 = paceCss.getAttribute("href") || "";
+      paceCss.setAttribute("href", href2.replace(/pace\.(dark|light)\.css/i, "pace." + nextTheme + ".css"));
+    }
+
+    try {
+      fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json",
+        },
+        credentials: "same-origin",
+      }).catch(function(){});
+    } catch (e) {}
   });
 });
 </script>

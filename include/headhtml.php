@@ -33,7 +33,7 @@ error_reporting(0);
 		<!-- Font Awesome -->
 		<link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css" />
 		<!-- Mikhmon UI -->
-		<link rel="stylesheet" href="css/mikhmon-ui.<?= $theme; ?>.min.css">
+		<link id="mm-theme-css" rel="stylesheet" href="css/mikhmon-ui.<?= $theme; ?>.min.css">
 		<!-- Custom overrides (theme-aware) -->
 		<link rel="stylesheet" href="css/mikhmon-custom.css">
 		<!-- favicon -->
@@ -41,7 +41,7 @@ error_reporting(0);
 		<!-- jQuery -->
 		<script src="js/jquery.min.js"></script>
 		<!-- pace -->
-		<link href="css/pace.<?= $theme; ?>.css" rel="stylesheet" />
+		<link id="mm-pace-css" href="css/pace.<?= $theme; ?>.css" rel="stylesheet" />
 		<script src="js/pace.min.js"></script>
 
 		

@@ -617,15 +617,15 @@ body.theme-light .mm-loaderbar__bar{
 .mm-theme-toggle{
   appearance:none;
   -webkit-appearance:none;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(0,0,0,.10);
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.10);
   padding: 0;
   margin: 10px 8px 0 0;
   height: 30px;
   width: 58px;
   border-radius: 999px;
   cursor:pointer;
-  transition: background-color .25s ease, border-color .25s ease, transform .12s ease;
+  transition: background-color .25s ease, border-color .25s ease, transform .12s ease, box-shadow .25s ease;
 }
 .mm-theme-toggle:active{ transform: scale(.98); }
 .mm-theme-toggle:focus{
@@ -645,7 +645,7 @@ body.theme-light .mm-loaderbar__bar{
   width:24px;
   height:24px;
   border-radius:999px;
-  background: rgba(255,255,255,.92);
+  background: rgba(255,255,255,.95);
   box-shadow: 0 6px 16px rgba(0,0,0,.18);
   transition: transform .28s cubic-bezier(.2,.8,.2,1), background-color .25s ease;
   will-change: transform;
@@ -659,8 +659,8 @@ body.theme-light .mm-loaderbar__bar{
   opacity:.9;
   transition: opacity .25s ease, color .25s ease;
 }
-.mm-theme-toggle__icon--sun{ left:9px; color: rgba(255,255,255,.85); }
-.mm-theme-toggle__icon--moon{ right:9px; color: rgba(255,255,255,.85); }
+.mm-theme-toggle__icon--sun{ left:9px; color: rgba(255,255,255,.90); }
+.mm-theme-toggle__icon--moon{ right:9px; color: rgba(255,255,255,.78); }
 
 /* state: dark (thumb right) */
 body.theme-dark .mm-theme-toggle__thumb{
@@ -669,14 +669,19 @@ body.theme-dark .mm-theme-toggle__thumb{
 
 /* light navbar: make toggle blend in */
 body.theme-light .mm-theme-toggle{
-  border-color: rgba(17,24,39,.14);
-  background: rgba(255,255,255,.72);
+  border-color: rgba(17,24,39,.12);
+  background: rgba(255,255,255,.85);
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 6px 18px rgba(17,24,39,.06);
 }
 body.theme-light .mm-theme-toggle__thumb{
-  background: #111827;
-  box-shadow: 0 6px 16px rgba(17,24,39,.16);
+  background: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(17,24,39,.12);
 }
 body.theme-light .mm-theme-toggle__icon--sun,
 body.theme-light .mm-theme-toggle__icon--moon{
-  color: rgba(17,24,39,.70);
+  color: rgba(17,24,39,.64);
 }
+
+/* make sun a bit warmer in light */
+body.theme-light .mm-theme-toggle__icon--sun{ color: rgba(245,158,11,.92); }
+body.theme-light .mm-theme-toggle__icon--moon{ color: rgba(17,24,39,.55); }
