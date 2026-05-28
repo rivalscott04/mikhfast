@@ -90,13 +90,27 @@ function notify(msg) {
 
   var baseText = $(".message").text();
   var i = 0;
-  setInterval(function () {
+  // Prevent stacking infinite dot-intervals on repeated notify() calls
+  try {
+    if (window.__mikhmonNotifyInterval) clearInterval(window.__mikhmonNotifyInterval);
+  } catch (e) {}
+  try {
+    if (window.__mikhmonNotifyTimeout) clearTimeout(window.__mikhmonNotifyTimeout);
+  } catch (e) {}
+
+  window.__mikhmonNotifyInterval = setInterval(function () {
     $(".message").append("●");
     if (++i == 4) {
       $(".message").html(baseText);
       i = 0;
     }
   }, 500);
+
+  // Auto-stop the animation so it can't "run forever" if a request stalls.
+  window.__mikhmonNotifyTimeout = setTimeout(function () {
+    try { clearInterval(window.__mikhmonNotifyInterval); } catch (e) {}
+    window.__mikhmonNotifyInterval = null;
+  }, 8000);
 }
 
 function printBT() {
@@ -111,7 +125,9 @@ function connect(session) {
 }
 
 function stheme(url) {
-  $("#temp").load(url);
+  // Theme/language changes should be a full navigation so CSS + server state
+  // apply consistently (AJAX load can leave UI in half-updated state).
+  window.location.href = url;
 }
 
 var _0x8202 = [
