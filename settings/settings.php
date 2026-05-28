@@ -23,6 +23,8 @@ if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
+  $mikhmon_config_write_error = "";
+
   if ($id == "settings" && explode("-",$router)[0] == "new") {
     $data = '$data';
     $configPath = './include/config.php';
@@ -31,18 +33,18 @@ if (!isset($_SESSION["mikhmon"])) {
     $f = @fopen($configPath, 'a');
     if ($f === false) {
       // Avoid fatal errors on PHP 8+ (fwrite expects resource).
-      echo "<div class='bg-danger pd-10 radius-5'>Cannot write to <b>include/config.php</b>. Please check file permissions/ownership.</div>";
-      exit;
+      $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
+    } else {
+      @fwrite($f, $line);
+      @fclose($f);
+      $search = "'$'data";
+      $replace = (string)"$data";
+      $file = file("./include/config.php");
+      $content = file_get_contents("./include/config.php");
+      $newcontent = str_replace((string)$search, (string)$replace, "$content");
+      file_put_contents("./include/config.php", "$newcontent");
+      echo "<script>window.location='./admin.php?id=settings&session=" . $router . "'</script>";
     }
-    @fwrite($f, $line);
-    @fclose($f);
-    $search = "'$'data";
-    $replace = (string)"$data";
-    $file = file("./include/config.php");
-    $content = file_get_contents("./include/config.php");
-    $newcontent = str_replace((string)$search, (string)$replace, "$content");
-    file_put_contents("./include/config.php", "$newcontent");
-    echo "<script>window.location='./admin.php?id=settings&session=" . $router . "'</script>";
   }
 
   if (isset($_POST['save'])) {
@@ -102,6 +104,12 @@ if (!isset($_SESSION["mikhmon"])) {
   }}
   
 </script>
+
+<?php if ($mikhmon_config_write_error != "") { ?>
+  <div class="bg-danger pd-10 radius-5" style="margin:10px 0;">
+    <?= $mikhmon_config_write_error; ?>
+  </div>
+<?php } ?>
 
 <form autocomplete="off" method="post" action="" name="settings">  
 <div class="row">
