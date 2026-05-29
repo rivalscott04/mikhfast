@@ -545,6 +545,18 @@ $(document).ready(function(){
 </script>
 <div id="notify"><div class="message"></div></div>
 <div id="temp"></div>
+<?php
+  if (isset($_SESSION['mm_toast']) && is_array($_SESSION['mm_toast'])) {
+    $mmToastType = isset($_SESSION['mm_toast']['type']) ? (string) $_SESSION['mm_toast']['type'] : 'info';
+    $mmToastMsg = isset($_SESSION['mm_toast']['msg']) ? (string) $_SESSION['mm_toast']['msg'] : '';
+    unset($_SESSION['mm_toast']);
+    $mmToastTypeJs = json_encode($mmToastType, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    $mmToastMsgJs = json_encode($mmToastMsg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    $mmToastDuration = ($mmToastType === 'ok') ? 2400 : 1600;
+    $mmToastDurationJs = json_encode($mmToastDuration);
+    echo "<script>(function(){function mmShowToast(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:" . $mmToastDurationJs . ",spinner:false});return true;}}catch(e){}return false;}if(!mmShowToast()){document.addEventListener('DOMContentLoaded',mmShowToast);}})();</script>";
+  }
+?>
 <?php 
 if (file_exists('./include/info.php')) {
   include('./include/info.php');

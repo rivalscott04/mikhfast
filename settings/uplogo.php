@@ -156,7 +156,7 @@ if (!isset($_SESSION["mikhmon"])) {
               
               <tr>
                 <td><a href="javascript:window.open('./img/<?= $file; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $file; ?>?t=<?= time(); ?>" title="Open <?= $file; ?>"></a><br><span><?= $file; ?></span></td>
-                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= $file; ?> ?')){window.location='<?= $uplogo_remove_url . $file; ?>&session=<?= $session ?>'}else{}"><i class="fa fa-trash"></i> <?= $_delete ?></a>
+                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= htmlspecialchars($file, ENT_QUOTES, 'UTF-8'); ?> ?')){mikhmon_ajaxNavigate('<?= htmlspecialchars($uplogo_remove_url . rawurlencode($file) . '&session=' . urlencode($session), ENT_QUOTES, 'UTF-8'); ?>');}return false;"><i class="fa fa-trash"></i> <?= $_delete ?></a>
                 </td>
               </tr>
               

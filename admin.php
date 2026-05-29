@@ -51,6 +51,20 @@ include('./include/lang.php');
 include('./lang/'.$langid.'.php');
 include('./include/mikhmon-toast.php');
 
+if (isset($_SESSION["mikhmon"]) && $id == "remove-logo" && $logo != "" && !empty($session)) {
+  $logopath = "./img/";
+  $safeLogo = basename($logo);
+  $redirect = './admin.php?id=uplogo&session=' . urlencode($session);
+  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
+    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
+  }
+  mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
+}
+if (isset($_SESSION["mikhmon"]) && $id == "uplogo" && !empty($session) && isset($_POST["submit"])) {
+  include_once('./settings/uplogo.php');
+  exit;
+}
+
 // theme
 include('./include/theme.php');
 include('./settings/settheme.php');
@@ -238,14 +252,7 @@ if ($id == "login" || substr($url, -1) == "p") {
   session_destroy();
   echo "<script>window.location='./admin.php?id=login'</script>";
 } elseif ($id == "remove-logo" && $logo != ""  && !empty($session)) {
-  include_once('./include/menu.php');
-  $logopath = "./img/";
-  $safeLogo = basename($logo);
-  $redirect = './admin.php?id=uplogo&session=' . urlencode($session);
-  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
-    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
-  }
-  mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
+  echo "<script>window.location='./admin.php?id=uplogo&session=" . urlencode($session) . "'</script>";
 } elseif ($id == "editor"  && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/vouchereditor.php');

@@ -122,6 +122,7 @@ function mikhmon_ajaxNavigate(href, opts) {
     })
     .then(function (data) {
       if (data && data.redirect) {
+        mikhmon_showFlash(data);
         if (!opts.fromPopState) history.pushState({ url: data.redirect }, "", data.redirect);
         return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
       }

@@ -68,6 +68,21 @@ if (!isset($_SESSION["mikhmon"])) {
   include('./lang/'.$langid.'.php');
   include('./include/mikhmon-toast.php');
 
+  $hotspotEarly = isset($_GET['hotspot']) ? $_GET['hotspot'] : '';
+  if (isset($_GET['remove-logo']) && $_GET['remove-logo'] != "" && isset($_GET['logo']) && $_GET['logo'] != "") {
+    $logopath = "./img/";
+    $safeLogo = basename($_GET['logo']);
+    $redirect = './?hotspot=uplogo&session=' . urlencode($session);
+    if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
+      mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
+    }
+    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
+  }
+  if ($hotspotEarly == "uplogo" && isset($_POST["submit"])) {
+    include_once('./settings/uplogo.php');
+    exit;
+  }
+
 // load config
   include('./include/config.php');
   include('./include/readcfg.php');
@@ -382,17 +397,6 @@ elseif ($removeexpiredhotspotuser != "") {
 // upload logo
   elseif ($hotspot == "uplogo") {
     include_once('./settings/uplogo.php');
-  }
-
-// remove logo
-  elseif ($removelogo != "" && $logo != "") {
-    $logopath = "./img/";
-    $safeLogo = basename($logo);
-    $redirect = './?hotspot=uplogo&session=' . urlencode($session);
-    if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
-      mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
-    }
-    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
   }
 
 // hotspot Cookies
