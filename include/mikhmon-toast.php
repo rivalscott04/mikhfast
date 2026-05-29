@@ -61,13 +61,18 @@ function mikhmon_toast_flash($msg, $type = 'ok')
 function mikhmon_redirect_success($redirectUrl, $message, $type = 'ok')
 {
 	mikhmon_toast_flash($message, $type);
-	if (function_exists('mikhmon_is_ajax') && mikhmon_is_ajax()) {
-		mikhmon_json(array(
+	$forceJson = !empty($GLOBALS['mikhmon_force_json']);
+	if ($forceJson || (function_exists('mikhmon_is_ajax') && mikhmon_is_ajax())) {
+		$payload = array(
 			'ok' => $type === 'ok',
 			'flash' => $message,
 			'flashType' => $type,
 			'redirect' => $redirectUrl,
-		));
+		);
+		if ($forceJson && function_exists('mikhmon_logo_csrf_token')) {
+			$payload['logoCsrf'] = mikhmon_logo_csrf_token();
+		}
+		mikhmon_json($payload);
 	}
 	$safeUrl = str_replace(array('\\', "'"), array('\\\\', "\\'"), $redirectUrl);
 	echo "<script>window.location='" . $safeUrl . "'</script>";

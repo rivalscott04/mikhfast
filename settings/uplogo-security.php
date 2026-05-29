@@ -165,7 +165,7 @@ function mikhmon_logo_expected_filename($sessionKey) {
 
 function mikhmon_logo_csrf_token() {
   if (empty($_SESSION['mm_logo_csrf']) || !is_string($_SESSION['mm_logo_csrf'])) {
-    $_SESSION['mm_logo_csrf'] = mikhmon_logo_random_hex(16);
+    $_SESSION['mm_logo_csrf'] = bin2hex(function_exists('random_bytes') ? random_bytes(16) : openssl_random_pseudo_bytes(16));
   }
   return $_SESSION['mm_logo_csrf'];
 }
@@ -257,7 +257,7 @@ function mikhmon_logo_handle_upload($session, $redirectUrl) {
   mikhmon_logo_bootstrap_config();
 
   $sessionKey = mikhmon_logo_safe_session_key($session);
-  if ($sessionKey === '' || !mikhmon_logo_session_allowed($sessionKey)) {
+  if ($sessionKey === '' || !mikhmon_logo_session_registered($sessionKey)) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_session'), 'error');
   }
 
@@ -289,7 +289,6 @@ function mikhmon_logo_handle_upload($session, $redirectUrl) {
   }
 
   if (mikhmon_store_session_logo($_FILES['UploadLogo']['tmp_name'], $logoPath)) {
-    mikhmon_logo_csrf_rotate();
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_uploaded'), 'ok');
   }
 
@@ -304,7 +303,7 @@ function mikhmon_logo_handle_delete($session, $logoFilename, $redirectUrl) {
   mikhmon_logo_bootstrap_config();
 
   $sessionKey = mikhmon_logo_safe_session_key($session);
-  if ($sessionKey === '' || !mikhmon_logo_session_allowed($sessionKey)) {
+  if ($sessionKey === '' || !mikhmon_logo_session_registered($sessionKey)) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_session'), 'error');
   }
 

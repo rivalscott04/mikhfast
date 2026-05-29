@@ -3,6 +3,10 @@
 // Theme scripts bind click handlers once on initial load. Because this app can
 // replace `.wrapper` via AJAX navigation, those handlers can be lost. We bind
 // a delegated handler once so accordion always works.
+function mikhmon_isDropdownOpen(container) {
+  return window.getComputedStyle(container).display !== "none";
+}
+
 function mikhmon_bindAccordion() {
   if (window.__mikhmonAccordionBound) return;
   window.__mikhmonAccordionBound = true;
@@ -21,16 +25,20 @@ function mikhmon_bindAccordion() {
     if (typeof e.stopPropagation === "function") e.stopPropagation();
     if (typeof e.preventDefault === "function") e.preventDefault();
 
-    btn.classList.toggle("active");
     var container = btn.nextElementSibling;
     if (!container) return;
     // expected markup is `.dropdown-container`
     if (container.classList && !container.classList.contains("dropdown-container")) return;
 
-    if (container.style.display === "block") {
+    // Open state may come from PHP (`menu-open`) or inline style, not only style.display.
+    var isOpen = mikhmon_isDropdownOpen(container);
+    if (isOpen) {
       container.style.display = "none";
+      container.classList.remove("menu-open");
+      btn.classList.remove("active");
     } else {
       container.style.display = "block";
+      btn.classList.add("active");
     }
   }, true);
 }

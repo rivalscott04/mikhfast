@@ -238,8 +238,7 @@ if ($id == "login" || substr($url, -1) == "p") {
   session_destroy();
   echo "<script>window.location='./admin.php?id=login'</script>";
 } elseif ($id == "remove-logo" && $logo != ""  && !empty($session)) {
-  header('Location: ./process/uplogo.php?action=delete&logo=' . rawurlencode(basename($logo)) . '&session=' . rawurlencode($session) . '&context=admin');
-  exit;
+  echo "<script>window.location='./admin.php?id=uplogo&session=" . urlencode($session) . "'</script>";
 } elseif ($id == "editor"  && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/vouchereditor.php');

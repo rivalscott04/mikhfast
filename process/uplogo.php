@@ -4,9 +4,11 @@
  */
 session_start();
 error_reporting(0);
+ob_start();
 
 $baseDir = dirname(__DIR__);
 require_once $baseDir . '/include/ajax.php';
+$GLOBALS['mikhmon_force_json'] = true;
 
 if (!isset($_SESSION['mikhmon'])) {
   if (mikhmon_is_ajax()) {
@@ -50,17 +52,18 @@ if ($action === 'delete') {
   mikhmon_logo_handle_delete($sessionKey, $logo, $redirect);
 }
 
-if (isset($_POST['submit'])) {
+$hasUploadFile = isset($_FILES['UploadLogo'])
+  && is_array($_FILES['UploadLogo'])
+  && isset($_FILES['UploadLogo']['error'])
+  && (int) $_FILES['UploadLogo']['error'] !== UPLOAD_ERR_NO_FILE;
+
+if (isset($_POST['submit']) || $hasUploadFile) {
   mikhmon_logo_handle_upload($sessionKey, $redirect);
 }
 
-if (mikhmon_is_ajax()) {
-  mikhmon_json(array(
-    'ok' => false,
-    'flash' => mikhmon_t('_toast_logo_invalid_request'),
-    'flashType' => 'error',
-  ), 400);
-}
-
-header('Location: ' . $redirect);
-exit;
+mikhmon_json(array(
+  'ok' => false,
+  'flash' => mikhmon_t('_toast_logo_invalid_request'),
+  'flashType' => 'error',
+  'redirect' => $redirect,
+), 400);

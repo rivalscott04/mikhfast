@@ -149,6 +149,12 @@ function mikhmon_ajaxNavigate(href, opts) {
     });
 }
 
+function mikhmon_updateLogoCsrf(form, token) {
+  if (!form || !token) return;
+  var csrfInput = form.querySelector('input[name="logo_csrf"]');
+  if (csrfInput) csrfInput.value = token;
+}
+
 function mikhmon_ajaxSubmitForm(form) {
   var method = (form.getAttribute("method") || "GET").toUpperCase();
   if (method !== "POST") return false;
@@ -158,6 +164,10 @@ function mikhmon_ajaxSubmitForm(form) {
   var isUploadLogo =
     (form.getAttribute && form.getAttribute("data-mm-uplogo") === "1") ||
     (form.querySelector && form.querySelector('input[name="UploadLogo"]'));
+
+  if (isUploadLogo && form.getAttribute("data-mm-uplogo-busy") === "1") {
+    return true;
+  }
 
   // Never hijack the login form; keep it classic synchronous.
   try {
@@ -199,6 +209,10 @@ function mikhmon_ajaxSubmitForm(form) {
   }
 
   var savingToast = null;
+  if (isUploadLogo) {
+    form.setAttribute("data-mm-uplogo-busy", "1");
+  }
+
   if (isUploadLogo && typeof mikhmon_toast === "function") {
     var uploadLabel = form.getAttribute("data-mm-upload-label") || "Uploading logo...";
     savingToast = mikhmon_toast(uploadLabel, { type: "info", duration: 0, spinner: true });
@@ -209,6 +223,9 @@ function mikhmon_ajaxSubmitForm(form) {
   }
 
   function finishSubmit(data) {
+    if (isUploadLogo) {
+      form.removeAttribute("data-mm-uplogo-busy");
+    }
     if (savingToast && typeof savingToast.hide === "function") {
       // Keep result toast visible; hide() would dismiss the same #mmToast node.
       if (!(data && data.flash)) {
