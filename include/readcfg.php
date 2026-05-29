@@ -15,25 +15,35 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-session_start();
+if (function_exists('session_status')) {
+  if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+  }
+} else {
+  session_start();
+}
 // hide all error
 error_reporting(0);
 if (substr($_SERVER["REQUEST_URI"], -11) == "readcfg.php") {
     header("Location:./");
 };
 // read config (defensive parsing: config.php formats vary)
+if (!function_exists('mikhmon_cfg_value')) {
 function mikhmon_cfg_value($raw, $delimiter) {
     if (!is_string($raw)) return "";
     $parts = explode($delimiter, $raw, 2);
     return isset($parts[1]) ? $parts[1] : "";
 }
+}
 
+if (!function_exists('mikhmon_find_in_array')) {
 function mikhmon_find_in_array($arr, $needle) {
     if (!is_array($arr)) return "";
     foreach ($arr as $v) {
         if (is_string($v) && strpos($v, $needle) !== false) return $v;
     }
     return "";
+}
 }
 
 // If a session key is missing (or config is incomplete), avoid redirect loops and still render admin pages.

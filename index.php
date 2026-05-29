@@ -59,7 +59,8 @@ if (!isset($_SESSION["mikhmon"])) {
   $_SESSION["connect"] = "";
 
 // time zone
-  date_default_timezone_set($_SESSION['timezone']);
+  $mmTimezone = (isset($_SESSION['timezone']) && $_SESSION['timezone'] !== '') ? $_SESSION['timezone'] : 'Asia/Jakarta';
+  @date_default_timezone_set($mmTimezone);
 
 // lang
   include('./lang/isocodelang.php');
@@ -67,16 +68,6 @@ if (!isset($_SESSION["mikhmon"])) {
   include('./include/lang.php');
   include('./lang/'.$langid.'.php');
   include('./include/mikhmon-toast.php');
-
-  $hotspotEarly = isset($_GET['hotspot']) ? $_GET['hotspot'] : '';
-  if (isset($_GET['remove-logo']) && $_GET['remove-logo'] != "" && isset($_GET['logo']) && $_GET['logo'] != "") {
-    require_once __DIR__ . '/settings/uplogo-security.php';
-    mikhmon_logo_handle_delete($session, $_GET['logo'], './?hotspot=uplogo&session=' . urlencode(mikhmon_logo_safe_session_key($session)));
-  }
-  if ($hotspotEarly == "uplogo" && isset($_POST["submit"])) {
-    include_once('./settings/uplogo.php');
-    exit;
-  }
 
 // load config
   include('./include/config.php');

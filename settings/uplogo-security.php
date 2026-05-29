@@ -108,11 +108,32 @@ function mikhmon_logo_prepare_destination($logoPath) {
   return '';
 }
 
+function mikhmon_logo_random_hex($bytes) {
+  $bytes = max(8, (int) $bytes);
+  if (function_exists('random_bytes')) {
+    return bin2hex(random_bytes($bytes));
+  }
+  if (function_exists('openssl_random_pseudo_bytes')) {
+    return bin2hex(openssl_random_pseudo_bytes($bytes));
+  }
+  return md5(uniqid((string) mt_rand(), true));
+}
+
 function mikhmon_logo_bootstrap_config() {
   if (!isset($GLOBALS['data']) || !is_array($GLOBALS['data'])) {
-    include dirname(__DIR__) . '/include/config.php';
-    include dirname(__DIR__) . '/include/readcfg.php';
+    require_once dirname(__DIR__) . '/include/config.php';
+    require_once dirname(__DIR__) . '/include/readcfg.php';
   }
+}
+
+function mikhmon_logo_session_allowed($sessionKey) {
+  if ($sessionKey === '') {
+    return false;
+  }
+  if (isset($_SESSION[$sessionKey]) && $_SESSION[$sessionKey] === $sessionKey) {
+    return true;
+  }
+  return mikhmon_logo_session_registered($sessionKey);
 }
 
 function mikhmon_logo_safe_session_key($session) {
@@ -144,7 +165,7 @@ function mikhmon_logo_expected_filename($sessionKey) {
 
 function mikhmon_logo_csrf_token() {
   if (empty($_SESSION['mm_logo_csrf']) || !is_string($_SESSION['mm_logo_csrf'])) {
-    $_SESSION['mm_logo_csrf'] = bin2hex(function_exists('random_bytes') ? random_bytes(16) : openssl_random_pseudo_bytes(16));
+    $_SESSION['mm_logo_csrf'] = mikhmon_logo_random_hex(16);
   }
   return $_SESSION['mm_logo_csrf'];
 }
@@ -236,7 +257,7 @@ function mikhmon_logo_handle_upload($session, $redirectUrl) {
   mikhmon_logo_bootstrap_config();
 
   $sessionKey = mikhmon_logo_safe_session_key($session);
-  if ($sessionKey === '' || !mikhmon_logo_session_registered($sessionKey)) {
+  if ($sessionKey === '' || !mikhmon_logo_session_allowed($sessionKey)) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_session'), 'error');
   }
 
@@ -283,7 +304,7 @@ function mikhmon_logo_handle_delete($session, $logoFilename, $redirectUrl) {
   mikhmon_logo_bootstrap_config();
 
   $sessionKey = mikhmon_logo_safe_session_key($session);
-  if ($sessionKey === '' || !mikhmon_logo_session_registered($sessionKey)) {
+  if ($sessionKey === '' || !mikhmon_logo_session_allowed($sessionKey)) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_session'), 'error');
   }
 

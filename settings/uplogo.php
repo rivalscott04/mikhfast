@@ -29,19 +29,12 @@ if (!isset($_SESSION["mikhmon"])) {
   $sessionKey = mikhmon_logo_safe_session_key($session);
   $logo_dir = mikhmon_logo_dir();
   $expected_logo = mikhmon_logo_expected_filename($sessionKey);
-  $form_action = (isset($id) && $id == "uplogo")
-    ? './admin.php?id=uplogo&session=' . urlencode($sessionKey)
-    : './?hotspot=uplogo&session=' . urlencode($sessionKey);
-  $uplogo_remove_url = (isset($id) && $id == "uplogo")
-    ? "./admin.php?id=remove-logo&logo="
-    : "./?remove-logo=1&logo=";
+  $logo_context = (isset($id) && $id == "uplogo") ? "admin" : "index";
+  $form_action = './process/uplogo.php?session=' . urlencode($sessionKey) . '&context=' . $logo_context;
+  $uplogo_remove_url = './process/uplogo.php?action=delete&logo=';
   $uploading_label = isset($_uploading_logo) ? $_uploading_logo : "Uploading logo...";
   $select_file_label = isset($_toast_logo_select_file) ? $_toast_logo_select_file : "Please choose a logo file first.";
   $logo_csrf = mikhmon_logo_csrf_token();
-
-  if (isset($_POST["submit"])) {
-    mikhmon_logo_handle_upload($sessionKey, $form_action);
-  }
 }
 ?>
 <div class="row">
@@ -78,7 +71,7 @@ if (!isset($_SESSION["mikhmon"])) {
       <tbody>
         <?php
         $dir = $logo_dir;
-        if ($sessionKey === '' || !mikhmon_logo_session_registered($sessionKey)) {
+        if ($sessionKey === '' || !mikhmon_logo_session_allowed($sessionKey)) {
           echo '<tr><td colspan="2">' . htmlspecialchars(mikhmon_t('_toast_logo_invalid_session'), ENT_QUOTES, 'UTF-8') . '</td></tr>';
         } elseif (is_dir($dir)) {
           if ($dh = opendir($dir)) {
@@ -90,7 +83,7 @@ if (!isset($_SESSION["mikhmon"])) {
                 continue;
               }
               $fileEsc = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
-              $deleteUrl = htmlspecialchars($uplogo_remove_url . rawurlencode($file) . '&session=' . urlencode($sessionKey), ENT_QUOTES, 'UTF-8');
+              $deleteUrl = htmlspecialchars($uplogo_remove_url . rawurlencode($file) . '&session=' . urlencode($sessionKey) . '&context=' . $logo_context, ENT_QUOTES, 'UTF-8');
               ?>
               <tr>
                 <td><a href="javascript:window.open('./img/<?= $fileEsc; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $fileEsc; ?>?t=<?= time(); ?>" title="Open <?= $fileEsc; ?>"></a><br><span><?= $fileEsc; ?></span></td>

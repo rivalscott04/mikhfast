@@ -51,15 +51,6 @@ include('./include/lang.php');
 include('./lang/'.$langid.'.php');
 include('./include/mikhmon-toast.php');
 
-if (isset($_SESSION["mikhmon"]) && $id == "remove-logo" && $logo != "" && !empty($session)) {
-  require_once __DIR__ . '/settings/uplogo-security.php';
-  mikhmon_logo_handle_delete($session, $logo, './admin.php?id=uplogo&session=' . urlencode(mikhmon_logo_safe_session_key($session)));
-}
-if (isset($_SESSION["mikhmon"]) && $id == "uplogo" && !empty($session) && isset($_POST["submit"])) {
-  include_once('./settings/uplogo.php');
-  exit;
-}
-
 // theme
 include('./include/theme.php');
 include('./settings/settheme.php');
@@ -247,7 +238,8 @@ if ($id == "login" || substr($url, -1) == "p") {
   session_destroy();
   echo "<script>window.location='./admin.php?id=login'</script>";
 } elseif ($id == "remove-logo" && $logo != ""  && !empty($session)) {
-  echo "<script>window.location='./admin.php?id=uplogo&session=" . urlencode($session) . "'</script>";
+  header('Location: ./process/uplogo.php?action=delete&logo=' . rawurlencode(basename($logo)) . '&session=' . rawurlencode($session) . '&context=admin');
+  exit;
 } elseif ($id == "editor"  && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/vouchereditor.php');
