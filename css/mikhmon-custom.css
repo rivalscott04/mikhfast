@@ -1215,3 +1215,50 @@ body.theme-light .mm-skel-trow{
   opacity: .55 !important;
   filter: grayscale(.1);
 }
+
+/* About page */
+.about-changelog{
+  margin: 1rem 0 1.5rem;
+}
+.about-changelog h4{
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-bottom: .75rem;
+  letter-spacing: .02em;
+}
+.about-changelog ul{
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.about-changelog li{
+  margin-bottom: .55rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.about-changelog li strong{
+  font-weight: 800;
+}
+.about-changelog kbd{
+  font-size: .85em;
+  padding: .1em .35em;
+  border-radius: 3px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+body.theme-light .about-changelog kbd{
+  background: rgba(0,0,0,.05);
+  border-color: var(--mm-border);
+}
+.about-divider{
+  margin: 1.5rem 0;
+  opacity: .35;
+}
+.about-credits h4{
+  font-weight: 700;
+  margin-bottom: .75rem;
+}
+.about-copy{
+  margin-top: 1.25rem;
+  opacity: .75;
+  font-size: .92rem;
+}
