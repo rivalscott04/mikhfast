@@ -98,10 +98,16 @@ date_default_timezone_set($_SESSION['timezone']);
 		$commt = $user . "-" . rand(100, 999) . "-" . date("m.d.y") . "-" . $adcomment;
 		$gentemp = $commt . "|~" . $profile . "~" . $getvalid . "~" . $getprice . "!".$getsprice."~" . $timelimit . "~" . $datalimit . "~" . $getlock;
 		$gen = '<?php $genu="'.encrypt($gentemp).'";?>';
-		$temp = './voucher/temp.php';
-		$handle = fopen($temp, 'w') or die('Cannot open file:  ' . $temp);
-		$data = $gen;
-		fwrite($handle, $data);
+		$voucherDir = dirname(__DIR__) . '/voucher';
+		$temp = $voucherDir . '/temp.php';
+		if (!is_dir($voucherDir)) {
+			@mkdir($voucherDir, 0755, true);
+		}
+		if (@file_put_contents($temp, $gen) === false) {
+			$_SESSION['genu'] = encrypt($gentemp);
+		} else {
+			unset($_SESSION['genu']);
+		}
 
 		$a = array("1" => "", "", 1, 2, 2, 3, 3, 4);
 
@@ -231,47 +237,59 @@ date_default_timezone_set($_SESSION['timezone']);
 	}
 
 	$getprofile = $API->comm("/ip/hotspot/user/profile/print");
-	include_once('./voucher/temp.php');
-	$genuser = explode("-", decrypt($genu));
-	$genuser1 = explode("~", decrypt($genu));
-	$umode = $genuser[0];
-	$ucode = $genuser[1];
-	$udate = $genuser[2];
-	$uprofile = $genuser1[1];
-	$uvalid = $genuser1[2];
-	$ucommt = $genuser[3];
+	$genu = '';
+	$tempFile = dirname(__DIR__) . '/voucher/temp.php';
+	if (is_readable($tempFile)) {
+		include_once($tempFile);
+	}
+	if (!empty($genu)) {
+		$genuPayload = $genu;
+	} elseif (!empty($_SESSION['genu'])) {
+		$genuPayload = $_SESSION['genu'];
+	} else {
+		$genuPayload = '';
+	}
+	$genuser = $genuPayload !== '' ? explode("-", decrypt($genuPayload)) : array();
+	$genuser1 = $genuPayload !== '' ? explode("~", decrypt($genuPayload)) : array();
+	$umode = isset($genuser[0]) ? $genuser[0] : '';
+	$ucode = isset($genuser[1]) ? $genuser[1] : '';
+	$udate = isset($genuser[2]) ? $genuser[2] : '';
+	$uprofile = isset($genuser1[1]) ? $genuser1[1] : '';
+	$uvalid = isset($genuser1[2]) ? $genuser1[2] : '';
+	$ucommt = isset($genuser[3]) ? $genuser[3] : '';
 	if ($uvalid == "") {
 		$uvalid = "-";
 	} else {
 		$uvalid = $uvalid;
 	}
-	$uprice = explode("!",$genuser1[3])[0];
+	$priceParts = isset($genuser1[3]) ? explode("!", $genuser1[3]) : array('', '');
+	$uprice = isset($priceParts[0]) ? $priceParts[0] : '';
 	if ($uprice == "0") {
 		$uprice = "-";
 	} else {
 		$uprice = $uprice;
 	}
-	$suprice = explode("!",$genuser1[3])[1];
+	$suprice = isset($priceParts[1]) ? $priceParts[1] : '';
 	if ($suprice == "0") {
 		$suprice = "-";
 	} else {
 		$suprice = $suprice;
 	}
-	$utlimit = $genuser1[4];
+	$utlimit = isset($genuser1[4]) ? $genuser1[4] : '';
 	if ($utlimit == "0") {
 		$utlimit = "-";
 	} else {
 		$utlimit = $utlimit;
 	}
-	$udlimit = $genuser1[5];
+	$udlimit = isset($genuser1[5]) ? $genuser1[5] : '';
 	if ($udlimit == "0") {
 		$udlimit = "-";
 	} else {
 		$udlimit = formatBytes($udlimit, 2);
 	}
-	$ulock = $genuser1[6];
+	$ulock = isset($genuser1[6]) ? $genuser1[6] : '';
 	//$urlprint = "$umode-$ucode-$udate-$ucommt";
-	$urlprint = explode("|", decrypt($genu))[0];
+	$urlprint = $genuPayload !== '' ? explode("|", decrypt($genuPayload))[0] : '';
 	if ($currency == in_array($currency, $cekindo['indo'])) {
 		$uprice = $currency . " " . number_format((float)$uprice, 0, ",", ".");
 		$suprice = $currency . " " . number_format((float)$suprice, 0, ",", ".");
