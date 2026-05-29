@@ -35,16 +35,30 @@ if (!isset($_SESSION["mikhmon"])) {
 include('../include/lang.php');
 include('../lang/'.$langid.'.php');
 
+  include_once('../include/mikhmon-router-cache.php');
   include_once('../lib/routeros_api.class.php');
-
-  $API = new RouterosAPI();
-  $API->debug = false;
-  $API->connect($iphost, $userhost, decrypt($passwdhost));
 
   $uprofname = $_GET['name'];
   if ($uprofname != "") {
-    $getprofile = $API->comm("/ip/hotspot/user/profile/print", array("?name" => "$uprofname"));
-    $ponlogin = $getprofile[0]['on-login'];
+    $profiles = mikhmon_router_cache_get($session, 'hotspot_profiles');
+    $profRow = is_array($profiles) ? mikhmon_profile_find_by_name($profiles, $uprofname) : null;
+    if ($profRow === null) {
+      $API = new RouterosAPI();
+      $API->debug = false;
+      $API->connect($iphost, $userhost, decrypt($passwdhost));
+      $profiles = $API->comm("/ip/hotspot/user/profile/print");
+      mikhmon_router_cache_set($session, 'hotspot_profiles', $profiles);
+      $profRow = mikhmon_profile_find_by_name($profiles, $uprofname);
+      if ($profRow === null) {
+        $getprofile = $API->comm("/ip/hotspot/user/profile/print", array("?name" => "$uprofname"));
+        $profRow = isset($getprofile[0]) ? $getprofile[0] : null;
+      }
+    }
+    if ($profRow === null) {
+      echo '';
+      exit;
+    }
+    $ponlogin = $profRow['on-login'];
     $getvalid = $_validity. " : " . explode(",", $ponlogin)[3];
     $getprice = explode(",", $ponlogin)[2];
     $getsprice = explode(",", $ponlogin)[4];

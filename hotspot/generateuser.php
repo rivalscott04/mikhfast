@@ -27,12 +27,23 @@ if (!isset($_SESSION["mikhmon"])) {
 // time zone
 date_default_timezone_set($_SESSION['timezone']);
 
+	include_once(dirname(__DIR__) . '/include/mikhmon-router-cache.php');
+	include_once(dirname(__DIR__) . '/lib/mikhmon-generate-user.php');
+
+	$srvlist = mikhmon_router_cached_comm($API, $session, 'hotspot_servers', '/ip/hotspot/print');
+	$getprofile = mikhmon_router_cached_comm($API, $session, 'hotspot_profiles', '/ip/hotspot/user/profile/print');
+
 	$genprof = $_GET['genprof'];
 	if ($genprof != "") {
-		$getprofile = $API->comm("/ip/hotspot/user/profile/print", array(
-			"?name" => "$genprof",
-		));
-		$ponlogin = $getprofile[0]['on-login'];
+		$profRow = mikhmon_profile_find_by_name($getprofile, $genprof);
+		if ($profRow === null) {
+			mikhmon_router_cache_clear($session, 'hotspot_profiles');
+			$getprofile = $API->comm("/ip/hotspot/user/profile/print");
+			mikhmon_router_cache_set($session, 'hotspot_profiles', $getprofile);
+			$profRow = mikhmon_profile_find_by_name($getprofile, $genprof);
+		}
+		if ($profRow !== null) {
+		$ponlogin = $profRow['on-login'];
 		$getprice = explode(",", $ponlogin)[2];
 		if ($getprice == "0") {
 			$getprice = "";
@@ -55,10 +66,9 @@ date_default_timezone_set($_SESSION['timezone']);
 			$getprice = $currency . " " . number_format((float)$getprice);
 		}
 		$ValidPrice = "<b>Validity : " . $getvalid . " | Price : " . $getprice . " | Lock User : " . $getlocku . "</b>";
+		}
 	} else {
 	}
-
-	$srvlist = $API->comm("/ip/hotspot/print");
 
 	if (isset($_POST['qty'])) {
 		
@@ -88,8 +98,18 @@ date_default_timezone_set($_SESSION['timezone']);
 		} else {
 			$adcomment = $adcomment;
 		}
-		$getprofile = $API->comm("/ip/hotspot/user/profile/print", array("?name" => "$profile"));
-		$ponlogin = $getprofile[0]['on-login'];
+		$profRow = mikhmon_profile_find_by_name($getprofile, $profile);
+		if ($profRow === null) {
+			mikhmon_router_cache_clear($session, 'hotspot_profiles');
+			$getprofile = $API->comm("/ip/hotspot/user/profile/print");
+			mikhmon_router_cache_set($session, 'hotspot_profiles', $getprofile);
+			$profRow = mikhmon_profile_find_by_name($getprofile, $profile);
+		}
+		if ($profRow === null) {
+			$gp = $API->comm("/ip/hotspot/user/profile/print", array("?name" => "$profile"));
+			$profRow = isset($gp[0]) ? $gp[0] : array('on-login' => '');
+		}
+		$ponlogin = $profRow['on-login'];
 		$getvalid = explode(",", $ponlogin)[3];
 		$getprice = explode(",", $ponlogin)[2];
 		$getsprice = explode(",", $ponlogin)[4];
@@ -97,137 +117,26 @@ date_default_timezone_set($_SESSION['timezone']);
 		$_SESSION['ubp'] = $profile;
 		$commt = $user . "-" . rand(100, 999) . "-" . date("m.d.y") . "-" . $adcomment;
 		$gentemp = $commt . "|~" . $profile . "~" . $getvalid . "~" . $getprice . "!".$getsprice."~" . $timelimit . "~" . $datalimit . "~" . $getlock;
-		$gen = '<?php $genu="'.encrypt($gentemp).'";?>';
+		$genuEncrypted = encrypt($gentemp);
+		$gen = '<?php $genu="'.$genuEncrypted.'";?>';
 		$voucherDir = dirname(__DIR__) . '/voucher';
 		$temp = $voucherDir . '/temp.php';
 		if (!is_dir($voucherDir)) {
 			@mkdir($voucherDir, 0755, true);
 		}
 		if (@file_put_contents($temp, $gen) === false) {
-			$_SESSION['genu'] = encrypt($gentemp);
+			$_SESSION['genu'] = $genuEncrypted;
 		} else {
 			unset($_SESSION['genu']);
 		}
 
-		$a = array("1" => "", "", 1, 2, 2, 3, 3, 4);
-
-		if ($user == "up") {
-			for ($i = 1; $i <= $qty; $i++) {
-				if ($char == "lower") {
-					$u[$i] = randLC($userl);
-				} elseif ($char == "upper") {
-					$u[$i] = randUC($userl);
-				} elseif ($char == "upplow") {
-					$u[$i] = randULC($userl);
-				} elseif ($char == "mix") {
-					$u[$i] = randNLC($userl);
-				} elseif ($char == "mix1") {
-					$u[$i] = randNUC($userl);
-				} elseif ($char == "mix2") {
-					$u[$i] = randNULC($userl);
-				}
-				if ($userl == 3) {
-					$p[$i] = randN(3);
-				} elseif ($userl == 4) {
-					$p[$i] = randN(4);
-				} elseif ($userl == 5) {
-					$p[$i] = randN(5);
-				} elseif ($userl == 6) {
-					$p[$i] = randN(6);
-				} elseif ($userl == 7) {
-					$p[$i] = randN(7);
-				} elseif ($userl == 8) {
-					$p[$i] = randN(8);
-				}
-
-				$u[$i] = "$prefix$u[$i]";
-			}
-
-			for ($i = 1; $i <= $qty; $i++) {
-				$API->comm("/ip/hotspot/user/add", array(
-					"server" => "$server",
-					"name" => "$u[$i]",
-					"password" => "$p[$i]",
-					"profile" => "$profile",
-					"limit-uptime" => "$timelimit",
-					"limit-bytes-total" => "$datalimit",
-					"comment" => "$commt",
-				));
-			}
+		$generatedUsers = mikhmon_generate_hotspot_users($user, $char, $userl, $prefix, $qty);
+		$u = array();
+		foreach ($generatedUsers as $idx => $row) {
+			$u[$idx + 1] = $row['name'];
 		}
-
-		if ($user == "vc") {
-			$shuf = ($userl - $a[$userl]);
-			for ($i = 1; $i <= $qty; $i++) {
-				if ($char == "lower") {
-					$u[$i] = randLC($shuf);
-				} elseif ($char == "upper") {
-					$u[$i] = randUC($shuf);
-				} elseif ($char == "upplow") {
-					$u[$i] = randULC($shuf);
-				}
-				if ($userl == 3) {
-					$p[$i] = randN(1);
-				} elseif ($userl == 4 || $userl == 5) {
-					$p[$i] = randN(2);
-				} elseif ($userl == 6 || $userl == 7) {
-					$p[$i] = randN(3);
-				} elseif ($userl == 8) {
-					$p[$i] = randN(4);
-				}
-
-				$u[$i] = "$prefix$u[$i]$p[$i]";
-
-				if ($char == "num") {
-					if ($userl == 3) {
-						$p[$i] = randN(3);
-					} elseif ($userl == 4) {
-						$p[$i] = randN(4);
-					} elseif ($userl == 5) {
-						$p[$i] = randN(5);
-					} elseif ($userl == 6) {
-						$p[$i] = randN(6);
-					} elseif ($userl == 7) {
-						$p[$i] = randN(7);
-					} elseif ($userl == 8) {
-						$p[$i] = randN(8);
-					}
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix") {
-					$p[$i] = randNLC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix1") {
-					$p[$i] = randNUC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix2") {
-					$p[$i] = randNULC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-
-			}
-			for ($i = 1; $i <= $qty; $i++) {
-				$API->comm("/ip/hotspot/user/add", array(
-					"server" => "$server",
-					"name" => "$u[$i]",
-					"password" => "$u[$i]",
-					"profile" => "$profile",
-					"limit-uptime" => "$timelimit",
-					"limit-bytes-total" => "$datalimit",
-					"comment" => "$commt",
-				));
-			}
-		}
-
+		$addSentences = mikhmon_hotspot_user_add_sentences($server, $profile, $timelimit, $datalimit, $commt, $generatedUsers);
+		mikhmon_hotspot_user_add_batch($API, $addSentences, 50);
 
 		if ($qty < 2) {
 			echo "<script>window.location='./?hotspot-user=" . $u[1] . "&session=" . $session . "'</script>";
@@ -236,7 +145,6 @@ date_default_timezone_set($_SESSION['timezone']);
 		}
 	}
 
-	$getprofile = $API->comm("/ip/hotspot/user/profile/print");
 	$genu = '';
 	$tempFile = dirname(__DIR__) . '/voucher/temp.php';
 	if (is_readable($tempFile)) {
@@ -249,8 +157,9 @@ date_default_timezone_set($_SESSION['timezone']);
 	} else {
 		$genuPayload = '';
 	}
-	$genuser = $genuPayload !== '' ? explode("-", decrypt($genuPayload)) : array();
-	$genuser1 = $genuPayload !== '' ? explode("~", decrypt($genuPayload)) : array();
+	$genuDecrypted = $genuPayload !== '' ? decrypt($genuPayload) : '';
+	$genuser = $genuDecrypted !== '' ? explode("-", $genuDecrypted) : array();
+	$genuser1 = $genuDecrypted !== '' ? explode("~", $genuDecrypted) : array();
 	$umode = isset($genuser[0]) ? $genuser[0] : '';
 	$ucode = isset($genuser[1]) ? $genuser[1] : '';
 	$udate = isset($genuser[2]) ? $genuser[2] : '';
@@ -289,7 +198,7 @@ date_default_timezone_set($_SESSION['timezone']);
 	}
 	$ulock = isset($genuser1[6]) ? $genuser1[6] : '';
 	//$urlprint = "$umode-$ucode-$udate-$ucommt";
-	$urlprint = $genuPayload !== '' ? explode("|", decrypt($genuPayload))[0] : '';
+	$urlprint = $genuDecrypted !== '' ? explode("|", $genuDecrypted)[0] : '';
 	if ($currency == in_array($currency, $cekindo['indo'])) {
 		$uprice = $currency . " " . number_format((float)$uprice, 0, ",", ".");
 		$suprice = $currency . " " . number_format((float)$suprice, 0, ",", ".");

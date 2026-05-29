@@ -156,7 +156,7 @@ table.voucher {
 }
 		</style>
 	</head>
-	<body onload="window.print()">
+	<body>
 
 <?php for ($i = 0; $i < $TotalReg; $i++) {;
   $regtable = $getuser[$i];
@@ -174,19 +174,9 @@ table.voucher {
     $datalimit = formatBytes($getdatalimit, 2);
   }
   
-  $urilogin = "http://$dnsname/login?username=$username&password=$password";
+  $urilogin = "http://$dnsname/login?username=" . rawurlencode($username) . "&password=" . rawurlencode($password);
   $qrcode = "
-	<canvas class='qrcode' id='".$uid."'></canvas>
-    <script>
-      (function() {
-        var ".$uid." = new QRious({
-          element: document.getElementById('".$uid."'),
-          value: '".$urilogin."',
-          size:'256'
-        });
-
-      })();
-    </script>
+	<canvas class='qrcode' id='".$uid."' data-url=\"" . htmlspecialchars($urilogin, ENT_QUOTES, 'UTF-8') . "\"></canvas>
 	";
  
   $num = $i + 1;
@@ -205,6 +195,30 @@ if ($userp != "") {
 <?php 
 } ?>
 
+<script>
+(function() {
+  var qrNodes = document.querySelectorAll('canvas.qrcode');
+  var i = 0;
+  function nextQr() {
+    if (i >= qrNodes.length) {
+      setTimeout(function() { window.print(); }, 80);
+      return;
+    }
+    var el = qrNodes[i++];
+    new QRious({ element: el, value: el.getAttribute('data-url'), size: 100 });
+    if (i % 15 === 0) {
+      setTimeout(nextQr, 0);
+    } else {
+      nextQr();
+    }
+  }
+  if (qrNodes.length) {
+    nextQr();
+  } else {
+    window.print();
+  }
+})();
+</script>
 	
 </body>
 </html>

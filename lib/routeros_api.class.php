@@ -397,7 +397,13 @@ class RouterosAPI
      *
      * @return array                  Array with parsed
      */
-    public function comm($com, $arr = array())
+    /**
+     * Write one API sentence (command + attributes) without reading the reply.
+     *
+     * @param string $com
+     * @param array  $arr
+     */
+    public function writeSentence($com, $arr = array())
     {
         $count = count($arr);
         $this->write($com, !$arr);
@@ -420,8 +426,35 @@ class RouterosAPI
                 $this->write($el, $last);
             }
         }
+    }
 
+    public function comm($com, $arr = array())
+    {
+        $this->writeSentence($com, $arr);
         return $this->read();
+    }
+
+    /**
+     * Pipeline multiple API commands, then read replies in chunks (faster than comm() per row).
+     *
+     * @param array $sentences  [ [ '/path/cmd', [ 'attr' => 'val', ... ] ], ... ]
+     * @param int   $chunkSize  Commands per round-trip
+     */
+    public function commMulti(array $sentences, $chunkSize = 50)
+    {
+        if (!$this->connected || empty($sentences)) {
+            return true;
+        }
+        $chunkSize = max(1, (int) $chunkSize);
+        foreach (array_chunk($sentences, $chunkSize) as $chunk) {
+            foreach ($chunk as $sentence) {
+                $com = $sentence[0];
+                $arr = isset($sentence[1]) && is_array($sentence[1]) ? $sentence[1] : array();
+                $this->writeSentence($com, $arr);
+            }
+            $this->read(false);
+        }
+        return true;
     }
 
     /**
