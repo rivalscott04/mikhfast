@@ -1,4 +1,16 @@
 /* Mikhmon — SPA navigation + applyHtml */
+function mikhmon_showFlash(data) {
+  if (!data || !data.flash) return;
+  var type = data.flashType || (data.ok === false ? "error" : "ok");
+  if (typeof mikhmon_toast === "function") {
+    mikhmon_toast(data.flash, { type: type, duration: 2400, spinner: false });
+  } else {
+    try {
+      notify(data.flash);
+    } catch (e) {}
+  }
+}
+
 function mikhmon_runInlineScripts(rootEl) {
   // When HTML is injected via `innerHTML`, browsers do NOT execute <script>.
   // Many pages rely on inline scripts (e.g., traffic chart on dashboard),
@@ -61,6 +73,8 @@ function mikhmon_applyHtml(wrapperHtml) {
   try { mikhmon_initTrafficChart(); } catch (e) {}
   // init app log poller if present
   try { mikhmon_initAppLog(); } catch (e) {}
+  // init voucher template editor if present
+  try { mikhmon_initVoucherEditor(wrapperEl); } catch (e) {}
 
   // re-init behaviors that are expected after navigation
   $(".main-container").fadeIn(0);
@@ -109,7 +123,7 @@ function mikhmon_ajaxNavigate(href, opts) {
         mikhmon_applyHtml(data.html);
         if (!opts.fromPopState) history.pushState({ url: abs }, "", abs);
       }
-      if (data && data.flash) notify(data.flash);
+      mikhmon_showFlash(data);
       try { mikhmon_endNavigateUI(); } catch (e) {}
       return data;
     })
@@ -160,11 +174,11 @@ function mikhmon_ajaxSubmitForm(form) {
     })
     .then(function (data) {
       if (data && data.ok === false) {
-        notify(data.flash || "Error");
+        mikhmon_showFlash(data && data.flash ? { flash: data.flash, flashType: "error", ok: false } : { flash: "Error", flashType: "error", ok: false });
         return data;
       }
       if (data && data.redirect) {
-        if (data && data.flash) notify(data.flash);
+        mikhmon_showFlash(data);
         history.pushState({ url: data.redirect }, "", data.redirect);
         return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
       }
@@ -172,7 +186,7 @@ function mikhmon_ajaxSubmitForm(form) {
         mikhmon_applyHtml(data.html);
         history.pushState({ url: abs }, "", abs);
       }
-      if (data && data.flash) notify(data.flash);
+      mikhmon_showFlash(data);
       return data;
     })
     .catch(function () {

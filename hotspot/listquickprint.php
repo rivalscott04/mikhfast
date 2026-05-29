@@ -46,7 +46,9 @@ if(isset($qpid) && isset($rem)){
 	$API->comm("/system/script/remove", array(
 		".id" => "$qpid",
 ));
-echo '<script>window.location.reload()</script>';
+	mikhmon_toast_flash(mikhmon_t('_toast_quickprint_removed'));
+	echo '<script>window.location="./?hotspot=list-quick-print&session=' . $session . '"</script>';
+	exit;
 }	
 
 	// get quick print
@@ -144,8 +146,10 @@ $getquickprint = $API->comm("/system/script/print", array("?.id" => "$qpid"));
 				));
 			}
 
-		echo "<script>window.location='./?hotspot=list-quick-print&session=" . $session . "'</script>";
-		
+		mikhmon_redirect_success(
+			'./?hotspot=list-quick-print&session=' . $session,
+			mikhmon_t('_toast_quickprint_saved')
+		);
 	}
 
 

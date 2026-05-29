@@ -24,15 +24,18 @@ if (!isset($_SESSION["mikhmon"])) {
 } else {
 // load session MikroTik
 	$session = $_GET['session'];
+	$baseDir = dirname(__DIR__);
+	$voucherDir = $baseDir . '/voucher';
 
 // load config
-include('../include/config.php');
-include('../include/readcfg.php');
-
-
+include_once($baseDir . '/include/config.php');
+include_once($baseDir . '/include/readcfg.php');
+include_once($baseDir . '/include/mikhmon-toast.php');
 
 $url = $_SERVER['REQUEST_URI'];
-$telplate = $_GET['template'];
+$telplate = isset($_POST['template']) ? $_POST['template'] : (isset($_GET['template']) ? $_GET['template'] : 'default');
+$editorFromIndex = isset($_GET['hotspot']) && $_GET['hotspot'] === 'template-editor';
+
 if ($telplate == "default" || $telplate == "rdefault") {
 	$telplatet = "template";
 	$popup = "javascript:window.open('./voucher/vpreview.php?usermode=up&qr=no&session=" . $session . "','_blank','width=310,height=310')";
@@ -45,24 +48,41 @@ if ($telplate == "default" || $telplate == "rdefault") {
 	$telplatet = "template-small";
 	$popup = "javascript:window.open('./voucher/vpreview.php?usermode=up&small=yes&qr=no&session=" . $session . "','_blank','width=310,height=310')";
 	$popupQR = "javascript:window.open('./voucher/vpreview.php?usermode=up&small=yes&qr=yes&session=" . $session . "','_blank','width=310,height=310')";
+} else {
+	$telplatet = "template";
+	$telplate = "default";
+	$popup = "javascript:window.open('./voucher/vpreview.php?usermode=up&qr=no&session=" . $session . "','_blank','width=310,height=310')";
+	$popupQR = "javascript:window.open('./voucher/vpreview.php?usermode=up&qr=yes&session=" . $session . "','_blank','width=310,height=310')";
 }
+
 if (isset($_POST['save'])) {
-	$template = './voucher/' . $telplatet . '.php';
-	$handle = fopen($template, 'w') or die('Cannot open file:  ' . $template);
+	$templateFile = $voucherDir . '/' . $telplatet . '.php';
+	$data = isset($_POST['editor']) ? $_POST['editor'] : '';
+	$writeOk = @file_put_contents($templateFile, $data);
 
-	$data = ($_POST['editor']);
+	$redirectTemplate = $telplate;
+	if ($redirectTemplate === 'rdefault') {
+		$redirectTemplate = 'default';
+	} elseif ($redirectTemplate === 'rthermal') {
+		$redirectTemplate = 'thermal';
+	} elseif ($redirectTemplate === 'rsmall') {
+		$redirectTemplate = 'small';
+	}
 
-	fwrite($handle, $data);
-		
-		//header("Location:$url");
+	if ($editorFromIndex || (isset($_POST['editor_context']) && $_POST['editor_context'] === 'index')) {
+		$redirect = './?hotspot=template-editor&template=' . urlencode($redirectTemplate) . '&session=' . urlencode($session);
+	} else {
+		$redirect = './admin.php?id=editor&template=' . urlencode($redirectTemplate) . '&session=' . urlencode($session);
+	}
+
+	if ($writeOk === false) {
+		mikhmon_redirect_success($redirect, 'Cannot save template. Check file permissions.', 'error');
+	}
+	mikhmon_redirect_success($redirect, 'Template saved successfully', 'ok');
 }
 
 }
 ?>
-<!-- Create a simple CodeMirror instance -->
-<link rel="stylesheet" href="./css/editor.min.css">
-<script src="./js/editor.min.js"></script>	
-
 <style>
 .CodeMirror {
   border: 1px solid #2f353a;
@@ -83,6 +103,8 @@ textarea{
 					</div>
 			<div class="card-body">
 				<form autocomplete="off" method="post" action="">
+					<input type="hidden" name="template" value="<?= htmlspecialchars($telplate, ENT_QUOTES, 'UTF-8'); ?>">
+					<input type="hidden" name="editor_context" value="<?= $editorFromIndex ? 'index' : 'admin'; ?>">
 					<table class="table">
 						<tr>
 							<td>
@@ -125,17 +147,19 @@ textarea{
 						</table>
 	        	<textarea class="bg-dark" id="editorMikhmon" name="editor" style="width:100%" height="700">
 						<?php if ($telplate == "default") {
-						echo file_get_contents('./voucher/template.php');
+						echo file_get_contents($voucherDir . '/template.php');
 					} elseif ($telplate == "thermal") {
-						echo file_get_contents('./voucher/template-thermal.php');
+						echo file_get_contents($voucherDir . '/template-thermal.php');
 					} elseif ($telplate == "small") {
-						echo file_get_contents('./voucher/template-small.php');
+						echo file_get_contents($voucherDir . '/template-small.php');
 					} elseif ($telplate == "rdefault") {
-						echo file_get_contents('./voucher/default.php');
+						echo file_get_contents($voucherDir . '/default.php');
 					} elseif ($telplate == "rthermal") {
-						echo file_get_contents('./voucher/default-thermal.php');
+						echo file_get_contents($voucherDir . '/default-thermal.php');
 					} elseif ($telplate == "rsmall") {
-						echo file_get_contents('./voucher/default-small.php');
+						echo file_get_contents($voucherDir . '/default-small.php');
+					} else {
+						echo file_get_contents($voucherDir . '/template.php');
 					} ?>
 	        </textarea>
 			</form>
@@ -149,54 +173,10 @@ textarea{
 				</div>
 			<div class="card-body">
 				<textarea id="var" class="bg-dark" readonly rows=39 style="width:100%" disabled>
-	        		<?= file_get_contents('./voucher/variable.php'); ?>
+	        		<?= file_get_contents($voucherDir . '/variable.php'); ?>
 	    		</textarea>
 			</div>
 			</div>
 		</div>
 </div>
-
-<script>
-var _0x5b73=["\x75\x6E\x64\x65\x66\x69\x6E\x65\x64","\x4D\x69\x6B\x68\x6D\x6F\x6E\x53\x65\x73\x73\x69\x6F\x6E","\x69\x6E\x6E\x65\x72\x48\x54\x4D\x4C","\x67\x65\x74\x45\x6C\x65\x6D\x65\x6E\x74\x42\x79\x49\x64","\x73\x65\x74\x49\x74\x65\x6D","\x50\x6C\x65\x61\x73\x65\x20\x75\x73\x65\x20\x47\x6F\x6F\x67\x6C\x65\x20\x43\x68\x72\x6F\x6D\x65","\x67\x65\x74\x49\x74\x65\x6D","\x6E\x75\x6C\x6C","","\x4D\x69\x6B\x68\x6D\x6F\x6E\x20\x62\x61\x6A\x61\x6B\x61\x6E\x21\x20\x3A\x29","\x65\x64\x69\x74\x6F\x72\x4D\x69\x6B\x68\x6D\x6F\x6E","\x61\x70\x70\x6C\x69\x63\x61\x74\x69\x6F\x6E\x2F\x78\x2D\x68\x74\x74\x70\x64\x2D\x70\x68\x70","\x74\x6F\x4D\x61\x74\x63\x68\x69\x6E\x67\x54\x61\x67","\x66\x72\x6F\x6D\x54\x65\x78\x74\x41\x72\x65\x61","\x74\x68\x65\x6D\x65","\x6D\x61\x74\x65\x72\x69\x61\x6C","\x73\x65\x74\x4F\x70\x74\x69\x6F\x6E"];if( typeof (Storage)!== _0x5b73[0]){sessionStorage[_0x5b73[4]](_0x5b73[1],document[_0x5b73[3]](_0x5b73[1])[_0x5b73[2]])}else {alert(_0x5b73[5])};var session=sessionStorage[_0x5b73[6]](_0x5b73[1]);if(session=== _0x5b73[7]|| session=== _0x5b73[8]){alert(_0x5b73[9])};var editor=CodeMirror[_0x5b73[13]](document[_0x5b73[3]](_0x5b73[10]),{lineNumbers:true,matchBrackets:true,mode:_0x5b73[11],indentUnit:4,indentWithTabs:true,lineWrapping:true,viewportMargin:Infinity,matchTags:{bothTags:true},extraKeys:{"\x43\x74\x72\x6C\x2D\x4A":_0x5b73[12]}});editor[_0x5b73[16]](_0x5b73[14],_0x5b73[15])
-</script>
-
-<script>
-(function () {
-  if (typeof editor === "undefined" || !editor) return;
-
-  function syncEditorToTextarea() {
-    try {
-      // Required so form submits (AJAX or normal) contain latest edits.
-      editor.save();
-    } catch (e) {}
-  }
-
-  // Capture phase so we sync BEFORE the app's global submit interceptor runs.
-  var form = document.querySelector("form");
-  if (form && form.addEventListener) {
-    form.addEventListener("submit", syncEditorToTextarea, true);
-  }
-
-  // Ctrl+S to save (stays compatible with both AJAX + normal submit).
-  try {
-    editor.addKeyMap({
-      "Ctrl-S": function (cm) {
-        syncEditorToTextarea();
-        var f = cm && cm.getTextArea && cm.getTextArea().form;
-        if (!f) return;
-        if (typeof f.requestSubmit === "function") f.requestSubmit();
-        else f.submit();
-      },
-      "Cmd-S": function (cm) {
-        syncEditorToTextarea();
-        var f = cm && cm.getTextArea && cm.getTextArea().form;
-        if (!f) return;
-        if (typeof f.requestSubmit === "function") f.requestSubmit();
-        else f.submit();
-      },
-    });
-  } catch (e) {}
-})();
-</script>
-
 

@@ -54,15 +54,7 @@ if ($removehotspotusers != "") {
 	} else {
 		$redirect = "./?hotspot=users&profile=all&session=" . $session;
 	}
-	if (mikhmon_is_ajax()) {
-		mikhmon_json(array(
-			"ok" => true,
-			"flash" => "OK",
-			"redirect" => $redirect,
-		));
-	}
-	echo "<script>window.location='" . $redirect . "'</script>";
-
+	mikhmon_redirect_success($redirect, mikhmon_t('_toast_users_removed'));
 
 } else {
 	$getuname = $API->comm("/ip/hotspot/user/print", array(
@@ -92,13 +84,6 @@ if ($removehotspotusers != "") {
 	} else {
 		$redirect = "./?hotspot=users&profile=all&session=" . $session;
 	}
-	if (mikhmon_is_ajax()) {
-		mikhmon_json(array(
-			"ok" => true,
-			"flash" => "OK",
-			"redirect" => $redirect,
-		));
-	}
-	echo "<script>window.location='" . $redirect . "'</script>";
+	mikhmon_redirect_success($redirect, mikhmon_t('_toast_user_removed'));
 }
 ?>

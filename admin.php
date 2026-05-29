@@ -49,6 +49,7 @@ include('./lang/isocodelang.php');
 include('./settings/setlang.php');
 include('./include/lang.php');
 include('./lang/'.$langid.'.php');
+include('./include/mikhmon-toast.php');
 
 // theme
 include('./include/theme.php');

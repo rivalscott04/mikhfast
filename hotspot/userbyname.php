@@ -273,7 +273,10 @@ if ($currency == in_array($currency, $cekindo['indo'])) {
       "limit-bytes-total" => "$datalimit",
       "comment" => "$comment",
     ));
-    echo "<script>window.location='./?hotspot-user=" . $uid . "&session=" . $session . "'</script>";
+    mikhmon_redirect_success(
+      './?hotspot-user=' . $uid . '&session=' . $session,
+      mikhmon_t('_toast_user_updated')
+    );
   }
 }
 include('./voucher/printbt.php');

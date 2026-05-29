@@ -27,12 +27,5 @@ $router = new RouterService($API);
 $router->removeHotspotCookie($removecookie);
 // redirect to host
 $redirect = "./?hotspot=cookies&session=" . $session;
-if (mikhmon_is_ajax()) {
-  mikhmon_json(array(
-    "ok" => true,
-    "flash" => "OK",
-    "redirect" => $redirect,
-  ));
-}
-echo "<script>window.location='" . $redirect . "'</script>";
+mikhmon_redirect_success($redirect, mikhmon_t('_toast_operation_ok'));
 ?>

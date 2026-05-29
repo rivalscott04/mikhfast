@@ -66,6 +66,7 @@ if (!isset($_SESSION["mikhmon"])) {
   include('./settings/setlang.php');
   include('./include/lang.php');
   include('./lang/'.$langid.'.php');
+  include('./include/mikhmon-toast.php');
 
 // load config
   include('./include/config.php');

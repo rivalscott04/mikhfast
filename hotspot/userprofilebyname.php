@@ -216,7 +216,10 @@ if (!isset($_SESSION["mikhmon"])) {
         ".id" => "$monid"));
     }
 
-    echo "<script>window.location='./?user-profile=" . $pid . "&session=" . $session . "'</script>";
+    mikhmon_redirect_success(
+      './?user-profile=' . $pid . '&session=' . $session,
+      mikhmon_t('_toast_profile_updated')
+    );
   }
 }
 ?>

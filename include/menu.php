@@ -329,7 +329,9 @@ $(document).ready(function(){
     // Encode safely for inline JS.
     $mmToastTypeJs = json_encode($mmToastType, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     $mmToastMsgJs = json_encode($mmToastMsg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-    echo "<script>(function(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:1600,spinner:false});}}catch(e){}})();</script>";
+    $mmToastDuration = ($mmToastType === 'ok') ? 2400 : 1600;
+    $mmToastDurationJs = json_encode($mmToastDuration);
+    echo "<script>(function(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:" . $mmToastDurationJs . ",spinner:false});}}catch(e){}})();</script>";
   }
 ?>
 <?php 

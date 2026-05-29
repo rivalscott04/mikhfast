@@ -121,15 +121,16 @@ if (!isset($_SESSION["mikhmon"])) {
       } else {
         mikhmon_json(array(
           "ok" => true,
-          "flash" => "Saved",
+          "flash" => mikhmon_t('_toast_settings_saved'),
+          "flashType" => "ok",
           "redirect" => $redirect,
         ));
       }
     }
     if ($writeOk === false) {
-      $_SESSION['mikhmon_flash'] = $mikhmon_config_write_error;
+      mikhmon_toast_flash($mikhmon_config_write_error, 'error');
     } else {
-      $_SESSION['mikhmon_flash'] = "Saved";
+      mikhmon_toast_flash(mikhmon_t('_toast_settings_saved'));
     }
     echo "<script>window.location='" . $redirect . "'</script>";
   }

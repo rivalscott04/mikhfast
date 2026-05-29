@@ -29,12 +29,5 @@ $router = new RouterService($API);
 $router->removeHotspotUserProfileById($pid);
 $router->removeSchedulerByName($pname);
 $redirect = "./?hotspot=user-profiles&session=" . $session;
-if (mikhmon_is_ajax()) {
-  mikhmon_json(array(
-    "ok" => true,
-    "flash" => "OK",
-    "redirect" => $redirect,
-  ));
-}
-echo "<script>window.location='" . $redirect . "'</script>";
+mikhmon_redirect_success($redirect, mikhmon_t('_toast_profile_removed'));
 ?>

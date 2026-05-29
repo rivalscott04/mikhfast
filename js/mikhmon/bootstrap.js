@@ -93,12 +93,14 @@ document.addEventListener("DOMContentLoaded", function () {
   try { mikhmon_endNavigateUI(); } catch (e) {}
   try { mikhmon_initTrafficChart(); } catch (e) {}
   try { mikhmon_initAppLog(); } catch (e) {}
+  try { mikhmon_initVoucherEditor(document); } catch (e) {}
   try { mikhmon_initFormSelects(document); } catch (e) {}
 });
 window.addEventListener("pageshow", function () {
   try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
   try { mikhmon_initFormSelects(document); } catch (e) {}
+  try { mikhmon_initVoucherEditor(document); } catch (e) {}
 });
 
 try { mikhmon_bindAccordion(); } catch (e) {}

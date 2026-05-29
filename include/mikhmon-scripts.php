@@ -21,6 +21,7 @@ $mikhmonJsModules = array(
   'mikhmon/spa-intervals.js',
   'mikhmon/widget-applog.js',
   'mikhmon/widget-traffic.js',
+  'mikhmon/widget-voucher-editor.js',
   'mikhmon/spa-router.js',
   'mikhmon/widget-accordion.js',
   'mikhmon/widget-lang.js',

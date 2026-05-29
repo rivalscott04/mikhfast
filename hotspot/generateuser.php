@@ -138,10 +138,17 @@ date_default_timezone_set($_SESSION['timezone']);
 		$addSentences = mikhmon_hotspot_user_add_sentences($server, $profile, $timelimit, $datalimit, $commt, $generatedUsers);
 		mikhmon_hotspot_user_add_batch($API, $addSentences, 50);
 
+		$toastMsg = mikhmon_t('_toast_users_generated', (int) $qty);
 		if ($qty < 2) {
-			echo "<script>window.location='./?hotspot-user=" . $u[1] . "&session=" . $session . "'</script>";
+			mikhmon_redirect_success(
+				'./?hotspot-user=' . $u[1] . '&session=' . $session,
+				$toastMsg
+			);
 		} else {
-			echo "<script>window.location='./?hotspot-user=generate&session=" . $session . "'</script>";
+			mikhmon_redirect_success(
+				'./?hotspot-user=generate&session=' . $session,
+				$toastMsg
+			);
 		}
 	}
 

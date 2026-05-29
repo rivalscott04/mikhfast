@@ -68,7 +68,10 @@ if (!isset($_SESSION["mikhmon"])) {
       "?name" => "$name",
     ));
     $uid = $getuser[0]['.id'];
-    echo "<script>window.location='./?hotspot-user=" . $uid . "&session=" . $session . "'</script>";
+    mikhmon_redirect_success(
+      './?hotspot-user=' . $uid . '&session=' . $session,
+      mikhmon_t('_toast_user_added')
+    );
   }
 }
 ?>
