@@ -1,4 +1,11 @@
 /* Mikhmon — SPA navigation + applyHtml */
+function mikhmon_clearLoadingUI() {
+  try { notifyHide(); } catch (e) {}
+  try { mikhmon_endNavigateUI(); } catch (e) {}
+  try { mikhmon_setSwitchingUI(false); } catch (e) {}
+  try { $("#loading").hide(); } catch (e) {}
+}
+
 function mikhmon_showFlash(data) {
   if (!data || !data.flash) return;
   var type = data.flashType || (data.ok === false ? "error" : "ok");
@@ -88,8 +95,7 @@ function mikhmon_applyHtml(wrapperHtml) {
   try { mikhmon_initFormSelects(wrapperEl); } catch (e) {}
 
   // If we were in "switching" state, clear it after the new page is rendered.
-  try { mikhmon_setSwitchingUI(false); } catch (e) {}
-  try { mikhmon_hidePageSkeleton(); } catch (e) {}
+  try { mikhmon_clearLoadingUI(); } catch (e) {}
   try { mikhmon_disableDuringSwitch(wrapperEl); } catch (e) {}
 }
 
@@ -124,7 +130,7 @@ function mikhmon_ajaxNavigate(href, opts) {
         if (!opts.fromPopState) history.pushState({ url: abs }, "", abs);
       }
       mikhmon_showFlash(data);
-      try { mikhmon_endNavigateUI(); } catch (e) {}
+      try { mikhmon_clearLoadingUI(); } catch (e) {}
       return data;
     })
     .catch(function () {
@@ -167,7 +173,19 @@ function mikhmon_ajaxSubmitForm(form) {
     fd.append("save", "1");
   }
 
-  notify(isVoucherEditor ? "Saving template..." : "Saving...");
+  var savingToast = null;
+  if (isVoucherEditor && typeof mikhmon_toast === "function") {
+    savingToast = mikhmon_toast("Saving template...", { type: "info", duration: 0, spinner: true });
+  } else {
+    notify("Saving...");
+  }
+
+  function finishSubmit() {
+    if (savingToast && typeof savingToast.hide === "function") {
+      savingToast.hide();
+    }
+    mikhmon_clearLoadingUI();
+  }
 
   fetch(abs, {
     method: "POST",
@@ -201,13 +219,13 @@ function mikhmon_ajaxSubmitForm(form) {
       return data;
     })
     .catch(function () {
-      notify("Network error, reloading...");
       if (isVoucherEditor && typeof mikhmon_syncVoucherEditor === "function") {
         mikhmon_syncVoucherEditor();
       }
-      // fallback to normal submit
+      notify("Network error, reloading...");
       form.submit();
-    });
+    })
+    .then(finishSubmit, finishSubmit);
 
   return true;
 }

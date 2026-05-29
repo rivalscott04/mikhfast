@@ -69,10 +69,28 @@ if ($telplate == "default" || $telplate == "rdefault") {
 	$popupQR = "javascript:window.open('./voucher/vpreview.php?usermode=up&qr=yes&session=" . $session . "','_blank','width=310,height=310')";
 }
 
+$templateFile = $voucherDir . '/' . $telplatet . '.php';
+$templateWriteError = '';
+if (!is_dir($voucherDir)) {
+	$templateWriteError = 'Folder voucher tidak ditemukan.';
+} elseif (!is_readable($voucherDir)) {
+	$templateWriteError = 'Folder voucher/ tidak bisa dibaca. Periksa permission folder.';
+} elseif (!is_writable($voucherDir)) {
+	$templateWriteError = 'Folder voucher/ tidak bisa ditulis. Set permission writable untuk user web server.';
+} elseif (file_exists($templateFile) && !is_writable($templateFile)) {
+	$templateWriteError = 'File ' . basename($templateFile) . ' tidak bisa ditulis. Periksa permission file template.';
+}
+
 if (isset($_POST['save'])) {
-	$templateFile = $voucherDir . '/' . $telplatet . '.php';
+	if ($templateWriteError !== '') {
+		mikhmon_redirect_success($formAction, $templateWriteError, 'error');
+	}
+
 	$data = isset($_POST['editor']) ? $_POST['editor'] : '';
-	$writeOk = @file_put_contents($templateFile, $data);
+	$writeOk = @file_put_contents($templateFile, $data, LOCK_EX);
+	if ($writeOk === false) {
+		mikhmon_redirect_success($formAction, 'Gagal menyimpan template. Periksa permission file ' . basename($templateFile) . '.', 'error');
+	}
 
 	$redirectTemplate = $telplate;
 	if ($redirectTemplate === 'rdefault') {
@@ -89,9 +107,6 @@ if (isset($_POST['save'])) {
 		$redirect = './admin.php?id=editor&template=' . urlencode($redirectTemplate) . '&session=' . urlencode($session);
 	}
 
-	if ($writeOk === false) {
-		mikhmon_redirect_success($redirect, 'Cannot save template. Check file permissions.', 'error');
-	}
 	mikhmon_redirect_success($redirect, 'Template saved successfully', 'ok');
 }
 
@@ -116,6 +131,11 @@ textarea{
 						<h3><i class="fa fa-edit"></i> <?= $_template_editor ?></h3>
 					</div>
 			<div class="card-body">
+				<?php if ($templateWriteError !== '') { ?>
+				<div class="box bg-danger pd-10 mb-10">
+					<i class="fa fa-exclamation-triangle"></i> <?= htmlspecialchars($templateWriteError, ENT_QUOTES, 'UTF-8'); ?>
+				</div>
+				<?php } ?>
 				<form autocomplete="off" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8'); ?>" data-mm-voucher-editor="1">
 					<input type="hidden" name="save" value="1">
 					<input type="hidden" name="template" value="<?= htmlspecialchars($telplate, ENT_QUOTES, 'UTF-8'); ?>">
@@ -126,7 +146,7 @@ textarea{
 							<td>
 							<div class="row">
 								<div class="col-4 col-box-12">
-								<button type="submit" title="Save template" class="btn bg-primary" name="save"><i class="fa fa-save"></i> <?= $_save ?></button>
+								<button type="submit" title="Save template" class="btn bg-primary" name="save"<?= $templateWriteError !== '' ? ' disabled' : ''; ?>><i class="fa fa-save"></i> <?= $_save ?></button>
 								<a class="btn bg-green" href="<?= $popup?>" title="View voucher with Logo"><i class="fa fa-image"></i> </a>
 								<a class="btn bg-green" href="<?= $popupQR?>" title="View voucher with  QR"><i class="fa fa-qrcode"></i> </a>
 								</div>
