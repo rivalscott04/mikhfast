@@ -241,10 +241,11 @@ if ($id == "login" || substr($url, -1) == "p") {
   include_once('./include/menu.php');
   $logopath = "./img/";
   $safeLogo = basename($logo);
-  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png") {
-    @unlink($logopath . $safeLogo);
+  $redirect = './admin.php?id=uplogo&session=' . urlencode($session);
+  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
+    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
   }
-  echo "<script>window.location='./admin.php?id=uplogo&session=" . $session . "'</script>";
+  mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
 } elseif ($id == "editor"  && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/vouchereditor.php');

@@ -18,87 +18,94 @@
 
 // hide all error
 error_reporting(0);
+
+function mikhmon_store_session_logo($tmpPath, $destPath) {
+  $info = @getimagesize($tmpPath);
+  if ($info === false) {
+    return false;
+  }
+
+  $mime = isset($info['mime']) ? strtolower($info['mime']) : '';
+
+  if ($mime === 'image/png') {
+    return @move_uploaded_file($tmpPath, $destPath);
+  }
+
+  if (!function_exists('imagecreatetruecolor')) {
+    return false;
+  }
+
+  $src = null;
+  switch ($mime) {
+    case 'image/jpeg':
+      $src = @imagecreatefromjpeg($tmpPath);
+      break;
+    case 'image/gif':
+      $src = @imagecreatefromgif($tmpPath);
+      break;
+    case 'image/webp':
+      if (function_exists('imagecreatefromwebp')) {
+        $src = @imagecreatefromwebp($tmpPath);
+      }
+      break;
+    default:
+      return false;
+  }
+
+  if (!$src) {
+    return false;
+  }
+
+  if (function_exists('imagesavealpha')) {
+    @imagesavealpha($src, true);
+  }
+
+  $ok = @imagepng($src, $destPath);
+  @imagedestroy($src);
+  return $ok;
+}
+
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
-  $galat = "";
   $logo_dir = "./img/";
   $expected_logo = "logo-" . $session . ".png";
+  $form_action = (isset($id) && $id == "uplogo")
+    ? './admin.php?id=uplogo&session=' . urlencode($session)
+    : './?hotspot=uplogo&session=' . urlencode($session);
   $uplogo_remove_url = (isset($id) && $id == "uplogo")
     ? "./admin.php?id=remove-logo&logo="
     : "./?remove-logo=1&logo=";
+  $uploading_label = isset($_uploading_logo) ? $_uploading_logo : "Uploading logo...";
 
   if (isset($_POST["submit"])) {
-    $logo_file = $logo_dir . basename($_FILES["UploadLogo"]["name"]);
-    $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($logo_file, PATHINFO_EXTENSION));
+    if (!isset($_FILES["UploadLogo"]) || $_FILES["UploadLogo"]["error"] === UPLOAD_ERR_NO_FILE) {
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_select_file'), 'error');
+    }
+
+    if ($_FILES["UploadLogo"]["error"] !== UPLOAD_ERR_OK) {
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_upload_failed'), 'error');
+    }
 
     if (!is_dir($logo_dir) || !is_writable($logo_dir)) {
-      if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> Folder img/ tidak bisa ditulis. Set permission folder img/ ke 775 dan pastikan owner-nya user web server (www-data/apache/nginx).</div>';
-      } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> img/ folder is not writable. Set img/ permission to 775 and ensure the web server user owns it.</div>';
-      }
-      $uploadOk = 0;
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_not_writable'), 'error');
     }
 
-// Check if image file is a actual image or fake image
-    if ($uploadOk && $check = getimagesize($_FILES["UploadLogo"]["tmp_name"])) {
-      $uploadOk = 1;
-    } elseif ($uploadOk) {
-      if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File bukan gambar. </div>';
-      } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File is not an image. </div>';
-      }
-      $uploadOk = 0;
+    $logo_file = $logo_dir . $expected_logo;
+
+    if (!@getimagesize($_FILES["UploadLogo"]["tmp_name"])) {
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_not_image'), 'error');
     }
 
-// Check file size
-    if ($uploadOk && $_FILES["UploadLogo"]["size"] > 2000000) {
-      if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Ukuran file terlalu besar (max 2MB). </div>';
-      } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> File is too large (max 2MB). </div>';
-      }
-      $uploadOk = 0;
+    if ($_FILES["UploadLogo"]["size"] > 614400) {
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_too_large'), 'error');
     }
-// Allow certain file formats
-    if ($uploadOk && basename($_FILES["UploadLogo"]["name"]) != $expected_logo) {
-      if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Hanya bisa upload ' . $expected_logo . '. </div>';
-      } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Only ' . $expected_logo . ' is allowed. </div>';
-      }
-      $uploadOk = 0;
-    }
-// Check if $uploadOk is set to 0 by an error
-    if ($uploadOk == 0 && $galat == "") {
-      if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File tidak diupload. Nama file harus ' . $expected_logo . '</div>';
-      } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File was not uploaded. File name must be ' . $expected_logo . '</div>';
-      }
-    
-// if everything is ok, try to upload file
-    } elseif ($uploadOk) {
-      if (move_uploaded_file($_FILES["UploadLogo"]["tmp_name"], $logo_file)) {
-        if ($currency == in_array($currency, $cekindo['indo'])) {
-          $galat = '<div class="box bg-success"></i> Alert!<br>  Success!</h5> File ' . basename($_FILES["UploadLogo"]["name"]) . ' telah diupload. </div>';
-        } else {
-          $galat = '<div class="box bg-success"></i> Alert!<br>  Success!</h5> The File ' . basename($_FILES["UploadLogo"]["name"]) . ' has been uploaded. </div>';
-        }
 
-      } else {
-        if ($currency == in_array($currency, $cekindo['indo'])) {
-          $galat = '<div class="box bg-danger"></i> Alert!<br>  Gagal upload file. Periksa permission folder img/ (chmod 775) dan owner web server.</div>';
-        } else {
-          $galat = '<div class="box bg-danger"></i> Alert!<br>  Upload failed. Check img/ folder permission (chmod 775) and web server ownership.</div>';
-        }
-
-      }
+    if (mikhmon_store_session_logo($_FILES["UploadLogo"]["tmp_name"], $logo_file)) {
+      mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_uploaded'), 'ok');
     }
-//echo "<script>window.location='./admin.php?id=uplogo&session=".$session."'</script>";
+
+    mikhmon_redirect_success($form_action, mikhmon_t('_toast_logo_upload_failed'), 'error');
   }
 }
 ?>
@@ -110,16 +117,16 @@ if (!isset($_SESSION["mikhmon"])) {
     </div>
     <div class="card-body">
       <div>
-    <?= $galat; ?>
-      <form action="" method="post" enctype="multipart/form-data">
+      <form action="<?= htmlspecialchars($form_action, ENT_QUOTES, 'UTF-8'); ?>" method="post" enctype="multipart/form-data" data-mm-uplogo="1" data-mm-upload-label="<?= htmlspecialchars($uploading_label, ENT_QUOTES, 'UTF-8'); ?>">
+          <input type="hidden" name="submit" value="1">
 
-          <div class="pd-10"><?= $_format_file_name ?> : logo-<?= $session; ?>.png </div>
+          <div class="pd-10"><?= sprintf(isset($_logo_upload_hint) ? $_logo_upload_hint : 'Saved automatically as %s', $expected_logo); ?></div>
           <div class="input-group">
             <div class="input-group-4 col-box-8">
-                <input style="cursor: pointer; " type="file" class="group-item group-item-l" name="UploadLogo" >
+                <input style="cursor: pointer; " type="file" class="group-item group-item-l" name="UploadLogo" accept="image/png,image/jpeg,image/gif,image/webp">
             </div>
             <div class="input-group-2 col-box-4">
-                <input style="cursor: pointer; font-size: 14px; padding:8px;" class="group-item group-item-r" type="submit" value="<?= $_upload ?>" title="Upload logo" name="submit">
+                <input style="cursor: pointer; font-size: 14px; padding:8px;" class="group-item group-item-r" type="submit" value="<?= $_upload ?>" title="Upload logo">
             </div>
 
       </form>
@@ -148,7 +155,7 @@ if (!isset($_SESSION["mikhmon"])) {
                 } else { ?>
               
               <tr>
-                <td><a href="javascript:window.open('./img/<?= $file; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $file; ?>" title="Open <?= $file; ?>"></a><br><span><?= $file; ?></span></td>
+                <td><a href="javascript:window.open('./img/<?= $file; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $file; ?>?t=<?= time(); ?>" title="Open <?= $file; ?>"></a><br><span><?= $file; ?></span></td>
                 <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= $file; ?> ?')){window.location='<?= $uplogo_remove_url . $file; ?>&session=<?= $session ?>'}else{}"><i class="fa fa-trash"></i> <?= $_delete ?></a>
                 </td>
               </tr>

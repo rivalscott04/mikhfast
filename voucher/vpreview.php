@@ -33,6 +33,7 @@ if (!isset($_SESSION["mikhmon"])) {
   include('../include/readcfg.php');
 
   include('../lib/formatbytesbites.php');
+  include('./logo.php');
 
   $id = $_GET['id'];
   $qr = $_GET['qr'];
@@ -41,15 +42,10 @@ if (!isset($_SESSION["mikhmon"])) {
   $userp = $_GET['user'];
 
 
-  $logo = "../img/logo-" . $session . ".png";
-  if (file_exists($logo)) {
-    $logo = "../img/logo-" . $session . ".png";
-  } else {
-    $logo = "../img/logo.png";
-  }
+  $logo = mikhmon_voucher_logo_url($session, false);
 
  
-  $username = "mikhmon";
+  $username = "mikhfast";
   $password = "1234";
   $timelimit = "6h";
   $getdatalimit = "1073741824";

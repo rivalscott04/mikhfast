@@ -388,10 +388,11 @@ elseif ($removeexpiredhotspotuser != "") {
   elseif ($removelogo != "" && $logo != "") {
     $logopath = "./img/";
     $safeLogo = basename($logo);
-    if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png") {
-      @unlink($logopath . $safeLogo);
+    $redirect = './?hotspot=uplogo&session=' . urlencode($session);
+    if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
+      mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
     }
-    echo "<script>window.location='./?hotspot=uplogo&session=" . $session . "'</script>";
+    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
   }
 
 // hotspot Cookies

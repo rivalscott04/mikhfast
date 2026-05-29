@@ -13,7 +13,7 @@
       <td style="text-align: center; font-size: 14px; font-weight:bold;"><?= $hotspotname; ?></td>
     </tr>
     <tr>
-      <td style="text-align: center; font-size: 14px; font-weight:bold; border-bottom: 1px black solid;"><img src="<?= $logo; ?>" alt="logo" style="height:30px;border:0;"><br><?= date("Y-m-d h:i:sa") ?></td>
+      <td style="text-align: center; font-size: 14px; font-weight:bold; border-bottom: 1px black solid;"><img src="<?= $logo; ?>" alt="MIKFAST" style="height:30px;border:0;"><br><?= date("Y-m-d h:i:sa") ?></td>
     </tr>
 <!-- /  -->
     <tr>

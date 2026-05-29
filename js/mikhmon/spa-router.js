@@ -151,6 +151,9 @@ function mikhmon_ajaxSubmitForm(form) {
 
   var isVoucherEditor =
     typeof mikhmon_isVoucherEditorForm === "function" && mikhmon_isVoucherEditorForm(form);
+  var isUploadLogo =
+    (form.getAttribute && form.getAttribute("data-mm-uplogo") === "1") ||
+    (form.querySelector && form.querySelector('input[name="UploadLogo"]'));
 
   // Never hijack the login form; keep it classic synchronous.
   try {
@@ -172,11 +175,17 @@ function mikhmon_ajaxSubmitForm(form) {
   if (isVoucherEditor && !fd.has("save")) {
     fd.append("save", "1");
   }
+  if (isUploadLogo && !fd.has("submit")) {
+    fd.append("submit", "1");
+  }
 
   var savingToast = null;
-  if (isVoucherEditor && typeof mikhmon_toast === "function") {
+  if (isUploadLogo && typeof mikhmon_toast === "function") {
+    var uploadLabel = form.getAttribute("data-mm-upload-label") || "Uploading logo...";
+    savingToast = mikhmon_toast(uploadLabel, { type: "info", duration: 0, spinner: true });
+  } else if (isVoucherEditor && typeof mikhmon_toast === "function") {
     savingToast = mikhmon_toast("Saving template...", { type: "info", duration: 0, spinner: true });
-  } else {
+  } else if (!isUploadLogo) {
     notify("Saving...");
   }
 

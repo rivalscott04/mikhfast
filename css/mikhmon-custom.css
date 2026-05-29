@@ -975,6 +975,21 @@ body.theme-light .mm-lang-dropdown__item--active{
   background:rgba(0,139,201,.10);
 }
 
+/* Upload / legacy loading indicators above page content */
+#loading{
+  position: fixed;
+  top: 50%;
+  left: calc(260px + 50%);
+  transform: translate(-50%, -50%);
+  z-index: 10055;
+  pointer-events: none;
+}
+@media (max-width: 900px){
+  #loading{
+    left: 50%;
+  }
+}
+
 /* --- Session switch UX: toast + skeleton shimmer (non-blocking) --- */
 #mmToast{
   position: fixed;
