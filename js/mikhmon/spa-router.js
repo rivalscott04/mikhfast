@@ -10,7 +10,10 @@ function mikhmon_showFlash(data) {
   if (!data || !data.flash) return;
   var type = data.flashType || (data.ok === false ? "error" : "ok");
   if (typeof mikhmon_toast === "function") {
-    mikhmon_toast(data.flash, { type: type, duration: 2400, spinner: false });
+    var duration = typeof mikhmon_toastDuration === "function"
+      ? mikhmon_toastDuration(type)
+      : (type === "error" ? 4500 : 2800);
+    mikhmon_toast(data.flash, { type: type, duration: duration, spinner: false });
   } else {
     try {
       notify(data.flash);
@@ -165,6 +168,21 @@ function mikhmon_ajaxSubmitForm(form) {
     if (!isVoucherEditor && form.querySelector && form.querySelector('input[name="save"],button[name="save"]')) return false;
   } catch (e) {}
 
+  if (isUploadLogo) {
+    var fileInput = form.querySelector('input[name="UploadLogo"]');
+    var hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+    if (!hasFile) {
+      var selectMsg = form.getAttribute("data-mm-select-file-msg") || "Please choose a logo file first.";
+      if (typeof mikhmon_toast === "function") {
+        mikhmon_toast(selectMsg, { type: "error", duration: 4500, spinner: false });
+      } else {
+        try { notify(selectMsg); } catch (e) {}
+      }
+      try { if (fileInput) fileInput.focus(); } catch (e) {}
+      return true;
+    }
+  }
+
   var action = form.getAttribute("action") || window.location.href;
   var abs = mikhmon_absUrl(action);
 
@@ -190,9 +208,12 @@ function mikhmon_ajaxSubmitForm(form) {
     notify("Saving...");
   }
 
-  function finishSubmit() {
+  function finishSubmit(data) {
     if (savingToast && typeof savingToast.hide === "function") {
-      savingToast.hide();
+      // Keep result toast visible; hide() would dismiss the same #mmToast node.
+      if (!(data && data.flash)) {
+        savingToast.hide();
+      }
     }
     mikhmon_clearLoadingUI();
   }

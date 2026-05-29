@@ -329,7 +329,7 @@ $(document).ready(function(){
     // Encode safely for inline JS.
     $mmToastTypeJs = json_encode($mmToastType, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     $mmToastMsgJs = json_encode($mmToastMsg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-    $mmToastDuration = ($mmToastType === 'ok') ? 2400 : 1600;
+    $mmToastDuration = ($mmToastType === 'ok') ? 2800 : 4500;
     $mmToastDurationJs = json_encode($mmToastDuration);
     echo "<script>(function(){function mmShowToast(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:" . $mmToastDurationJs . ",spinner:false});return true;}}catch(e){}return false;}if(!mmShowToast()){document.addEventListener('DOMContentLoaded',mmShowToast);}})();</script>";
   }
@@ -552,7 +552,7 @@ $(document).ready(function(){
     unset($_SESSION['mm_toast']);
     $mmToastTypeJs = json_encode($mmToastType, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     $mmToastMsgJs = json_encode($mmToastMsg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-    $mmToastDuration = ($mmToastType === 'ok') ? 2400 : 1600;
+    $mmToastDuration = ($mmToastType === 'ok') ? 2800 : 4500;
     $mmToastDurationJs = json_encode($mmToastDuration);
     echo "<script>(function(){function mmShowToast(){try{if(typeof mikhmon_toast==='function'){mikhmon_toast(" . $mmToastMsgJs . ",{type:" . $mmToastTypeJs . ",duration:" . $mmToastDurationJs . ",spinner:false});return true;}}catch(e){}return false;}if(!mmShowToast()){document.addEventListener('DOMContentLoaded',mmShowToast);}})();</script>";
   }

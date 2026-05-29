@@ -12,10 +12,16 @@ function mikhmon_ensureToast() {
   return el;
 }
 
+function mikhmon_toastDuration(type) {
+  if (type === "error") return 4500;
+  if (type === "ok") return 2800;
+  return 2000;
+}
+
 function mikhmon_toast(message, opts) {
   opts = opts || {};
   var type = opts.type || "info"; // info | ok | error
-  var duration = typeof opts.duration === "number" ? opts.duration : 1800;
+  var duration = typeof opts.duration === "number" ? opts.duration : mikhmon_toastDuration(type);
   var withSpinner = opts.spinner === true;
 
   var el = mikhmon_ensureToast();

@@ -52,13 +52,8 @@ include('./lang/'.$langid.'.php');
 include('./include/mikhmon-toast.php');
 
 if (isset($_SESSION["mikhmon"]) && $id == "remove-logo" && $logo != "" && !empty($session)) {
-  $logopath = "./img/";
-  $safeLogo = basename($logo);
-  $redirect = './admin.php?id=uplogo&session=' . urlencode($session);
-  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png" && @unlink($logopath . $safeLogo)) {
-    mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_removed'), 'ok');
-  }
-  mikhmon_redirect_success($redirect, mikhmon_t('_toast_logo_remove_failed'), 'error');
+  require_once __DIR__ . '/settings/uplogo-security.php';
+  mikhmon_logo_handle_delete($session, $logo, './admin.php?id=uplogo&session=' . urlencode(mikhmon_logo_safe_session_key($session)));
 }
 if (isset($_SESSION["mikhmon"]) && $id == "uplogo" && !empty($session) && isset($_POST["submit"])) {
   include_once('./settings/uplogo.php');
