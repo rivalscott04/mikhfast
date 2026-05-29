@@ -235,34 +235,32 @@ function number_format(number, decimals, dec_point, thousands_sep) {
   return s.join(dec);
 }
         
-		window.onload=function() {
+		function mikhmon_initSellingReport() {
+          var table = document.getElementById('dataTable');
+          if (!table || table.getAttribute('data-mm-total-init')) return;
+          table.setAttribute('data-mm-total-init', '1');
+
           var sum = 0;
-          // Always sum the last column (Price). Row numbering is injected dynamically,
-          // so relying on Nth-child selectors is fragile.
           var cells = document.querySelectorAll("#dataTable tbody tr td:last-child");
           for (var i = 0; i < cells.length; i++) {
             var raw = (cells[i].textContent || "").trim();
-            // Price is stored as a plain number in report rows.
-            // Keep it strict: if parseFloat fails, treat as 0.
             var val = parseFloat(raw);
             if (!isNaN(val)) sum += val;
           }
-          
+
           var th = document.getElementById('total');
+          if (!th) return;
     <?php if ($currency == in_array($currency, $cekindo['indo'])) {
       echo 'th.innerHTML = "'.$currency.' " + number_format(th.innerHTML + (sum),"","",".") ;';
 		} else {
 			echo 'th.innerHTML = "'.$currency.' " + number_format(th.innerHTML + (sum),2,".",",") ;';
 		} ?>
-		
-		var tables = document.getElementsByTagName('tbody');
-    var table = tables[tables.length -1];
-    var rows = table.rows;
-    for(var i = 0, td; i < rows.length; i++){
-        td = document.createElement('td');
-        td.appendChild(document.createTextNode(i + 1));
-        rows[i].insertBefore(td, rows[i].firstChild);
-    }
+        }
+
+        if (document.getElementById('dataTable')) {
+          mikhmon_initSellingReport();
+        } else if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', mikhmon_initSellingReport);
         }
 		</script>
 
@@ -404,9 +402,11 @@ $(document).ready(function(){
 				<tbody>
 				<?php
 			if ($prefix != "") {
+				$rowNo = 0;
 				for ($i = 0; $i < $TotalReg; $i++) {
 					$getname = explode("-|-", $getData[$i]['name']);
 					if (substr($getname[2], 0, strlen($prefix)) == $prefix) {
+						$rowNo++;
 						// Backward-compatible parsing: older records may not include profile field.
 						if (isset($getname[8])) {
 							$profile = isset($getname[7]) ? $getname[7] : "";
@@ -416,6 +416,7 @@ $(document).ready(function(){
 							$comment = isset($getname[7]) ? $getname[7] : "";
 						}
 						echo "<tr>";
+						echo "<td>" . $rowNo . "</td>";
 						echo "<td>";
 						$tgl = __mikhmon_normalize_date_for_display($getname[0]);
 						echo $tgl;
@@ -453,6 +454,7 @@ $(document).ready(function(){
 						$comment = isset($getname[7]) ? $getname[7] : "";
 					}
 					echo "<tr>";
+					echo "<td>" . ($i + 1) . "</td>";
 					echo "<td>";
 					$tgl = __mikhmon_normalize_date_for_display($getname[0]);
 					echo $tgl;
