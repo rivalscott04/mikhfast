@@ -143,20 +143,31 @@ function mikhmon_ajaxSubmitForm(form) {
   var method = (form.getAttribute("method") || "GET").toUpperCase();
   if (method !== "POST") return false;
 
+  var isVoucherEditor =
+    typeof mikhmon_isVoucherEditorForm === "function" && mikhmon_isVoucherEditorForm(form);
+
   // Never hijack the login form; keep it classic synchronous.
   try {
     if (window.location.href.indexOf("admin.php?id=login") !== -1) return false;
     if (form.querySelector && form.querySelector('button[name="login"],input[name="login"]')) return false;
     // Never hijack settings save: must run classic redirect & server-render reliably.
     if (form.getAttribute("name") === "settings") return false;
-    if (form.querySelector && form.querySelector('input[name="save"],button[name="save"]')) return false;
+    if (!isVoucherEditor && form.querySelector && form.querySelector('input[name="save"],button[name="save"]')) return false;
   } catch (e) {}
 
   var action = form.getAttribute("action") || window.location.href;
   var abs = mikhmon_absUrl(action);
 
+  if (isVoucherEditor && typeof mikhmon_syncVoucherEditor === "function") {
+    mikhmon_syncVoucherEditor();
+  }
+
   var fd = new FormData(form);
-  notify("Saving...");
+  if (isVoucherEditor && !fd.has("save")) {
+    fd.append("save", "1");
+  }
+
+  notify(isVoucherEditor ? "Saving template..." : "Saving...");
 
   fetch(abs, {
     method: "POST",
@@ -191,6 +202,9 @@ function mikhmon_ajaxSubmitForm(form) {
     })
     .catch(function () {
       notify("Network error, reloading...");
+      if (isVoucherEditor && typeof mikhmon_syncVoucherEditor === "function") {
+        mikhmon_syncVoucherEditor();
+      }
       // fallback to normal submit
       form.submit();
     });

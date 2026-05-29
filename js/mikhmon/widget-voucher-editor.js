@@ -160,4 +160,31 @@
       createEditor(ta);
     });
   };
+
+  window.mikhmon_syncVoucherEditor = function () {
+    try {
+      if (window.__mikhmonVoucherEditor && typeof window.__mikhmonVoucherEditor.save === "function") {
+        window.__mikhmonVoucherEditor.save();
+        return;
+      }
+      if (window.editor && typeof window.editor.save === "function") {
+        window.editor.save();
+      }
+    } catch (e) {}
+  };
+
+  window.mikhmon_isVoucherEditorForm = function (form) {
+    try {
+      return !!(form && form.getAttribute && form.getAttribute("data-mm-voucher-editor") === "1");
+    } catch (e) {
+      return false;
+    }
+  };
+
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!form || form.tagName !== "FORM") return;
+    if (typeof mikhmon_isVoucherEditorForm !== "function" || !mikhmon_isVoucherEditorForm(form)) return;
+    mikhmon_syncVoucherEditor();
+  }, true);
 })();

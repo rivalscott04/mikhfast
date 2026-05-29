@@ -23,7 +23,7 @@ if (!isset($_SESSION["mikhmon"])) {
 	header("Location:../admin.php?id=login");
 } else {
 // load session MikroTik
-	$session = $_GET['session'];
+	$session = isset($_GET['session']) ? $_GET['session'] : (isset($_POST['session']) ? $_POST['session'] : '');
 	$baseDir = dirname(__DIR__);
 	$voucherDir = $baseDir . '/voucher';
 
@@ -34,7 +34,21 @@ include_once($baseDir . '/include/mikhmon-toast.php');
 
 $url = $_SERVER['REQUEST_URI'];
 $telplate = isset($_POST['template']) ? $_POST['template'] : (isset($_GET['template']) ? $_GET['template'] : 'default');
-$editorFromIndex = isset($_GET['hotspot']) && $_GET['hotspot'] === 'template-editor';
+$editorFromIndex = (isset($_GET['hotspot']) && $_GET['hotspot'] === 'template-editor')
+	|| (isset($_POST['editor_context']) && $_POST['editor_context'] === 'index');
+$displayTemplate = $telplate;
+if ($displayTemplate === 'rdefault') {
+	$displayTemplate = 'default';
+} elseif ($displayTemplate === 'rthermal') {
+	$displayTemplate = 'thermal';
+} elseif ($displayTemplate === 'rsmall') {
+	$displayTemplate = 'small';
+}
+if ($editorFromIndex) {
+	$formAction = './?hotspot=template-editor&template=' . urlencode($displayTemplate) . '&session=' . urlencode($session);
+} else {
+	$formAction = './admin.php?id=editor&template=' . urlencode($displayTemplate) . '&session=' . urlencode($session);
+}
 
 if ($telplate == "default" || $telplate == "rdefault") {
 	$telplatet = "template";
@@ -69,7 +83,7 @@ if (isset($_POST['save'])) {
 		$redirectTemplate = 'small';
 	}
 
-	if ($editorFromIndex || (isset($_POST['editor_context']) && $_POST['editor_context'] === 'index')) {
+	if ($editorFromIndex) {
 		$redirect = './?hotspot=template-editor&template=' . urlencode($redirectTemplate) . '&session=' . urlencode($session);
 	} else {
 		$redirect = './admin.php?id=editor&template=' . urlencode($redirectTemplate) . '&session=' . urlencode($session);
@@ -102,9 +116,11 @@ textarea{
 						<h3><i class="fa fa-edit"></i> <?= $_template_editor ?></h3>
 					</div>
 			<div class="card-body">
-				<form autocomplete="off" method="post" action="">
+				<form autocomplete="off" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8'); ?>" data-mm-voucher-editor="1">
+					<input type="hidden" name="save" value="1">
 					<input type="hidden" name="template" value="<?= htmlspecialchars($telplate, ENT_QUOTES, 'UTF-8'); ?>">
 					<input type="hidden" name="editor_context" value="<?= $editorFromIndex ? 'index' : 'admin'; ?>">
+					<input type="hidden" name="session" value="<?= htmlspecialchars($session, ENT_QUOTES, 'UTF-8'); ?>">
 					<table class="table">
 						<tr>
 							<td>

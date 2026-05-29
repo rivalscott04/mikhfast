@@ -16,6 +16,9 @@ function mikhmon_debug_enabled() {
 }
 
 function mikhmon_json($payload, $statusCode = 200) {
+  while (ob_get_level() > 0) {
+    ob_end_clean();
+  }
   if (!headers_sent()) {
     http_response_code($statusCode);
     header('Content-Type: application/json; charset=utf-8');
