@@ -15,11 +15,20 @@ function mikhmon_store_session_logo($tmpPath, $destPath) {
     return false;
   }
 
-  if ($mime === 'image/png') {
-    return @move_uploaded_file($tmpPath, $destPath);
+  $destDir = dirname($destPath);
+  if (!is_dir($destDir)) {
+    @mkdir($destDir, 0775, true);
   }
 
-  if (!function_exists('imagecreatetruecolor')) {
+  if ($mime === 'image/png') {
+    if (@move_uploaded_file($tmpPath, $destPath)) {
+      @chmod($destPath, 0664);
+      return true;
+    }
+    return false;
+  }
+
+  if (!function_exists('imagecreatetruecolor') || !function_exists('imagepng')) {
     return false;
   }
 
@@ -50,7 +59,53 @@ function mikhmon_store_session_logo($tmpPath, $destPath) {
 
   $ok = @imagepng($src, $destPath);
   @imagedestroy($src);
+  if ($ok) {
+    @chmod($destPath, 0664);
+  }
   return $ok;
+}
+
+function mikhmon_logo_dir() {
+  static $dir = null;
+  if ($dir !== null) {
+    return $dir;
+  }
+
+  $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'img' . DIRECTORY_SEPARATOR;
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0775, true);
+  }
+
+  $real = realpath(rtrim($dir, '/\\'));
+  $dir = ($real !== false) ? $real . DIRECTORY_SEPARATOR : $dir;
+  return $dir;
+}
+
+function mikhmon_logo_writable_error($logoDir) {
+  if (!is_dir($logoDir)) {
+    return '_toast_logo_not_writable';
+  }
+
+  if (!is_writable($logoDir)) {
+    return '_toast_logo_not_writable';
+  }
+
+  $probe = $logoDir . '.mm_write_test_' . getmypid();
+  if (@file_put_contents($probe, '1') === false) {
+    return '_toast_logo_not_writable';
+  }
+  @unlink($probe);
+
+  return '';
+}
+
+function mikhmon_logo_prepare_destination($logoPath) {
+  if (file_exists($logoPath) && !is_writable($logoPath)) {
+    if (!@unlink($logoPath)) {
+      return '_toast_logo_file_locked';
+    }
+  }
+  return '';
 }
 
 function mikhmon_logo_bootstrap_config() {
@@ -163,18 +218,17 @@ function mikhmon_logo_safe_path($logoDir, $filename) {
   if (!preg_match('/^logo-[a-zA-Z0-9_-]{1,48}\.png$/', $filename)) {
     return '';
   }
-  $realDir = realpath($logoDir);
+
+  if ($logoDir === '' || $logoDir === null) {
+    $logoDir = mikhmon_logo_dir();
+  }
+
+  $realDir = realpath(rtrim($logoDir, '/\\'));
   if ($realDir === false) {
     return '';
   }
+
   $path = $realDir . DIRECTORY_SEPARATOR . $filename;
-  $realPath = realpath(dirname($path));
-  if ($realPath === false) {
-    $realPath = $realDir;
-  }
-  if (strpos($realPath, $realDir) !== 0) {
-    return '';
-  }
   return $path;
 }
 
@@ -191,15 +245,21 @@ function mikhmon_logo_handle_upload($session, $redirectUrl) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_request'), 'error');
   }
 
-  $logoDir = './img/';
-  if (!is_dir($logoDir) || !is_writable($logoDir)) {
-    mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_not_writable'), 'error');
+  $logoDir = mikhmon_logo_dir();
+  $writableError = mikhmon_logo_writable_error($logoDir);
+  if ($writableError !== '') {
+    mikhmon_redirect_success($redirectUrl, mikhmon_t($writableError), 'error');
   }
 
   $expectedLogo = mikhmon_logo_expected_filename($sessionKey);
   $logoPath = mikhmon_logo_safe_path($logoDir, $expectedLogo);
   if ($logoPath === '') {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_invalid_request'), 'error');
+  }
+
+  $destError = mikhmon_logo_prepare_destination($logoPath);
+  if ($destError !== '') {
+    mikhmon_redirect_success($redirectUrl, mikhmon_t($destError), 'error');
   }
 
   $valid = mikhmon_logo_validate_upload_file(isset($_FILES['UploadLogo']) ? $_FILES['UploadLogo'] : null);
@@ -210,6 +270,10 @@ function mikhmon_logo_handle_upload($session, $redirectUrl) {
   if (mikhmon_store_session_logo($_FILES['UploadLogo']['tmp_name'], $logoPath)) {
     mikhmon_logo_csrf_rotate();
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_uploaded'), 'ok');
+  }
+
+  if (!function_exists('imagecreatetruecolor') || !function_exists('imagepng')) {
+    mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_gd_missing'), 'error');
   }
 
   mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_upload_failed'), 'error');
@@ -224,7 +288,7 @@ function mikhmon_logo_handle_delete($session, $logoFilename, $redirectUrl) {
   }
 
   $safeLogo = basename($logoFilename);
-  $logoPath = mikhmon_logo_safe_path('./img/', $safeLogo);
+  $logoPath = mikhmon_logo_safe_path(mikhmon_logo_dir(), $safeLogo);
   if ($logoPath === '' || !is_file($logoPath)) {
     mikhmon_redirect_success($redirectUrl, mikhmon_t('_toast_logo_remove_failed'), 'error');
   }

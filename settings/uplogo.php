@@ -27,7 +27,7 @@ if (!isset($_SESSION["mikhmon"])) {
   mikhmon_logo_bootstrap_config();
 
   $sessionKey = mikhmon_logo_safe_session_key($session);
-  $logo_dir = "./img/";
+  $logo_dir = mikhmon_logo_dir();
   $expected_logo = mikhmon_logo_expected_filename($sessionKey);
   $form_action = (isset($id) && $id == "uplogo")
     ? './admin.php?id=uplogo&session=' . urlencode($sessionKey)
