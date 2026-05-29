@@ -1231,12 +1231,9 @@ body.theme-light .mm-skel-trow{
   padding-left: 1.25rem;
 }
 .about-changelog li{
-  margin-bottom: .55rem;
-  font-weight: 600;
-  line-height: 1.45;
-}
-.about-changelog li strong{
-  font-weight: 800;
+  margin-bottom: .65rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .about-changelog kbd{
   font-size: .85em;
