@@ -235,6 +235,18 @@ function mikhmon_ajaxSubmitForm(form) {
     mikhmon_clearLoadingUI();
   }
 
+  function mikhmon_parseJsonResponse(r) {
+    return r.text().then(function (text) {
+      var trimmed = (text || "").replace(/^\uFEFF/, "").trim();
+      if (!trimmed) throw new Error("non-json");
+      try {
+        return JSON.parse(trimmed);
+      } catch (e) {
+        throw new Error("non-json");
+      }
+    });
+  }
+
   fetch(abs, {
     method: "POST",
     headers: {
@@ -245,11 +257,12 @@ function mikhmon_ajaxSubmitForm(form) {
     credentials: "same-origin",
   })
     .then(function (r) {
-      var ct = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
-      if (ct.indexOf("application/json") === -1) throw new Error("non-json");
-      return r.json();
+      return mikhmon_parseJsonResponse(r);
     })
     .then(function (data) {
+      if (data && data.logoCsrf) {
+        mikhmon_updateLogoCsrf(form, data.logoCsrf);
+      }
       if (data && data.ok === false) {
         mikhmon_showFlash(data && data.flash ? { flash: data.flash, flashType: "error", ok: false } : { flash: "Error", flashType: "error", ok: false });
         return data;
@@ -257,7 +270,13 @@ function mikhmon_ajaxSubmitForm(form) {
       if (data && data.redirect) {
         mikhmon_showFlash(data);
         history.pushState({ url: data.redirect }, "", data.redirect);
-        return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true });
+        return mikhmon_ajaxNavigate(data.redirect, { fromPopState: true }).then(function (navData) {
+          if (data.logoCsrf) {
+            var refreshedForm = document.querySelector('form[data-mm-uplogo="1"]');
+            mikhmon_updateLogoCsrf(refreshedForm, data.logoCsrf);
+          }
+          return navData;
+        });
       }
       if (data && data.html) {
         mikhmon_applyHtml(data.html);
@@ -269,6 +288,15 @@ function mikhmon_ajaxSubmitForm(form) {
     .catch(function () {
       if (isVoucherEditor && typeof mikhmon_syncVoucherEditor === "function") {
         mikhmon_syncVoucherEditor();
+      }
+      if (isUploadLogo) {
+        var uploadErr = "Upload failed. Reload the page and try again.";
+        if (typeof mikhmon_toast === "function") {
+          mikhmon_toast(uploadErr, { type: "error", duration: 4500, spinner: false });
+        } else {
+          try { notify(uploadErr); } catch (e) {}
+        }
+        return;
       }
       notify("Network error, reloading...");
       form.submit();
