@@ -135,6 +135,8 @@ if (!isset($_SESSION["mikhmon"])) {
   $serveractive = $_GET['server'];
   $report = $_GET['report'];
   $removereport = $_GET['remove-report'];
+  $removelogo = $_GET['remove-logo'];
+  $logo = $_GET['logo'];
   $minterface = $_GET['interface'];
 
 
@@ -380,6 +382,16 @@ elseif ($removeexpiredhotspotuser != "") {
 // upload logo
   elseif ($hotspot == "uplogo") {
     include_once('./settings/uplogo.php');
+  }
+
+// remove logo
+  elseif ($removelogo != "" && $logo != "") {
+    $logopath = "./img/";
+    $safeLogo = basename($logo);
+    if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png") {
+      @unlink($logopath . $safeLogo);
+    }
+    echo "<script>window.location='./?hotspot=uplogo&session=" . $session . "'</script>";
   }
 
 // hotspot Cookies

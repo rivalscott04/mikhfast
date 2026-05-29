@@ -240,8 +240,10 @@ if ($id == "login" || substr($url, -1) == "p") {
 } elseif ($id == "remove-logo" && $logo != ""  && !empty($session)) {
   include_once('./include/menu.php');
   $logopath = "./img/";
-  $remlogo = $logopath . $logo;
-  unlink("$remlogo");
+  $safeLogo = basename($logo);
+  if (substr($safeLogo, 0, 5) == "logo-" && substr($safeLogo, -4) == ".png") {
+    @unlink($logopath . $safeLogo);
+  }
   echo "<script>window.location='./admin.php?id=uplogo&session=" . $session . "'</script>";
 } elseif ($id == "editor"  && !empty($session)) {
   include_once('./include/menu.php');

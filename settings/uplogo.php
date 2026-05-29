@@ -21,24 +21,31 @@ error_reporting(0);
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
+  $galat = "";
+  $logo_dir = "./img/";
+  $expected_logo = "logo-" . $session . ".png";
+  $uplogo_remove_url = (isset($id) && $id == "uplogo")
+    ? "./admin.php?id=remove-logo&logo="
+    : "./?remove-logo=1&logo=";
 
   if (isset($_POST["submit"])) {
-    $logo_dir = "./img/";
     $logo_file = $logo_dir . basename($_FILES["UploadLogo"]["name"]);
     $uploadOk = 1;
     $imageFileType = strtolower(pathinfo($logo_file, PATHINFO_EXTENSION));
 
-// Check if image file is a actual image or fake image
-
-    $check = getimagesize($_FILES["UploadLogo"]["tmp_name"]);
-    if ($check !== false) {
+    if (!is_dir($logo_dir) || !is_writable($logo_dir)) {
       if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> File name is : ' . basename($_FILES["UploadLogo"]["name"]) . '. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br> Folder img/ tidak bisa ditulis. Set permission folder img/ ke 775 dan pastikan owner-nya user web server (www-data/apache/nginx).</div>';
       } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> File name is : ' . basename($_FILES["UploadLogo"]["name"]) . '. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br> img/ folder is not writable. Set img/ permission to 775 and ensure the web server user owns it.</div>';
       }
+      $uploadOk = 0;
+    }
+
+// Check if image file is a actual image or fake image
+    if ($uploadOk && $check = getimagesize($_FILES["UploadLogo"]["tmp_name"])) {
       $uploadOk = 1;
-    } else {
+    } elseif ($uploadOk) {
       if ($currency == in_array($currency, $cekindo['indo'])) {
         $galat = '<div class="box bg-danger"></i> Alert!<br>  File bukan gambar. </div>';
       } else {
@@ -47,35 +54,34 @@ if (!isset($_SESSION["mikhmon"])) {
       $uploadOk = 0;
     }
 
-
 // Check file size
-    if ($_FILES["UploadLogo"]["size"] > 2000000) {
+    if ($uploadOk && $_FILES["UploadLogo"]["size"] > 2000000) {
       if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Ukuran file terlalu besar. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br>  Ukuran file terlalu besar (max 2MB). </div>';
       } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br> File is too large. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br> File is too large (max 2MB). </div>';
       }
       $uploadOk = 0;
     }
 // Allow certain file formats
-    if (basename($_FILES["UploadLogo"]["name"] != "logo-" . $session . ".png")) {
+    if ($uploadOk && basename($_FILES["UploadLogo"]["name"]) != $expected_logo) {
       if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Hanya bisa upload logo-' . $session . '.png. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br>  Hanya bisa upload ' . $expected_logo . '. </div>';
       } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  Only logo-' . $session . '.png are allowed. </div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br>  Only ' . $expected_logo . ' is allowed. </div>';
       }
       $uploadOk = 0;
     }
 // Check if $uploadOk is set to 0 by an error
-    if ($uploadOk == 0) {
+    if ($uploadOk == 0 && $galat == "") {
       if ($currency == in_array($currency, $cekindo['indo'])) {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File tidak diupload. Nama file harus logo-'.$session.'.png</div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br>  File tidak diupload. Nama file harus ' . $expected_logo . '</div>';
       } else {
-        $galat = '<div class="box bg-danger"></i> Alert!<br>  File was not uploaded. File name must be  logo-'.$session.'.png</div>';
+        $galat = '<div class="box bg-danger"></i> Alert!<br>  File was not uploaded. File name must be ' . $expected_logo . '</div>';
       }
     
 // if everything is ok, try to upload file
-    } else {
+    } elseif ($uploadOk) {
       if (move_uploaded_file($_FILES["UploadLogo"]["tmp_name"], $logo_file)) {
         if ($currency == in_array($currency, $cekindo['indo'])) {
           $galat = '<div class="box bg-success"></i> Alert!<br>  Success!</h5> File ' . basename($_FILES["UploadLogo"]["name"]) . ' telah diupload. </div>';
@@ -85,9 +91,9 @@ if (!isset($_SESSION["mikhmon"])) {
 
       } else {
         if ($currency == in_array($currency, $cekindo['indo'])) {
-          $galat = '<div class="box bg-danger"></i> Alert!<br>  Terjadi masalah ketika upload file. Nama file harus logo-'.$session.'.png </div>';
+          $galat = '<div class="box bg-danger"></i> Alert!<br>  Gagal upload file. Periksa permission folder img/ (chmod 775) dan owner web server.</div>';
         } else {
-          $galat = '<div class="box bg-danger"></i> Alert!<br>  There was an error uploading your file. File name must be  logo-'.$session.'.png </div>';
+          $galat = '<div class="box bg-danger"></i> Alert!<br>  Upload failed. Check img/ folder permission (chmod 775) and web server ownership.</div>';
         }
 
       }
@@ -128,7 +134,7 @@ if (!isset($_SESSION["mikhmon"])) {
       </thead>
       <tbody>
         <?php
-        $dir = "./img";
+        $dir = $logo_dir;
       // Open a directory, and read its contents
         if (is_dir($dir)) {
           if ($dh = opendir($dir)) {
@@ -143,7 +149,7 @@ if (!isset($_SESSION["mikhmon"])) {
               
               <tr>
                 <td><a href="javascript:window.open('./img/<?= $file; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $file; ?>" title="Open <?= $file; ?>"></a><br><span><?= $file; ?></span></td>
-                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= $file; ?> ?')){window.location='./admin.php?id=remove-logo&logo=<?= $file; ?>&session=<?= $session ?>'}else{}"><i class="fa fa-trash"></i> <?= $_delete ?></a>
+                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= $file; ?> ?')){window.location='<?= $uplogo_remove_url . $file; ?>&session=<?= $session ?>'}else{}"><i class="fa fa-trash"></i> <?= $_delete ?></a>
                 </td>
               </tr>
               
