@@ -209,8 +209,9 @@ if ($id == "login" || substr($url, -1) == "p") {
   include_once('./process/shutdown.php');
 } elseif ($id == "remove-session" && $session != "") {
   include_once('./include/menu.php');
-  $configPath = './include/config.php';
-  $fc = @file($configPath);
+  require_once __DIR__ . '/include/config-write.php';
+  $configPath = mikhmon_config_path();
+  $fc = mikhmon_config_read($configPath);
   $redirect = "./admin.php?id=sessions";
   $flash = "Deleted";
   $flashType = "ok";
@@ -226,16 +227,17 @@ if ($id == "login" || substr($url, -1) == "p") {
     $q = "'";
     $rem = '$data['.$q.$session.$q.']';
     $updated = '';
-    foreach ($fc as $line) {
+    foreach (explode("\n", str_replace("\r\n", "\n", $fc)) as $line) {
+      $line = $line . "\n";
       if (strpos($line, $rem) === false) {
         $updated .= $line;
       }
     }
-    if ($updated === '' || strpos($updated, "\$data['mikhmon']") === false) {
+    if (!mikhmon_config_is_valid($updated)) {
       $flash = "Config was not modified (safety guard).";
       $flashType = "error";
     } else {
-      $writeOk = @file_put_contents($configPath, $updated, LOCK_EX);
+      $writeOk = mikhmon_config_write(rtrim($updated) . "\n", $configPath);
       if ($writeOk === false) {
         $flash = "Failed to update include/config.php. Check file permissions.";
         $flashType = "error";

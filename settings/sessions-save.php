@@ -19,8 +19,15 @@ $suseradm = isset($_POST['useradm']) ? $_POST['useradm'] : '';
 $spassadm = encrypt(isset($_POST['passadm']) ? $_POST['passadm'] : '');
 $sqrbt = isset($_POST['qrbt']) ? $_POST['qrbt'] : 'disable';
 
-$configPath = dirname(__DIR__) . '/include/config.php';
-$content = file_get_contents($configPath);
+require_once dirname(__DIR__) . '/include/config-write.php';
+$configPath = mikhmon_config_path();
+$content = mikhmon_config_read($configPath);
+
+if ($content === false) {
+  $_SESSION['mikhmon_flash'] = 'Cannot read include/config.php. Data was NOT modified.';
+  header('Location: ./admin.php?id=sessions');
+  exit;
+}
 
 $replacements = array(
   "mikhmon<|<$useradm" => "mikhmon<|<$suseradm",
@@ -39,7 +46,12 @@ if (strpos($content, 'qrbt<|<') === false) {
     $content
   );
 }
-file_put_contents($configPath, $content);
+
+if (!mikhmon_config_write($content, $configPath)) {
+  $_SESSION['mikhmon_flash'] = 'Failed to save config.php. Check file permissions.';
+  header('Location: ./admin.php?id=sessions');
+  exit;
+}
 
 $quickbtPath = dirname(__DIR__) . '/include/quickbt.php';
 @file_put_contents($quickbtPath, '<?php $qrbt="' . $sqrbt . '";?>');

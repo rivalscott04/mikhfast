@@ -1,3 +1,8 @@
 mikhmon_ai_guidelines.zip
 mikhmonv3-master.zip
 mikhmon_ai_guidelines/
+
+# Live data — jangan di-commit / jangan di-overwrite git pull
+include/config.php
+include/config.php.bak
+include/quickbt.php

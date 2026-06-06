@@ -38,3 +38,250 @@ Repo ini adalah fork/pengembangan dari project upstream (MIKHMON/MIKFAST v3) den
 - **Redesign & improvements**: Rival
 
 ---
+
+## Deploy & Permission File (WAJIB BACA)
+
+> **Penting:** Permission salah = save gagal. File/folder tidak ke-upload = HTTP 500 / gambar not found.  
+> Permission **tidak pernah menghapus file**. Kalau folder kosong, masalahnya di deploy/upload.
+
+### Checklist deploy — folder yang harus ada
+
+```
+mikhfast/
+├── include/          ← WAJIB (18 file PHP). Kosong = situs 500
+├── img/              ← WAJIB (mikfast.svg, favicon.png). Kosong = logo broken
+├── voucher/          ← WAJIB untuk generate & print voucher
+├── admin.php
+├── index.php
+└── ... (folder css, js, lib, hotspot, dll)
+```
+
+Clone/pull dari repo:
+
+```bash
+cd /var/www
+git clone https://github.com/rivalscott04/mikhfast.git mikhfast
+# atau kalau sudah ada:
+cd /var/www/mikhfast && git pull origin master
+```
+
+---
+
+### Permission per fitur
+
+| Fitur | File/folder yang perlu **writable** | Catatan |
+|-------|--------------------------------------|---------|
+| **Login / Admin Settings → Save** | `include/config.php`, `include/quickbt.php` | Simpan username, password admin, QR setting |
+| **Add Router** | `include/config.php` | Append baris session MikroTik baru |
+| **Edit Router Settings** | `include/config.php` | Update IP, user, password router |
+| **Hapus Router (Delete session)** | `include/config.php` | Hapus baris session dari config |
+| **Add User** | — *(tidak tulis file lokal)* | Langsung ke MikroTik API |
+| **Generate User / Voucher** | `voucher/temp.php`, folder `voucher/` | Simpan metadata untuk print voucher |
+| **Print / Quick Print voucher** | `voucher/temp.php` *(read)* | Baca data generate terakhir |
+| **Voucher Editor → Save template** | `voucher/template.php`, `voucher/template-thermal.php`, `voucher/template-small.php` | Edit layout voucher |
+| **Upload Logo session** | folder `img/`, `img/logo-{session}.png` | Butuh PHP GD untuk JPG/WEBP |
+| **Ganti bahasa** | `include/lang.php` | Ditimpa saat pilih language |
+| **Ganti tema dark/light** | `include/theme.php` | Ditimpa saat toggle theme |
+
+---
+
+### Tabel permission lengkap
+
+| Path | chmod | Owner | Writable? | Keterangan |
+|------|-------|-------|-----------|------------|
+| `include/` | `755` | www-data | folder | PHP harus bisa baca & masuk folder |
+| **`include/config.php`** | **`664`** | www-data | **Ya** | **Paling penting** — semua setting router & admin |
+| **`include/quickbt.php`** | **`664`** | www-data | **Ya** | Setting Quick Print QR |
+| `include/lang.php` | `664` | www-data | Ya | Ganti bahasa |
+| `include/theme.php` | `664` | www-data | Ya | Ganti tema |
+| `include/*.php` (sisanya) | `644` | www-data | Tidak | ajax.php, menu.php, readcfg.php, dll — cukup read |
+| **`img/`** | **`775`** | www-data | **Ya** | Upload logo |
+| `img/mikfast.svg` | `644` | www-data | Tidak | **Harus ada** — logo navbar/sidebar |
+| `img/favicon.png` | `644` | www-data | Tidak | **Harus ada** — favicon browser |
+| `img/logo-{session}.png` | `664` | www-data | Ya | Dibuat otomatis saat upload logo |
+| **`voucher/`** | **`775`** | www-data | **Ya** | Generate user & template |
+| **`voucher/temp.php`** | **`664`** | www-data | **Ya** | Metadata generate voucher |
+| `voucher/template.php` | `664` | www-data | Ya | Template voucher default |
+| `voucher/template-thermal.php` | `664` | www-data | Ya | Template thermal |
+| `voucher/template-small.php` | `664` | www-data | Ya | Template small |
+
+---
+
+### Setup permission (script otomatis)
+
+Jalankan di server (dari root folder app):
+
+```bash
+cd /var/www/mikhfast
+sudo bash scripts/setup-permissions.sh
+```
+
+Path custom:
+
+```bash
+sudo MIKFAST_WEB_USER=www-data bash scripts/setup-permissions.sh /var/www/mikhfast
+```
+
+Script akan:
+- deteksi user PHP-FPM (`www-data` / `nginx` / `apache`)
+- buat `include/config.php` default kalau hilang/kosong
+- buat `include/quickbt.php` dan `voucher/temp.php` kalau belum ada
+- set owner + chmod semua file yang perlu writable
+- verifikasi akhir (config, voucher, img)
+
+Manual (kalau tidak pakai script):
+
+```bash
+APP=/var/www/mikhfast
+WEB=www-data
+
+cd "$APP"
+
+# 1. Pastikan file dari repo ada (bukan folder kosong)
+test -f include/config.php || echo "ERROR: include/ kosong — git pull dulu!"
+test -f img/mikfast.svg    || echo "ERROR: img/ kosong — git pull dulu!"
+
+# 2. Owner
+chown -R $WEB:$WEB include/ img/ voucher/
+
+# 3. Folder
+chmod 755 include/
+chmod 775 img/ voucher/
+
+# 4. include — writable
+chmod 664 include/config.php include/lang.php include/theme.php
+touch include/quickbt.php
+chmod 664 include/quickbt.php
+
+# 5. include — read-only
+find include/ -maxdepth 1 -name '*.php' \
+  ! -name 'config.php' ! -name 'quickbt.php' \
+  ! -name 'lang.php' ! -name 'theme.php' \
+  -exec chmod 644 {} \;
+
+# 6. voucher — generate user & template editor
+touch voucher/temp.php
+chmod 664 voucher/temp.php
+find voucher/ -maxdepth 1 -name 'template*.php' -exec chmod 664 {} \; 2>/dev/null
+
+# 7. img — asset statis
+chmod 644 img/mikfast.svg img/favicon.png 2>/dev/null
+
+# 8. Verifikasi
+echo "=== Cek permission ==="
+sudo -u $WEB test -r include/config.php && echo "[OK] config readable" || echo "[GAGAL] config readable"
+sudo -u $WEB test -w include/config.php && echo "[OK] config writable" || echo "[GAGAL] config writable"
+sudo -u $WEB test -w voucher/temp.php   && echo "[OK] voucher/temp writable" || echo "[GAGAL] voucher/temp writable"
+sudo -u $WEB test -w img/               && echo "[OK] img/ writable" || echo "[GAGAL] img/ writable"
+sudo -u $WEB test -r img/mikfast.svg    && echo "[OK] mikfast.svg ada" || echo "[GAGAL] mikfast.svg tidak ada"
+```
+
+---
+
+### `include/config.php` default (kalau hilang/kosong)
+
+```php
+<?php 
+if(substr($_SERVER["REQUEST_URI"], -10) == "config.php"){header("Location:./");}; 
+$data['mikhmon'] = array ('1'=>'mikhmon<|<mikhmon','mikhmon>|>aWNlbA==','qrbt<|<disable');
+```
+
+Login default: **`mikhmon`** / **`1234`**  
+Setelah login → **Admin Settings → Add Router** → isi ulang session MikroTik.
+
+---
+
+### Gambar / logo not found (broken image)
+
+**Penyebab:** file `img/mikfast.svg` **tidak ada di server** (404), bukan masalah permission.
+
+Cek:
+```bash
+curl -I https://domain-kamu/img/mikfast.svg
+# Harus HTTP 200, bukan 404
+```
+
+Fix:
+```bash
+cd /var/www/mikhfast
+git checkout origin/master -- img/
+ls -la img/mikfast.svg img/favicon.png
+chmod 644 img/mikfast.svg img/favicon.png
+```
+
+Logo per session (`img/logo-plampang.png` dll) opsional. Kalau belum upload, UI pakai fallback `mikfast.svg`.
+
+---
+
+### Data hilang setelah restart VPS?
+
+**Restart VPS tidak menjalankan kode hapus data.** Kalau setelah reboot router/config/include hilang, penyebabnya di **infrastruktur deploy**, bukan fitur app.
+
+| Penyebab | Penjelasan |
+|----------|------------|
+| **`git pull` / `git reset --hard` saat boot** | `include/config.php` berisi semua data router. Kalau masih di-track git, pull/reset **timpa** config ke versi repo (cuma admin default) |
+| **Docker tanpa volume bind ke host** | File cuma di dalam container. Container recreate = folder kosong |
+| **Deploy ke tmpfs / RAM disk** | `/var/www` di tmpfs → hilang saat reboot |
+| **Upload/rsync folder kosong** | FTP upload folder `include/` kosong menimpa yang ada |
+| **Script auto-deploy saat boot** | systemd/cron yang `git reset` atau `rsync --delete` |
+
+Diagnose di server:
+
+```bash
+sudo bash scripts/check-persistence.sh /var/www/mikhfast
+```
+
+**PENTING — jangan commit data live:**
+
+`include/config.php` sekarang di-`.gitignore`. Template ada di `include/config.php.example`.
+
+Setelah pull update terbaru, jalankan sekali:
+
+```bash
+git rm --cached include/config.php include/quickbt.php 2>/dev/null || true
+```
+
+Backup rutin data router:
+
+```bash
+cp include/config.php include/config.php.bak
+# atau tar:
+tar czf mikhfast-backup-$(date +%F).tar.gz include/config.php img/logo-*.png voucher/temp.php
+```
+
+#### Bug tulis config di app (sudah diperbaiki)
+
+| Bug | Dampak | Status |
+|-----|--------|--------|
+| Delete session: `fopen(w)` truncate dulu | `config.php` bisa kosong | ✅ Fixed |
+| Save admin: tulis tanpa validasi | Config corrupt/kosong kalau read gagal | ✅ Fixed |
+| Save router: `preg_replace` tanpa guard | Config bisa invalid | ✅ Fixed |
+| `config.php` di-track git | `git pull` timpa data router | ✅ Fixed (.gitignore) |
+
+Semua write ke `config.php` sekarang lewat `include/config-write.php`:
+- validasi isi sebelum tulis
+- auto backup ke `config.php.bak`
+- tolak write kalau config invalid/kosong
+
+---
+
+### Troubleshooting
+
+| Gejala | Penyebab | Solusi |
+|--------|----------|--------|
+| HTTP 500 | `include/` kosong atau `config.php` rusak | `git pull` / restore `include/` |
+| Save admin/router gagal | `config.php` not writable | `chmod 664` + `chown www-data` |
+| Router list kosong | Belum add router atau config kosong | Add Router + cek isi `config.php` |
+| Generate user gagal / print error | `voucher/temp.php` not writable | `chmod 664 voucher/temp.php` |
+| Logo upload gagal | `img/` not writable | `chmod 775 img/` |
+| Ikon MIKFAST broken | `img/mikfast.svg` tidak ke-deploy | Upload folder `img/` dari repo |
+| Upload JPG/WEBP gagal | PHP GD tidak aktif | `apt install php-gd` + restart php-fpm |
+
+### PHP extension (upload logo JPG/WEBP)
+
+```bash
+sudo apt install php-gd
+sudo systemctl restart php8.3-fpm   # sesuaikan versi PHP
+```
+
+---

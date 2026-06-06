@@ -40,17 +40,17 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
   if ($id == "settings" && explode("-",$router)[0] == "new") {
-    $data = '$data';
-    $configPath = './include/config.php';
+    require_once __DIR__ . '/../include/config-write.php';
+    $configPath = mikhmon_config_path();
+    $configContent = mikhmon_config_read($configPath);
+    if ($configContent === false) {
+      $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";
+    } else {
     $line = "\n" . '$data' . "['" . $router . "'] = array ('1'=>'" . $router . "!','" . $router . "@|@','" . $router . "#|#','" . $router . "%','" . $router . "^','" . $router . "&Rp','" . $router . "*10','" . $router . "(1','" . $router . ")','" . $router . "=10','" . $router . "@!@disable');";
-
-    $f = @fopen($configPath, 'a');
-    if ($f === false) {
-      // Avoid fatal errors on PHP 8+ (fwrite expects resource).
+    $updated = rtrim($configContent) . $line . "\n";
+    if (!mikhmon_config_write($updated, $configPath)) {
       $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
     } else {
-      @fwrite($f, $line);
-      @fclose($f);
       $redirect = "./admin.php?id=settings&session=" . $router;
       if (mikhmon_is_ajax()) {
         mikhmon_json(array(
@@ -60,6 +60,7 @@ if (!isset($_SESSION["mikhmon"])) {
         ));
       }
       echo "<script>window.location='" . $redirect . "'</script>";
+    }
     }
   }
 
@@ -86,8 +87,13 @@ if (!isset($_SESSION["mikhmon"])) {
     $sesname = (preg_replace('/\s+/', '-', $_POST['sessname']));
     $slivereport = ($_POST['livereport']);
 
-    $configPath = "./include/config.php";
-    $configContent = file_get_contents($configPath);
+    require_once __DIR__ . '/../include/config-write.php';
+    $configPath = mikhmon_config_path();
+    $configContent = mikhmon_config_read($configPath);
+    $writeOk = false;
+    if ($configContent === false) {
+      $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";
+    } else {
 
     // Rebuild the session line and replace only that line (avoid corrupting other sessions).
     $newLine = "\n" . '$data' . "['" . $sesname . "'] = array ('1'=>'" . $sesname . "!" . $siphost . "','" . $sesname . "@|@" . $suserhost . "','" . $sesname . "#|#" . $spasswdhost . "','" . $sesname . "%" . $shotspotname . "','" . $sesname . "^" . $sdnsname . "','" . $sesname . "&" . $scurrency . "','" . $sesname . "*" . $sreload . "','" . $sesname . "(" . $siface . "','" . $sesname . ")" . $sinfolp . "','" . $sesname . "=" . $sidleto . "','" . $sesname . "@!@" . $slivereport . "');";
@@ -106,9 +112,10 @@ if (!isset($_SESSION["mikhmon"])) {
       $updated = rtrim($configContent) . "\n" . trim($newLine) . "\n";
     }
 
-    $writeOk = @file_put_contents($configPath, $updated);
+    $writeOk = mikhmon_config_write($updated, $configPath);
     if ($writeOk === false) {
       $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
+    }
     }
     $_SESSION["connect"] = "";
     $redirect = "./admin.php?id=settings&session=" . $sesname;
