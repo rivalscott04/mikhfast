@@ -41,8 +41,42 @@ Repo ini adalah fork/pengembangan dari project upstream (MIKHMON/MIKFAST v3) den
 
 ## Deploy & Permission File (WAJIB BACA)
 
-> **Penting:** Permission salah = save gagal. File/folder tidak ke-upload = HTTP 500 / gambar not found.  
-> Permission **tidak pernah menghapus file**. Kalau folder kosong, masalahnya di deploy/upload.
+### Install otomatis (recommended)
+
+Satu perintah — clone, protect config, permission, siap pakai UI:
+
+```bash
+# Fresh install ke /var/www/mikhfast
+curl -fsSL https://raw.githubusercontent.com/rivalscott04/mikhfast/master/scripts/install-mikhfast.sh | sudo bash
+
+# Custom path
+curl -fsSL https://raw.githubusercontent.com/rivalscott04/mikhfast/master/scripts/install-mikhfast.sh | sudo bash -s -- --dir /var/www/mikhfast
+```
+
+Atau kalau sudah clone manual:
+
+```bash
+cd /var/www/mikhfast
+sudo bash scripts/install-mikhfast.sh
+```
+
+Update install (pull + permission, **config router tidak ditimpa**):
+
+```bash
+cd /var/www/mikhfast
+sudo bash scripts/install-mikhfast.sh --update
+```
+
+Installer akan:
+1. `git clone` / `git pull` repo
+2. Backup & restore `include/config.php` saat update
+3. `git rm --cached` untuk `config.php` & `quickbt.php` (data live aman dari git pull)
+4. Buat `config.php` dari `config.php.example` kalau belum ada
+5. Jalankan `setup-permissions.sh` + `check-persistence.sh`
+
+Setelah selesai, user cukup buka **Admin UI** → login `mikhmon`/`1234` → **Add Router**.
+
+---
 
 ### Checklist deploy — folder yang harus ada
 
