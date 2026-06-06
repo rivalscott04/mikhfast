@@ -209,24 +209,52 @@ if ($id == "login" || substr($url, -1) == "p") {
   include_once('./process/shutdown.php');
 } elseif ($id == "remove-session" && $session != "") {
   include_once('./include/menu.php');
-  $fc = file("./include/config.php" );
-  $f = fopen("./include/config.php", "w");
-  $q = "'";
-  $rem = '$data['.$q.$session.$q.']';
-  foreach ($fc as $line) {
-    if (!strstr($line, $rem))
-      fputs($f, $line);
-  }
-  fclose($f);
+  $configPath = './include/config.php';
+  $fc = @file($configPath);
   $redirect = "./admin.php?id=sessions";
+  $flash = "Deleted";
+  $flashType = "ok";
+  $ok = false;
+
+  if ($session === 'mikhmon') {
+    $flash = "Cannot remove admin config.";
+    $flashType = "error";
+  } elseif ($fc === false) {
+    $flash = "Cannot read include/config.php.";
+    $flashType = "error";
+  } else {
+    $q = "'";
+    $rem = '$data['.$q.$session.$q.']';
+    $updated = '';
+    foreach ($fc as $line) {
+      if (strpos($line, $rem) === false) {
+        $updated .= $line;
+      }
+    }
+    if ($updated === '' || strpos($updated, "\$data['mikhmon']") === false) {
+      $flash = "Config was not modified (safety guard).";
+      $flashType = "error";
+    } else {
+      $writeOk = @file_put_contents($configPath, $updated, LOCK_EX);
+      if ($writeOk === false) {
+        $flash = "Failed to update include/config.php. Check file permissions.";
+        $flashType = "error";
+      } else {
+        $ok = true;
+      }
+    }
+  }
+
+  if (function_exists('mikhmon_toast_flash')) {
+    mikhmon_toast_flash($flash, $flashType);
+  }
   if ($__mikhmon_ajax) {
-    // When rendered via SPA/AJAX, inline <script> redirect won't execute.
-    // Return a JSON redirect so the UI updates immediately.
     mikhmon_json(array(
-      "ok" => true,
-      "flash" => "Deleted",
+      "ok" => $ok,
+      "flash" => $flash,
+      "flashType" => $flashType,
       "redirect" => $redirect,
-    ));
+    ), $ok ? 200 : 500);
   }
   echo "<script>window.location='" . $redirect . "'</script>";
 } elseif ($id == "about") {
