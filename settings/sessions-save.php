@@ -21,7 +21,7 @@ $sqrbt = isset($_POST['qrbt']) ? $_POST['qrbt'] : 'disable';
 
 require_once dirname(__DIR__) . '/include/config-write.php';
 $configPath = mikhmon_config_path();
-$content = mikhmon_config_read($configPath);
+$content = mikhmon_config_ensure($configPath);
 
 if ($content === false) {
   $_SESSION['mikhmon_flash'] = 'Cannot read include/config.php. Data was NOT modified.';

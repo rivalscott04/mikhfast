@@ -80,6 +80,10 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
 // load config
+  require_once __DIR__ . '/include/config-write.php';
+  if (mikhmon_config_read() === false) {
+    mikhmon_config_ensure();
+  }
   include('./include/config.php');
   include('./include/readcfg.php');
 

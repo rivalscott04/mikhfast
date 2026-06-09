@@ -14,6 +14,61 @@ function mikhmon_config_is_valid($content) {
     && strpos($content, "\$data['mikhmon']") !== false;
 }
 
+function mikhmon_config_create_default($path = null) {
+  if ($path === null) {
+    $path = mikhmon_config_path();
+  }
+  $example = dirname($path) . '/config.php.example';
+  if (is_file($example) && is_readable($example)) {
+    $content = @file_get_contents($example);
+    if ($content !== false && mikhmon_config_is_valid($content)) {
+      if (mikhmon_config_write($content, $path)) {
+        return $content;
+      }
+    }
+  }
+  $content = "<?php \n"
+    . "if(substr(\$_SERVER[\"REQUEST_URI\"], -10) == \"config.php\"){header(\"Location:./\");}; \n"
+    . "\$data['mikhmon'] = array ('1'=>'mikhmon<|<mikhmon','mikhmon>|>aWNlbA==','qrbt<|<disable');\n";
+  if (mikhmon_config_write($content, $path)) {
+    return $content;
+  }
+  return false;
+}
+
+function mikhmon_config_restore_from_backup($path = null) {
+  if ($path === null) {
+    $path = mikhmon_config_path();
+  }
+  $bak = $path . '.bak';
+  if (!is_file($bak) || !is_readable($bak)) {
+    return false;
+  }
+  $content = @file_get_contents($bak);
+  if ($content === false || !mikhmon_config_is_valid($content)) {
+    return false;
+  }
+  if (@copy($bak, $path)) {
+    return $content;
+  }
+  return false;
+}
+
+/**
+ * Read config; if missing/invalid try .bak then create default.
+ */
+function mikhmon_config_ensure($path = null) {
+  $content = mikhmon_config_read($path);
+  if ($content !== false) {
+    return $content;
+  }
+  $content = mikhmon_config_restore_from_backup($path);
+  if ($content !== false) {
+    return $content;
+  }
+  return mikhmon_config_create_default($path);
+}
+
 function mikhmon_config_read($path = null) {
   if ($path === null) {
     $path = mikhmon_config_path();

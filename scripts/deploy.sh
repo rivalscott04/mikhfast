@@ -35,8 +35,7 @@ ensure_bun() {
     ok "bun $(bun --version)"
     return 0
   fi
-  fail "bun belum terinstall. Install: curl -fsSL https://bun.sh/install | bash"
-  exit 1
+  return 1
 }
 
 echo ""
@@ -47,13 +46,16 @@ echo ""
 info "1/4 Git pull (config live aman) ..."
 bash "$APP/scripts/safe-pull.sh" "$APP"
 
-info "2/4 Build frontend ..."
-cd "$APP"
-ensure_bun
-bun run build
-
-info "3/4 Permission ..."
+info "2/4 Permission (config harus readable www-data) ..."
 bash "$APP/scripts/setup-permissions.sh" "$APP"
+
+info "3/4 Build frontend ..."
+cd "$APP"
+if ensure_bun 2>/dev/null; then
+  bun run build || warn "bun build gagal — app tetap jalan (modul JS per-file)"
+else
+  warn "bun tidak ada — skip build"
+fi
 
 info "4/4 Cek persistence ..."
 bash "$APP/scripts/check-persistence.sh" "$APP" || true

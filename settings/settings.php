@@ -42,7 +42,7 @@ if (!isset($_SESSION["mikhmon"])) {
   if ($id == "settings" && explode("-",$router)[0] == "new") {
     require_once __DIR__ . '/../include/config-write.php';
     $configPath = mikhmon_config_path();
-    $configContent = mikhmon_config_read($configPath);
+    $configContent = mikhmon_config_ensure($configPath);
     if ($configContent === false) {
       $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";
     } else {
@@ -89,7 +89,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
     require_once __DIR__ . '/../include/config-write.php';
     $configPath = mikhmon_config_path();
-    $configContent = mikhmon_config_read($configPath);
+    $configContent = mikhmon_config_ensure($configPath);
     $writeOk = false;
     if ($configContent === false) {
       $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";

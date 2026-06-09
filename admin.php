@@ -63,10 +63,15 @@ if ($_SESSION['theme'] == "") {
 }
 
 
-// load config
-include_once('./include/headhtml.php');
+// load config (before HTML — headhtml needs $areload, $hotspotname)
+require_once __DIR__ . '/include/config-write.php';
+if (mikhmon_config_read() === false) {
+  mikhmon_config_ensure();
+}
 include('./include/config.php');
 include('./include/readcfg.php');
+
+include_once('./include/headhtml.php');
 
 include_once('./lib/routeros_api.class.php');
 include_once('./lib/formatbytesbites.php');
@@ -211,7 +216,7 @@ if ($id == "login" || substr($url, -1) == "p") {
   include_once('./include/menu.php');
   require_once __DIR__ . '/include/config-write.php';
   $configPath = mikhmon_config_path();
-  $fc = mikhmon_config_read($configPath);
+  $fc = mikhmon_config_ensure($configPath);
   $redirect = "./admin.php?id=sessions";
   $flash = "Deleted";
   $flashType = "ok";

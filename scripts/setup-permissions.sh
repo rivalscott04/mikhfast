@@ -64,18 +64,25 @@ ensure_dir() {
 ensure_config_php() {
   local cfg="$APP/include/config.php"
   local example="$APP/include/config.php.example"
-  if [[ ! -f "$cfg" ]] || [[ ! -s "$cfg" ]]; then
-    if [[ -f "$example" ]]; then
-      cp "$example" "$cfg"
-    else
-      cat > "$cfg" <<'EOF'
+  local bak="$cfg.bak"
+  if [[ -f "$cfg" ]] && [[ -s "$cfg" ]] && grep -q "\$data\['mikhmon'\]" "$cfg" 2>/dev/null; then
+    return 0
+  fi
+  if [[ -f "$bak" ]] && grep -q "\$data\['mikhmon'\]" "$bak" 2>/dev/null; then
+    cp "$bak" "$cfg"
+    ok "config.php dipulihkan dari config.php.bak"
+    return 0
+  fi
+  if [[ -f "$example" ]]; then
+    cp "$example" "$cfg"
+  else
+    cat > "$cfg" <<'EOF'
 <?php 
 if(substr($_SERVER["REQUEST_URI"], -10) == "config.php"){header("Location:./");}; 
 $data['mikhmon'] = array ('1'=>'mikhmon<|<mikhmon','mikhmon>|>aWNlbA==','qrbt<|<disable');
 EOF
-    fi
-    warn "include/config.php dibuat ulang (default). Tambah router lewat Admin Settings."
   fi
+  warn "include/config.php dibuat ulang (default). Tambah router lewat Admin Settings."
 }
 
 ensure_file() {

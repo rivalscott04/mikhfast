@@ -57,6 +57,18 @@ if [[ -n "$backup" && -f "$backup" ]]; then
   ok "config.php live dipulihkan"
 fi
 
+# Validasi isi config — restore .bak atau example kalau rusak/kosong
+if [[ -f "$cfg" ]] && ! grep -q "\$data\['mikhmon'\]" "$cfg" 2>/dev/null; then
+  warn "config.php tidak valid — coba restore ..."
+  if [[ -f "$cfg.bak" ]] && grep -q "\$data\['mikhmon'\]" "$cfg.bak" 2>/dev/null; then
+    cp "$cfg.bak" "$cfg"
+    ok "config.php dipulihkan dari config.php.bak"
+  elif [[ -f "$APP/include/config.php.example" ]]; then
+    cp "$APP/include/config.php.example" "$cfg"
+    warn "config.php di-reset dari example — tambah router lagi kalau perlu"
+  fi
+fi
+
 for f in "${LIVE_FILES[@]}"; do
   git -C "$APP" update-index --no-skip-worktree "$f" 2>/dev/null || true
   git -C "$APP" rm --cached -f "$f" >/dev/null 2>&1 || true
