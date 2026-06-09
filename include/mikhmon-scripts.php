@@ -32,7 +32,22 @@ $mikhmonJsModules = array(
 $base = rtrim($mikhmonJsPrefix, '/') . '/';
 $v = rawurlencode($mikhmonJsVersion);
 
-foreach ($mikhmonJsModules as $module) {
-  $src = $base . $module . '?t=' . $v;
+$bundleRel = 'mikhmon.bundle.prod.js';
+$bundleAbs = dirname(__DIR__) . '/js/' . $bundleRel;
+// Bundle opsional — default pakai modul per-file (lebih aman). Aktifkan: define('MIKHMON_JS_BUNDLE', true);
+$useBundle = defined('MIKHMON_JS_BUNDLE') && MIKHMON_JS_BUNDLE
+  && is_file($bundleAbs)
+  && is_readable($bundleAbs)
+  && filesize($bundleAbs) > 1000
+  && empty($_GET['debug_js']);
+
+if ($useBundle) {
+  $v = rawurlencode((string) filemtime($bundleAbs));
+  $src = $base . $bundleRel . '?t=' . $v;
   echo '<script src="' . htmlspecialchars($src, ENT_QUOTES) . '"></script>' . "\n";
+} else {
+  foreach ($mikhmonJsModules as $module) {
+    $src = $base . $module . '?t=' . $v;
+    echo '<script src="' . htmlspecialchars($src, ENT_QUOTES) . '"></script>' . "\n";
+  }
 }

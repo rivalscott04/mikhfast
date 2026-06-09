@@ -6,3 +6,7 @@ mikhmon_ai_guidelines/
 include/config.php
 include/config.php.bak
 include/quickbt.php
+
+# Build output (generated on server via bun run build)
+js/mikhmon.bundle.prod.js
+node_modules/

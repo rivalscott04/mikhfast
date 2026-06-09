@@ -22,16 +22,16 @@ error_reporting(0);
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>MIKFAST <?= $hotspotname; ?></title>
+		<title>MIKFAST <?= isset($hotspotname) ? $hotspotname : 'MIKFAST'; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="cache-control" content="private" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<!-- Tell the browser to be responsive to screen width -->
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<!-- Theme color -->
-		<meta name="theme-color" content="<?= $themecolor ?>" />
-		<meta name="mm-session" content="<?= htmlspecialchars($session, ENT_QUOTES) ?>" />
-		<meta name="mm-areload" content="<?= max(10, (int) $areload) * 1000 ?>" />
+		<meta name="theme-color" content="<?= isset($themecolor) ? $themecolor : '#008BC9' ?>" />
+		<meta name="mm-session" content="<?= htmlspecialchars(isset($session) ? $session : '', ENT_QUOTES) ?>" />
+		<meta name="mm-areload" content="<?= max(10, (int) (isset($areload) ? $areload : 10)) * 1000 ?>" />
 		<!-- Font Awesome -->
 		<link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css" />
 		<!-- Mikfast UI -->

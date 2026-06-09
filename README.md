@@ -95,9 +95,39 @@ Clone/pull dari repo:
 ```bash
 cd /var/www
 git clone https://github.com/rivalscott04/mikhfast.git mikhfast
-# atau kalau sudah ada:
-cd /var/www/mikhfast && git pull origin master
+# atau kalau sudah ada (config router TIDAK ikut git pull):
+cd /var/www/mikhfast && sudo bash scripts/deploy.sh
+# deploy = safe-pull + bun run build + permission
 ```
+
+### Auto deploy (push → server)
+
+Setiap **push ke `master`**, GitHub Actions SSH ke VPS dan jalankan `scripts/deploy.sh` (pull aman + `bun run build`).
+
+**Setup sekali di GitHub** → repo → Settings → Secrets and variables → Actions:
+
+| Secret | Contoh |
+|--------|--------|
+| `DEPLOY_HOST` | IP VPS atau domain |
+| `DEPLOY_USER` | `root` |
+| `DEPLOY_SSH_KEY` | Private key SSH (paste full `-----BEGIN OPENSSH...`) |
+| `DEPLOY_PORT` | `22` *(opsional)* |
+| `DEPLOY_PATH` | `/var/www/mikhfast` *(opsional, default path deploy)* |
+
+**Setup sekali di VPS:**
+
+```bash
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+source ~/.bashrc   # atau login ulang
+
+# Deploy manual (sama seperti CI)
+cd /var/www/mikhfast && sudo bash scripts/deploy.sh
+```
+
+Pastikan user SSH bisa `sudo bash scripts/deploy.sh` tanpa password, atau jalankan Actions sebagai user yang punya akses write ke `/var/www/mikhfast`.
+
+Debug JS per-modul (tanpa bundle): tambah `&debug_js=1` di URL.
 
 ---
 

@@ -24,7 +24,7 @@ echo ""
 if [[ -d "$APP/.git" ]]; then
   if git -C "$APP" ls-files --error-unmatch include/config.php &>/dev/null; then
     fail "include/config.php masih di-track git → git pull/reset bisa timpa data router!"
-    echo "       Fix: sudo bash scripts/install-mikhfast.sh --update"
+    echo "       Fix: sudo bash scripts/safe-pull.sh $APP"
   else
     ok "include/config.php tidak di-track git (aman dari git pull)"
   fi

@@ -90,18 +90,32 @@ script_app_root() {
 
 clone_or_update_repo() {
   local backup=""
+  local quickbt_backup=""
   if [[ -f "$INSTALL_DIR/include/config.php" ]]; then
     backup="$(mktemp)"
     cp "$INSTALL_DIR/include/config.php" "$backup"
     ok "Backup config.php sementara: $backup"
   fi
+  if [[ -f "$INSTALL_DIR/include/quickbt.php" ]]; then
+    quickbt_backup="$(mktemp)"
+    cp "$INSTALL_DIR/include/quickbt.php" "$quickbt_backup"
+  fi
 
   if [[ -d "$INSTALL_DIR/.git" ]]; then
     info "Update repo di $INSTALL_DIR ..."
+    # Lepas file live dari git SEBELUM pull — cegah error "would be overwritten by merge"
+    local live_files=(include/config.php include/config.php.bak include/quickbt.php)
+    for f in "${live_files[@]}"; do
+      if git -C "$INSTALL_DIR" ls-files --error-unmatch "$f" &>/dev/null; then
+        git -C "$INSTALL_DIR" update-index --skip-worktree "$f" 2>/dev/null || true
+        git -C "$INSTALL_DIR" rm --cached -f "$f" >/dev/null 2>&1 || true
+        ok "Skip git (pre-pull): $f"
+      fi
+    done
     git -C "$INSTALL_DIR" fetch origin "$BRANCH"
     git -C "$INSTALL_DIR" checkout "$BRANCH"
     git -C "$INSTALL_DIR" pull origin "$BRANCH" --ff-only || {
-      warn "git pull --ff-only gagal — coba manual: cd $INSTALL_DIR && git pull"
+      warn "git pull --ff-only gagal — coba: bash scripts/safe-pull.sh"
     }
   elif [[ -d "$INSTALL_DIR" && -n "$(ls -A "$INSTALL_DIR" 2>/dev/null || true)" ]]; then
     fail "Folder $INSTALL_DIR sudah ada tapi bukan git repo."
@@ -117,6 +131,11 @@ clone_or_update_repo() {
     cp "$backup" "$INSTALL_DIR/include/config.php"
     rm -f "$backup"
     ok "config.php live dipulihkan (tidak ditimpa git pull)"
+  fi
+  if [[ -n "$quickbt_backup" && -f "$quickbt_backup" ]]; then
+    cp "$quickbt_backup" "$INSTALL_DIR/include/quickbt.php"
+    rm -f "$quickbt_backup"
+    ok "quickbt.php live dipulihkan"
   fi
 }
 
@@ -232,7 +251,15 @@ main() {
   echo ""
 
   if [[ "$SKIP_PULL" -eq 0 ]]; then
-    if [[ "$DO_UPDATE" -eq 1 ]] || [[ -d "$INSTALL_DIR/.git" ]]; then
+    if [[ "$DO_UPDATE" -eq 1 ]]; then
+      if [[ ! -f "$INSTALL_DIR/scripts/deploy.sh" ]]; then
+        fail "deploy.sh tidak ada — git pull dulu atau clone ulang repo"
+        exit 1
+      fi
+      bash "$INSTALL_DIR/scripts/deploy.sh" "$INSTALL_DIR"
+      print_done "$INSTALL_DIR"
+      exit 0
+    elif [[ -d "$INSTALL_DIR/.git" ]]; then
       clone_or_update_repo
     elif [[ ! -f "$INSTALL_DIR/admin.php" ]]; then
       clone_or_update_repo
@@ -248,6 +275,11 @@ main() {
 
   init_live_config "$INSTALL_DIR"
   untrack_live_files "$INSTALL_DIR"
+
+  if command -v bun &>/dev/null || [[ -x "$HOME/.bun/bin/bun" ]] || [[ -x "/root/.bun/bin/bun" ]]; then
+    info "Build frontend ..."
+    (cd "$INSTALL_DIR" && bun run build) || warn "bun build gagal — skip"
+  fi
 
   info "Setup permission ..."
   bash "$INSTALL_DIR/scripts/setup-permissions.sh" "$INSTALL_DIR"

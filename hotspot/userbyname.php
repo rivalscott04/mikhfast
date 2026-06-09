@@ -39,8 +39,9 @@ if (!isset($_SESSION["mikhmon"])) {
       "?name" => "$hotspotuser",
       ".proplist" => ".id,server,name,password,mac-address,profile,uptime,disabled,limit-uptime,limit-bytes-total,bytes-out,bytes-in,comment",
     ));
-    $hotspotuser = $getuser[0]['.id'];
-    //if($hotspotuser == ""){echo "<b>Hotspot User not found</b>";}
+    if (is_array($getuser) && isset($getuser[0]['.id'])) {
+      $hotspotuser = $getuser[0]['.id'];
+    }
   }
 
   if (!isset($getuser) || !is_array($getuser) || !isset($getuser[0])) {
@@ -49,6 +50,13 @@ if (!isset($_SESSION["mikhmon"])) {
       ".proplist" => ".id,server,name,password,mac-address,profile,uptime,disabled,limit-uptime,limit-bytes-total,bytes-out,bytes-in,comment",
     ));
   }
+
+  if (!is_array($getuser) || !isset($getuser[0]) || !is_array($getuser[0])) {
+    echo "<b>User not found redirect to user list...</b>";
+    echo "<script>window.location='./?hotspot=users&profile=all&session=" . $session . "'</script>";
+    exit;
+  }
+
   $userdetails = $getuser[0];
   $uid = $userdetails['.id'];
   $userver = $userdetails['server'];
@@ -105,20 +113,21 @@ if (!isset($_SESSION["mikhmon"])) {
     "?name" => "$uprofile",
     ".proplist" => "on-login",
   ));
-  $profiledetalis = $getprofilebyuser[0];
-  $ponlogin = $profiledetalis['on-login'];
-  $getvalid = explode(",", $ponlogin)[3];
-  $getprice = explode(",", $ponlogin)[2];
-  $getsprice = explode(",", $ponlogin)[4];
+  $profiledetalis = (is_array($getprofilebyuser) && isset($getprofilebyuser[0])) ? $getprofilebyuser[0] : array();
+  $ponlogin = isset($profiledetalis['on-login']) ? $profiledetalis['on-login'] : '';
+  $ponloginParts = explode(",", $ponlogin);
+  $getvalid = isset($ponloginParts[3]) ? $ponloginParts[3] : '';
+  $getprice = isset($ponloginParts[2]) ? $ponloginParts[2] : '';
+  $getsprice = isset($ponloginParts[4]) ? $ponloginParts[4] : '';
 
 
   $getsch = $API->comm("/system/scheduler/print", array(
     "?name" => "$uname",
     ".proplist" => "start-date,start-time,next-run",
   ));
-  $schdetails = $getsch[0];
-  $start = $schdetails['start-date'] . " " . $schdetails['start-time'];
-  $end = $schdetails['next-run'];
+  $schdetails = (is_array($getsch) && isset($getsch[0])) ? $getsch[0] : array();
+  $start = (isset($schdetails['start-date']) ? $schdetails['start-date'] : '') . " " . (isset($schdetails['start-time']) ? $schdetails['start-time'] : '');
+  $end = isset($schdetails['next-run']) ? $schdetails['next-run'] : '';
 	//$valy = $schdetails['interval'];
 // share WhatsApp
   if ($getvalid != "") {
