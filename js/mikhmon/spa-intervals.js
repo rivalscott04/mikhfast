@@ -22,8 +22,44 @@ function mikhmon_absUrl(href) {
   }
 }
 
+function mikhmon_getMetaContent(name) {
+  var el = document.querySelector('meta[name="' + name + '"]');
+  return el ? String(el.getAttribute("content") || "").trim() : "";
+}
+
+function mikhmon_initHotspotActiveReload(root) {
+  root = root || document;
+  var container = root.querySelector ? root.querySelector("#reloadHotspotActive") : null;
+  if (!container) return;
+
+  var areloadMs = parseInt(mikhmon_getMetaContent("mm-areload"), 10);
+  if (isNaN(areloadMs) || areloadMs < 10000) areloadMs = 10000;
+
+  var session = mikhmon_getMetaContent("mm-session");
+  var server = "";
+  try {
+    server = new URL(window.location.href).searchParams.get("server") || "";
+  } catch (e) {}
+
+  var url = "./hotspot/hotspotactive.php?session=" + encodeURIComponent(session);
+  if (server) url += "&server=" + encodeURIComponent(server);
+
+  if (window.__mikhmonHotspotActiveInterval) {
+    try { clearInterval(window.__mikhmonHotspotActiveInterval); } catch (e) {}
+    window.__mikhmonHotspotActiveInterval = null;
+  }
+
+  window.__mikhmonHotspotActiveInterval = setInterval(function () {
+    try { $("#reloadHotspotActive").load(url); } catch (e) {}
+  }, areloadMs);
+}
+
 function mikhmon_clearIntervals() {
   // Clear legacy intervals created by inline scripts on dashboard/active.
+  if (window.__mikhmonHotspotActiveInterval) {
+    try { clearInterval(window.__mikhmonHotspotActiveInterval); } catch (e) {}
+    window.__mikhmonHotspotActiveInterval = null;
+  }
   if (window.dashboard) {
     try { clearInterval(window.dashboard); } catch (e) {}
     window.dashboard = null;

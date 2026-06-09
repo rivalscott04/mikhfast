@@ -91,16 +91,24 @@ window.addEventListener("popstate", function (e) {
 document.addEventListener("DOMContentLoaded", function () {
   try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
+  try { mikhmon_enableAfterSwitch(document); } catch (e) {}
   try { mikhmon_initTrafficChart(); } catch (e) {}
   try { mikhmon_initAppLog(); } catch (e) {}
   try { mikhmon_initVoucherEditor(document); } catch (e) {}
   try { mikhmon_initFormSelects(document); } catch (e) {}
+  try { makeAllSortable(document); } catch (e) {}
+  try { mikhmon_bindFilterTable(document); } catch (e) {}
+  try { mikhmon_initHotspotActiveReload(document); } catch (e) {}
 });
 window.addEventListener("pageshow", function () {
   try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
+  try { mikhmon_enableAfterSwitch(document); } catch (e) {}
   try { mikhmon_initFormSelects(document); } catch (e) {}
   try { mikhmon_initVoucherEditor(document); } catch (e) {}
+  try { makeAllSortable(document); } catch (e) {}
+  try { mikhmon_bindFilterTable(document); } catch (e) {}
+  try { mikhmon_initHotspotActiveReload(document); } catch (e) {}
 });
 
 try { mikhmon_bindAccordion(); } catch (e) {}

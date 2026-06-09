@@ -30,6 +30,8 @@ error_reporting(0);
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<!-- Theme color -->
 		<meta name="theme-color" content="<?= $themecolor ?>" />
+		<meta name="mm-session" content="<?= htmlspecialchars($session, ENT_QUOTES) ?>" />
+		<meta name="mm-areload" content="<?= max(10, (int) $areload) * 1000 ?>" />
 		<!-- Font Awesome -->
 		<link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css" />
 		<!-- Mikfast UI -->

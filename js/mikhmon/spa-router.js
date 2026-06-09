@@ -1,4 +1,14 @@
 /* Mikhmon — SPA navigation + applyHtml */
+function mikhmon_navTo(url) {
+  if (!url || String(url).indexOf("./") !== 0) return;
+  try { if (typeof loader === "function") loader(); } catch (e) {}
+  if (typeof mikhmon_ajaxNavigate === "function") {
+    mikhmon_ajaxNavigate(url);
+  } else {
+    window.location.href = url;
+  }
+}
+
 function mikhmon_clearLoadingUI() {
   try { notifyHide(); } catch (e) {}
   try { mikhmon_endNavigateUI(); } catch (e) {}
@@ -99,7 +109,13 @@ function mikhmon_applyHtml(wrapperHtml) {
 
   // If we were in "switching" state, clear it after the new page is rendered.
   try { mikhmon_clearLoadingUI(); } catch (e) {}
-  try { mikhmon_disableDuringSwitch(wrapperEl); } catch (e) {}
+  try { mikhmon_enableAfterSwitch(document); } catch (e) {}
+  if (typeof mikhmon_bindFilterTable === "function") {
+    try { mikhmon_bindFilterTable(wrapperEl); } catch (e) {}
+  }
+  if (typeof mikhmon_initHotspotActiveReload === "function") {
+    try { mikhmon_initHotspotActiveReload(wrapperEl); } catch (e) {}
+  }
 }
 
 function mikhmon_ajaxNavigate(href, opts) {

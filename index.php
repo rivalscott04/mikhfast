@@ -599,22 +599,6 @@ if ($livereport == "enable" || $livereport == "") {
   echo ' 
 </script>';
 
-} elseif ($hotspot == "active" && $serveractive != "") {
-  echo '<script>
-  $(document).ready(function(){
-    var interval = "' . ($areload * 1000) . '";
-    setInterval(function() {
-    $("#reloadHotspotActive").load("./hotspot/hotspotactive.php?server=' . $serveractive . '&session=' . $session . '"); }, interval);})
-</script>
-';
-} elseif ($hotspot == "active" && $serveractive == "") {
-  echo '<script>
-  $(document).ready(function(){
-    var interval = "' . ($areload * 1000) . '";
-    setInterval(function() {
-    $("#reloadHotspotActive").load("./hotspot/hotspotactive.php?session=' . $session . '"); }, interval);})
-</script>
-';
 } elseif ($userprofile == "add" || substr($userprofile, 0, 1) == "*" || $userprofile != "") {
   echo "<script>
   //enable disable input on ready
@@ -637,21 +621,6 @@ $(document).ready(function(){
 });
 </script>";
 
-} elseif (in_array($hotspot, $pagehotspot) || in_array($ppp, $pageppp) || in_array($report, $pagereport) || $sys == "scheduler") {
-echo '
-<script>
-$(document).ready(function(){
-  makeAllSortable();
-  $("#filterTable").on("keyup", function() {
-    var value = $(this).val().toLowerCase();
-    $("#dataTable tbody tr").filter(function() {
-      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-    });
-  });
-});
-
-</script>
-';
 }
 }
 ?>

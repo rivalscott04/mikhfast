@@ -47,6 +47,12 @@ function mikhmon_setFormSelectValue(root, value) {
   try {
     selectEl.dispatchEvent(new Event("change", { bubbles: true }));
   } catch (e) {}
+  // Programmatic change may not run inline onchange in all browsers.
+  try {
+    if (typeof selectEl.onchange === "function") {
+      selectEl.onchange.call(selectEl);
+    }
+  } catch (e2) {}
 }
 
 function mikhmon_positionFormSelectMenu(root) {

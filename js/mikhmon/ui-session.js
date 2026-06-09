@@ -13,6 +13,20 @@ function mikhmon_disableDuringSwitch(root) {
   }
 }
 
+function mikhmon_enableAfterSwitch(root) {
+  root = root || document;
+  var sel = '[data-mm-disable-on-switch="1"]';
+  var nodes = root.querySelectorAll ? root.querySelectorAll(sel) : [];
+  for (var i = 0; i < nodes.length; i++) {
+    var n = nodes[i];
+    try {
+      n.removeAttribute("aria-disabled");
+      n.removeAttribute("tabindex");
+      n.classList.remove("mm-disabled");
+    } catch (e) {}
+  }
+}
+
 function mikhmon_beginSessionSwitch(sessionRaw) {
   var session = String(sessionRaw || "");
   // session can be "name&c=settings" from menu link ids
@@ -88,9 +102,15 @@ function stheme(url) {
 }
 
 function dellSelected(url) {
-  $("#temp").load(url);
+  loadpage(url);
 }
 
 function loadpage(url) {
+  if (!url) return;
+  try { if (typeof loader === "function") loader(); } catch (e) {}
+  if (typeof mikhmon_ajaxNavigate === "function") {
+    mikhmon_ajaxNavigate(url);
+    return;
+  }
   $("#temp").load(url);
 }

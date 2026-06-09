@@ -37,3 +37,18 @@ function makeAllSortable(root) {
   var tables = root.getElementsByTagName("table");
   for (var i = tables.length; --i >= 0; ) makeSortable(tables[i]);
 }
+
+function mikhmon_bindFilterTable(root) {
+  root = root || document;
+  var input = root.querySelector ? root.querySelector("#filterTable") : null;
+  if (!input || input.getAttribute("data-mm-filter-bound") === "1") return;
+  input.setAttribute("data-mm-filter-bound", "1");
+  input.addEventListener("keyup", function () {
+    var value = input.value.toLowerCase();
+    var rows = document.querySelectorAll("#dataTable tbody tr");
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      row.style.display = row.textContent.toLowerCase().indexOf(value) > -1 ? "" : "none";
+    }
+  });
+}

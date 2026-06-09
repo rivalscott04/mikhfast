@@ -107,7 +107,7 @@ if (!isset($_SESSION["mikhmon"])) {
       <input id="filterTable" type="text" style="padding:5.8px;" class="group-item group-item-l" placeholder="<?= $_search ?>">
     </div>
     <div class="input-group-4 col-box-4">
-      <select style="padding:5px;" class="group-item group-item-m" onchange="location = this.value; loader()" title="Filter by Profile">
+      <select style="padding:5px;" class="group-item group-item-m" onchange="mikhmon_navTo(this.value)" title="Filter by Profile">
         <option><?= $_profile ?> </option>
         <option value="./?hotspot=users&profile=all&session=<?= $session; ?>"><?= $_show_all ?></option>
       <?php
@@ -119,7 +119,7 @@ if (!isset($_SESSION["mikhmon"])) {
     </select>
   </div>
   <div class="input-group-4 col-box-4">
-    <select style="padding:5px;" class="group-item group-item-r" id="comment" name="comment" onchange="location = './?hotspot=users&comment='+ this.value +'&session=<?= $session;?>';">
+    <select style="padding:5px;" class="group-item group-item-r" id="comment" name="comment" onchange="if(this.value){mikhmon_navTo('./?hotspot=users&comment='+ encodeURIComponent(this.value) +'&session=<?= $session;?>');}">
     <?php
     if ($comm != "") {
     } else {
