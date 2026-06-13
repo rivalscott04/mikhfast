@@ -283,30 +283,29 @@ body .progress .progress-bar.mm-meter-fill--danger{
 .card-header{ border-top-left-radius:14px; border-top-right-radius:14px; }
 .btn, .form-control, select, input[type="text"], input[type="password"], input[type="number"]{ border-radius:12px; }
 
-/* --- Card top accent (always visible, refresh/AJAX-safe) --- */
-.card{
+/* --- Card/box top accent (always visible, refresh/AJAX-safe) --- */
+.card,
+.box:not([class*="bg-"]){
   position:relative; /* anchor ::before accent bar */
   overflow:hidden;   /* keep bar within rounded corners */
 }
-.card::before{
+.card::before,
+.box:not([class*="bg-"])::before{
   content:"";
   position:absolute;
   left:0;
   top:0;
   width:100%;
-  height:4px;
+  height:3px;
   z-index:2;
   pointer-events:none;
-  background: linear-gradient(90deg,
-    #ff4d4d 0%,
-    #ffb74d 16%,
-    #fff176 32%,
-    #69f0ae 48%,
-    #40c4ff 64%,
-    #7c4dff 80%,
-    #ff4dd2 100%
-  );
-  opacity:.95;
+  background: var(--primary, #2D9CDB);
+  opacity:.85;
+}
+body.theme-light .card::before,
+body.theme-light .box:not([class*="bg-"])::before{
+  background: var(--mm-accent);
+  opacity:.9;
 }
 .card-header{
   position:relative;
