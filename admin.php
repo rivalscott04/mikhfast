@@ -168,43 +168,13 @@ if ($id == "login" || substr($url, -1) == "p") {
     };
     </script>';
 } elseif ($id == "connect"  && !empty($session)) {
-  ini_set("max_execution_time",5);  
-  $API = new RouterosAPI();
-  $API->debug = false;
-  if ($API->connect($iphost, $userhost, decrypt($passwdhost))){
-    $_SESSION["connect"] = "<b class='text-green'>Connected</b>";
-    // One-time toast on the next page load (dashboard).
-    $tpl = isset($_session_switched) ? (string) $_session_switched : "Switched to: %s";
-    $_SESSION['mm_toast'] = array(
-      'type' => 'ok',
-      'msg' => sprintf($tpl, $session),
-    );
-    $redirect = "./?session=" . $session;
-    if (!headers_sent()) {
-      header("Location:" . $redirect);
-      exit;
-    }
-    echo "<script>window.location='" . $redirect . "'</script>";
-  } else {
-    $_SESSION["connect"] = "<b class='text-red'>Not Connected</b>";
-    // Avoid rendering an intermediate "settings-like" page.
-    // Set a flash message and redirect immediately.
-    if ($currency == in_array($currency, $cekindo['indo'])) {
-      $_SESSION['mikhmon_flash'] = "MIKFAST not connected! Silakan periksa kembali IP, User, Password dan port API harus enable. Jika menggunakan koneksi VPN, pastikan VPN tersebut terkoneksi.";
-    } else {
-      $_SESSION['mikhmon_flash'] = "MIKFAST not connected! Please check the IP, User, Password and ensure the API port is enabled.";
-    }
-
-    $redirect = ($c == "settings")
-      ? ("./admin.php?id=settings&session=" . $session)
-      : "./admin.php?id=sessions";
-
-    if (!headers_sent()) {
-      header("Location:" . $redirect);
-      exit;
-    }
-    echo "<script>window.location='" . $redirect . "'</script>";
+  // Legacy URL: skip duplicate API test; dashboard connects once via aload.php.
+  $redirect = "./?session=" . urlencode($session) . "&mm_switch=1";
+  if (!headers_sent()) {
+    header("Location:" . $redirect);
+    exit;
   }
+  echo "<script>window.location='" . $redirect . "'</script>";
 } elseif ($id == "uplogo"  && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/uplogo.php');

@@ -69,7 +69,13 @@ if (!isset($_SESSION["mikhmon"])) {
   include('./lang/'.$langid.'.php');
   include('./include/mikhmon-toast.php');
 
+  if (!empty($_GET['mm_switch']) && $_GET['mm_switch'] === '1') {
+    $tpl = isset($_session_switched) ? (string) $_session_switched : "Switched to: %s";
+    mikhmon_toast_flash(sprintf($tpl, $session), 'ok');
+  }
+
   $hotspotEarly = isset($_GET['hotspot']) ? $_GET['hotspot'] : '';
+  $mmDashboardOnly = ($hotspotEarly === '' || $hotspotEarly === 'dashboard');
   if (isset($_GET['remove-logo']) && $_GET['remove-logo'] != "" && isset($_GET['logo']) && $_GET['logo'] != "") {
     require_once __DIR__ . '/settings/uplogo-security.php';
     mikhmon_logo_handle_delete($session, $_GET['logo'], './?hotspot=uplogo&session=' . urlencode(mikhmon_logo_safe_session_key($session)));
@@ -101,15 +107,19 @@ if (!isset($_SESSION["mikhmon"])) {
 // routeros api
   include_once('./lib/routeros_api.class.php');
   include_once('./lib/formatbytesbites.php');
-  $API = new RouterosAPI();
-  $API->debug = false;
-  $API->connect($iphost, $userhost, decrypt($passwdhost));
 
-  include_once('./lib/router/RouterService.php');
-  $router = new RouterService($API, null, $session);
-  $identityObj = $router->getIdentity();
-  $identity = $identityObj['name'];
-  
+  if (!$mmDashboardOnly) {
+    $API = new RouterosAPI();
+    $API->debug = false;
+    $API->connect($iphost, $userhost, decrypt($passwdhost));
+
+    include_once('./lib/router/RouterService.php');
+    $router = new RouterService($API, null, $session);
+    $identityObj = $router->getIdentity();
+    $identity = $identityObj['name'];
+  } else {
+    $identity = $hotspotname;
+  }
 
 // get variable
   $hotspot = $_GET['hotspot'];

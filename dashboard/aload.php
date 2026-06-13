@@ -40,7 +40,18 @@ include('../lang/'.$langid.'.php');
   $API->debug = false;
 
   include_once('../lib/router/RouterService.php');
-  $API->connect($iphost, $userhost, decrypt($passwdhost));
+  if (!$API->connect($iphost, $userhost, decrypt($passwdhost))) {
+    $failMsg = "MIKFAST not connected! Please check the IP, User, Password and ensure the API port is enabled.";
+    if (isset($cekindo) && in_array($currency, $cekindo['indo'])) {
+      $failMsg = "MIKFAST not connected! Silakan periksa kembali IP, User, Password dan port API harus enable. Jika menggunakan koneksi VPN, pastikan VPN tersebut terkoneksi.";
+    }
+    if ($load == "all" || $load == "sysresource") {
+      echo '<div id="reloadHome"><div class="alert alert-danger pd-10">' . htmlspecialchars($failMsg, ENT_QUOTES, 'UTF-8') . '</div></div>';
+    } else {
+      echo '<div class="alert alert-danger pd-10">' . htmlspecialchars($failMsg, ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    exit;
+  }
   $router = new RouterService($API, null, $session);
 
   // --- tiny session cache to avoid repeated RouterOS calls ---

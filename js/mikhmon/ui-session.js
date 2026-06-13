@@ -43,11 +43,12 @@ function printBT() {
 }
 
 function connect(session) {
-  // Connect must be a full navigation (not AJAX).
-  // `admin.php` wraps AJAX requests into JSON for SPA navigation; jQuery `.load()`
-  // expects HTML and can get stuck showing a blocking loader.
+  // Full navigation to dashboard; RouterOS connect happens once in aload.php.
+  if (session && String(session).indexOf("&") !== -1) {
+    session = String(session).split("&")[0];
+  }
   try { mikhmon_beginSessionSwitch(session); } catch (e) {}
-  window.location.href = "./admin.php?id=connect&session=" + session;
+  window.location.href = "./?session=" + encodeURIComponent(session) + "&mm_switch=1";
 }
 
 function stheme(url) {

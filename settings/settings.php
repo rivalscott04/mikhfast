@@ -98,13 +98,24 @@ if (!isset($_SESSION["mikhmon"])) {
     // Rebuild the session line and replace only that line (avoid corrupting other sessions).
     $newLine = "\n" . '$data' . "['" . $sesname . "'] = array ('1'=>'" . $sesname . "!" . $siphost . "','" . $sesname . "@|@" . $suserhost . "','" . $sesname . "#|#" . $spasswdhost . "','" . $sesname . "%" . $shotspotname . "','" . $sesname . "^" . $sdnsname . "','" . $sesname . "&" . $scurrency . "','" . $sesname . "*" . $sreload . "','" . $sesname . "(" . $siface . "','" . $sesname . ")" . $sinfolp . "','" . $sesname . "=" . $sidleto . "','" . $sesname . "@!@" . $slivereport . "');";
 
-    $pattern = "/\\$data\\['" . preg_quote($session, "/") . "'\\]\\s*=\\s*array\\s*\\([^;]*\\);/m";
+    $editKey = $session;
+    if ($editKey === "" && !empty($router) && explode("-", $router)[0] === "new") {
+      $editKey = $router;
+    }
+
+    $pattern = '/\$data\[\'' . preg_quote($editKey, '/') . '\'\]\s*=\s*array\s*\([^;]*\);/m';
     $updated = preg_replace($pattern, trim($newLine), $configContent, 1, $count);
 
     // If session was renamed, also try matching by the old name occurrence inside the line.
     if ($count === 0) {
-      $pattern2 = "/\\$data\\['" . preg_quote($session, "/") . "'\\].*?;/m";
+      $pattern2 = '/\$data\[\'' . preg_quote($editKey, '/') . '\'\].*?;/m';
       $updated = preg_replace($pattern2, trim($newLine), $configContent, 1, $count);
+    }
+
+    if ($count === 0 && $editKey !== "" && $editKey !== $sesname) {
+      // Renaming failed to match the placeholder — remove stale entry before append.
+      $patternRemove = '/\$data\[\'' . preg_quote($editKey, '/') . '\'\].*?;\s*/m';
+      $configContent = preg_replace($patternRemove, '', $configContent, 1);
     }
 
     if ($count === 0) {
