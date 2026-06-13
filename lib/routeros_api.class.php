@@ -501,7 +501,60 @@ $new_format = str_replace("s", "", str_replace("m", "m ", str_replace("h", "h ",
 return $new_format;
 }
 
+function normalizeUptimeWeeksToDays($dtm){
+if (preg_match('/^(\d+)w(?:(\d+)d)?/', $dtm, $m)) {
+    $totalDays = ((int) $m[1] * 7) + (isset($m[2]) ? (int) $m[2] : 0);
+    return $totalDays . 'd' . substr($dtm, strlen($m[0]));
+}
+return $dtm;
+}
+
+function parseRouterOsDuration($dtm){
+$dtm = normalizeUptimeWeeksToDays($dtm);
+$parts = array('d' => 0, 'h' => 0, 'm' => 0, 's' => 0);
+if (preg_match('/(\d+)d/', $dtm, $m)) {
+    $parts['d'] = (int) $m[1];
+}
+if (preg_match('/(\d+)h/', $dtm, $m)) {
+    $parts['h'] = (int) $m[1];
+}
+if (preg_match('/(\d+)m/', $dtm, $m)) {
+    $parts['m'] = (int) $m[1];
+}
+if (preg_match('/(\d+)s/', $dtm, $m)) {
+    $parts['s'] = (int) $m[1];
+}
+return $parts;
+}
+
+function formatDTMFriendly($dtm){
+global $_days, $_hours, $_minutes, $_seconds;
+$dayLabel = isset($_days) ? $_days : 'days';
+$hourLabel = isset($_hours) ? $_hours : 'hours';
+$minLabel = isset($_minutes) ? $_minutes : 'minutes';
+$secLabel = isset($_seconds) ? $_seconds : 'seconds';
+$p = parseRouterOsDuration($dtm);
+$chunks = array();
+if ($p['d'] > 0) {
+    $chunks[] = $p['d'] . ' ' . $dayLabel;
+}
+if ($p['h'] > 0) {
+    $chunks[] = $p['h'] . ' ' . $hourLabel;
+}
+if ($p['m'] > 0) {
+    $chunks[] = $p['m'] . ' ' . $minLabel;
+}
+if ($p['s'] > 0 && $p['d'] === 0 && $p['h'] === 0) {
+    $chunks[] = $p['s'] . ' ' . $secLabel;
+}
+if (empty($chunks)) {
+    return '0 ' . $secLabel;
+}
+return implode(' ', $chunks);
+}
+
 function formatDTM($dtm){
+$dtm = normalizeUptimeWeeksToDays($dtm);
 if(substr($dtm, 1,1) == "d" || substr($dtm, 2,1) == "d"){
     $day = explode("d",$dtm)[0]."d";
     $day = str_replace("d", "d ", str_replace("w", "w ", $day));

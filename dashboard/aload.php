@@ -111,8 +111,10 @@ include('../lang/'.$langid.'.php');
               <div class="box-group-area">
               <span ><?= $_system_date_time ?><br>
                     <?php 
+                    $uptimeFriendly = formatDTMFriendly($resource['uptime']);
+                    $uptimeTechnical = formatDTM($resource['uptime']);
                     echo ucfirst($clock['date']) . " " . $clock['time'] . "<br>
-                    ".$_uptime." : " . formatDTM($resource['uptime']);
+                    ".$_uptime." : <span title=\"" . htmlspecialchars($uptimeTechnical, ENT_QUOTES) . "\">" . htmlspecialchars($uptimeFriendly, ENT_QUOTES) . "</span>";
                     ?>
                 </span>
               </div>
@@ -700,7 +702,11 @@ else if ($load == "all") {
             <h3 class="mm-panel-title"><i class="fa fa-info-circle"></i> System Info</h3>
           </div>
           <div class="card-body" style="font-size:12px; line-height:1.45;">
-            <div><b><?= $_uptime ?></b>: <?= formatDTM($resource['uptime']); ?></div>
+            <?php
+              $uptimeFriendly = formatDTMFriendly($resource['uptime']);
+              $uptimeTechnical = formatDTM($resource['uptime']);
+            ?>
+            <div><b><?= $_uptime ?></b>: <span title="<?= htmlspecialchars($uptimeTechnical, ENT_QUOTES) ?>"><?= htmlspecialchars($uptimeFriendly, ENT_QUOTES) ?></span></div>
             <div><b><?= $_board_name ?></b>: <?= htmlspecialchars($resource['board-name']); ?></div>
             <div><b><?= $_model ?></b>: <?= htmlspecialchars($routerboard['model']); ?></div>
             <div><b>Router OS</b>: <?= htmlspecialchars($resource['version']); ?></div>
