@@ -217,8 +217,7 @@ date_default_timezone_set($_SESSION['timezone']);
 
 }
 ?>
-<div class="row">
-	
+<div class="row mm-user-form-row">
 <div class="col-8">
 <div class="card box-bordered">
 	<div class="card-header">
@@ -226,7 +225,7 @@ date_default_timezone_set($_SESSION['timezone']);
 	</div>
 	<div class="card-body">
 <form autocomplete="off" method="post" action="">
-	<div>
+	<div class="mm-form-actions">
 		<?php if ($_SESSION['ubp'] != "") {
 		echo "    <a class='btn bg-warning' href='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'> <i class='fa fa-close'></i> ".$_close."</a>";
 	} elseif ($_SESSION['vcr'] = "active") {

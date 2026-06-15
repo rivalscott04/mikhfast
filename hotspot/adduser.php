@@ -84,7 +84,7 @@ if (!isset($_SESSION["mikhmon"])) {
     x.type = 'password';
     }}
 </script>
-<div class="row">
+<div class="row mm-user-form-row">
 <div class="col-8">
 <div class="card box-bordered">
   <div class="card-header">
@@ -92,7 +92,7 @@ if (!isset($_SESSION["mikhmon"])) {
   </div>
   <div class="card-body">
 <form autocomplete="off" method="post" action="">  
-  <div>
+  <div class="mm-form-actions">
   <?php if ($_SESSION['ubp'] != "") {
     echo "    <a class='btn bg-warning' href='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'> <i class='fa fa-close'></i> ".$_close."</a>";
   } else {

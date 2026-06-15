@@ -287,7 +287,6 @@ body .progress .progress-bar.mm-meter-fill--danger{
 .card,
 .box:not([class*="bg-"]){
   position:relative; /* anchor ::before accent bar */
-  overflow:hidden;   /* keep bar within rounded corners */
 }
 .card::before,
 .box:not([class*="bg-"])::before{
@@ -301,6 +300,8 @@ body .progress .progress-bar.mm-meter-fill--danger{
   pointer-events:none;
   background: var(--primary, #2D9CDB);
   opacity:.85;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 body.theme-light .card::before,
 body.theme-light .box:not([class*="bg-"])::before{
@@ -1257,4 +1258,44 @@ body.theme-light .about-changelog kbd{
   margin-top: 1.25rem;
   opacity: .75;
   font-size: .92rem;
+}
+
+/* Hotspot user forms: wrap action buttons, stack panels on narrower viewports */
+.mm-form-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  margin-bottom:8px;
+}
+.mm-form-actions .btn{
+  margin:0;
+}
+.mm-user-form-row > [class*="col-"]{
+  min-width:0;
+}
+@media (max-width: 1100px){
+  .mm-user-form-row > .col-8,
+  .mm-user-form-row > .col-4{
+    width:100%;
+    float:none;
+  }
+}
+.mm-user-form-row .card-body form .table{
+  width:100%;
+  table-layout:fixed;
+}
+.mm-user-form-row .card-body form .table td:first-child{
+  width:34%;
+  white-space:normal;
+  word-break:break-word;
+}
+.mm-user-form-row .card-body form .table td:last-child{
+  width:66%;
+  min-width:0;
+}
+.mm-user-form-row .card-body form .table .form-control,
+.mm-user-form-row .card-body form .table .input-group,
+.mm-user-form-row .card-body form .table select{
+  max-width:100%;
 }

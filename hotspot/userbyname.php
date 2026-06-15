@@ -301,15 +301,15 @@ include('./voucher/printbt.php');
     }}
     var _0x7baa=["\x63\x6C\x69\x63\x6B","\x2E\x70\x72\x69\x6E\x74\x42\x54","\x72\x65\x61\x64\x79"];$(document)[_0x7baa[2]](function(){$(_0x7baa[1])[_0x7baa[0]](function(){printBT()})})
 </script>
-<div class="row">
-<div class="col-12"></div>
-<div class="card">
+<div class="row mm-user-form-row">
+<div class="col-12">
+<div class="card box-bordered">
 <div class="card-header">
     <h3><i class="fa fa-edit"></i> <?php  echo $_edit_user.' '.$uname.' '; if ($utimelimit == "1s") {  echo $_expired;}?></h3>
 </div>
 <div class="card-body">
 <form autocomplete="new-password" method="post" action="">
-  <div>
+  <div class="mm-form-actions">
     <?php if ($_SESSION['ubp'] != "") {
       echo "    <a class='btn bg-warning' href='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'><i class='fa fa-close'></i> ".$_close."</a>";
     } elseif ($_SESSION['ubc'] != "") {
@@ -334,7 +334,7 @@ include('./voucher/printbt.php');
     } ?>
     <a id="shareWA" class="btn bg-green" title="Share WhatsApp" href="whatsapp://send?text=<?= $shareWA; ?>"> <i class="fa fa-whatsapp"></i> <?= $_share ?></a>
     <!--<div id="shareWA" class="btn bg-blue printBT" title="Print Bluetooth"><i class="fa fa-bluetooth"></i> <?= $_print ?> BT</div>-->
-    <div id="shareWA" class="btn bg-blue" onclick="sendToQuickPrinterChrome()" title="Print Bluetooth"><i class="fa fa-bluetooth"></i> <?= $_print ?> BT</div><br>
+    <div id="shareWA" class="btn bg-blue" onclick="sendToQuickPrinterChrome()" title="Print Bluetooth"><i class="fa fa-bluetooth"></i> <?= $_print ?> BT</div>
   </div>
 <table class="table">
   <tr>
