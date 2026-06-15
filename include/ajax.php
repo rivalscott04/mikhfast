@@ -11,6 +11,36 @@ function mikhmon_is_ajax() {
   return false;
 }
 
+/**
+ * True when the current request should open a RouterOS API connection.
+ * Home/dashboard/about skip API; routes like hotspot-user=add do not set ?hotspot=.
+ */
+function mikhmon_request_needs_router_api() {
+  $hotspot = isset($_GET['hotspot']) ? (string) $_GET['hotspot'] : '';
+  if ($hotspot === 'about') {
+    return false;
+  }
+  if ($hotspot !== '' && $hotspot !== 'dashboard') {
+    return true;
+  }
+  $apiParams = array(
+    'hotspot-user', 'user-profile', 'report', 'interface', 'system', 'ppp', 'secret',
+    'remove-user-active', 'remove-host', 'remove-cookie', 'remove-ip-binding',
+    'remove-hotspot-user', 'remove-hotspot-users', 'remove-user-profile',
+    'reset-hotspot-user', 'remove-hotspot-user-by-comment', 'remove-hotspot-user-expired',
+    'enable-hotspot-user', 'disable-hotspot-user', 'enable-ip-binding', 'disable-ip-binding',
+    'mac', 'addr', 'enable-scheduler', 'disable-scheduler', 'remove-scheduler',
+    'enable-pppsecret', 'disable-pppsecret', 'remove-pppsecret', 'remove-pprofile',
+    'remove-pactive', 'remove-report',
+  );
+  foreach ($apiParams as $key) {
+    if (isset($_GET[$key]) && $_GET[$key] !== '') {
+      return true;
+    }
+  }
+  return false;
+}
+
 function mikhmon_debug_enabled() {
   return isset($_GET['debug']) && $_GET['debug'] == '1';
 }

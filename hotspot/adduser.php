@@ -15,15 +15,27 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-session_start();
 // hide all error
 error_reporting(0);
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
+  if (!isset($API) || !is_object($API)) {
+    echo '<div class="alert alert-danger">Router connection unavailable.</div>';
+    return;
+  }
 
   $getprofile = $API->comm("/ip/hotspot/user/profile/print");
   $srvlist = $API->comm("/ip/hotspot/print");
+  if (!is_array($getprofile)) {
+    $getprofile = array();
+  }
+  if (!is_array($srvlist)) {
+    $srvlist = array();
+  }
+  if (!isset($udatalimit)) {
+    $udatalimit = '';
+  }
 
   if (isset($_POST['name'])) {
     $server = ($_POST['server']);
