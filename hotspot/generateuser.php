@@ -28,7 +28,7 @@ if (!isset($API) || !is_object($API)) {
 	return;
 }
 // time zone
-date_default_timezone_set($_SESSION['timezone']);
+date_default_timezone_set(!empty($_SESSION['timezone']) ? $_SESSION['timezone'] : 'Asia/Makassar');
 
 	include_once(dirname(__DIR__) . '/include/mikhmon-router-cache.php');
 	include_once(dirname(__DIR__) . '/lib/mikhmon-generate-user.php');
@@ -36,7 +36,7 @@ date_default_timezone_set($_SESSION['timezone']);
 	$srvlist = mikhmon_router_cached_comm($API, $session, 'hotspot_servers', '/ip/hotspot/print');
 	$getprofile = mikhmon_router_cached_comm($API, $session, 'hotspot_profiles', '/ip/hotspot/user/profile/print');
 
-	$genprof = $_GET['genprof'];
+	$genprof = $_GET['genprof'] ?? '';
 	if ($genprof != "") {
 		$profRow = mikhmon_profile_find_by_name($getprofile, $genprof);
 		if ($profRow === null) {
@@ -204,7 +204,7 @@ date_default_timezone_set($_SESSION['timezone']);
 	if ($udlimit == "0") {
 		$udlimit = "-";
 	} else {
-		$udlimit = formatBytes($udlimit, 2);
+		if (is_numeric($udlimit)) { $udlimit = formatBytes((float)$udlimit, 2); } else { $udlimit = "-"; }
 	}
 	$ulock = isset($genuser1[6]) ? $genuser1[6] : '';
 	//$urlprint = "$umode-$ucode-$udate-$ucommt";
@@ -229,7 +229,7 @@ date_default_timezone_set($_SESSION['timezone']);
 	<div class="card-body">
 <form autocomplete="off" method="post" action="">
 	<div class="mm-form-actions">
-		<?php if ($_SESSION['ubp'] != "") {
+		<?php if (!empty($_SESSION['ubp'])) {
 		echo "    <a class='btn bg-warning' href='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'> <i class='fa fa-close'></i> ".$_close."</a>";
 	} elseif ($_SESSION['vcr'] = "active") {
 		echo "    <a class='btn bg-warning' href='./?hotspot=users-by-profile&session=" . $session . "'> <i class='fa fa-close'></i> ".$_close."</a>";
@@ -239,12 +239,12 @@ date_default_timezone_set($_SESSION['timezone']);
 
 	?>
 	<a class="btn bg-pink" title="Open User List by Profile 
-<?php if ($_SESSION['ubp'] == "") {
+<?php if (empty($_SESSION['ubp'])) {
 	echo "all";
 } else {
 	echo $uprofile;
 } ?>" href="./?hotspot=users&profile=
-<?php if ($_SESSION['ubp'] == "") {
+<?php if (empty($_SESSION['ubp'])) {
 	echo "all";
 } else {
 	echo $uprofile;
