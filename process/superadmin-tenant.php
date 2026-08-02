@@ -76,3 +76,20 @@ if ($action === 'delete') {
 }
 
 mikhmon_json(array('ok' => false, 'error' => 'unknown_action'), 400);
+
+if ($action === 'update') {
+    $label = isset($_POST['label']) ? (string) $_POST['label'] : '';
+    $domain = isset($_POST['domain']) ? (string) $_POST['domain'] : '';
+    $adminUser = isset($_POST['admin_user']) ? (string) $_POST['admin_user'] : '';
+    $adminPass = isset($_POST['admin_pass']) ? (string) $_POST['admin_pass'] : '';
+    $data = array();
+    if ($label !== '') $data['label'] = $label;
+    if ($domain !== '') $data['domain'] = $domain;
+    if ($adminUser !== '') $data['admin_user'] = $adminUser;
+    if ($adminPass !== '') $data['admin_pass'] = $adminPass;
+    $result = mikhmon_superadmin_tenant_update($slug, $data);
+    if (!$result['ok']) {
+        mikhmon_json(array('ok' => false, 'error' => isset($result['error']) ? $result['error'] : 'update_failed'), 400);
+    }
+    mikhmon_json(array('ok' => true, 'message' => 'Tenant updated: ' . $slug));
+}

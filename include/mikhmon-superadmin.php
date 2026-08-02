@@ -742,3 +742,37 @@ function mikhmon_superadmin_require_auth()
 }
 
 ?>
+
+if (!function_exists('mikhmon_superadmin_tenant_update')) {
+function mikhmon_superadmin_tenant_update(, )
+{
+     = mikhmon_tenant_data_dir();
+    if (!is_dir()) {
+        return array('ok' => false, 'error' => 'tenant_not_found');
+    }
+     = mikhmon_tenant_meta_read();
+    if (isset(['label'])) {
+        ['label'] = (string) ['label'];
+    }
+    if (isset(['domain'])) {
+        ['domain'] = (string) ['domain'];
+    }
+     = mikhmon_tenant_meta_write(, );
+    if (!) {
+        return array('ok' => false, 'error' => 'meta_write_failed');
+    }
+    if (isset(['admin_pass']) && ['admin_pass'] !== '') {
+         =  . '/config.php';
+        if (is_file()) {
+             = isset(['admin_user']) && ['admin_user'] !== ''
+                ? ['admin_user']
+                : mikhmon_tenant_config_admin();
+             = mikhmon_superadmin_tenant_config_content(, ['admin_pass']);
+            if (@file_put_contents(, ) === false) {
+                return array('ok' => false, 'error' => 'config_write_failed');
+            }
+        }
+    }
+    return array('ok' => true, 'slug' => );
+}
+}

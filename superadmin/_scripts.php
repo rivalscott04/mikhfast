@@ -136,3 +136,22 @@
   });
 })();
 </script>
+
+  var editForm = document.getElementById('saEditForm');
+  if (editForm) {
+    editForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fd = new FormData(editForm);
+      fd.append('action', 'update');
+      fetch('<?= htmlspecialchars(mikhmon_superadmin_url('action'), ENT_QUOTES) ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.ok) {
+            if (typeof mikhmon_toast === 'function') mikhmon_toast(res.message || 'Tenant updated', 'ok');
+            window.location.href = '<?= htmlspecialchars(mikhmon_superadmin_view_url('tenants'), ENT_QUOTES) ?>';
+          } else if (typeof mikhmon_toast === 'function') {
+            mikhmon_toast(res.error || 'Failed', 'error');
+          }
+        });
+    });
+  }

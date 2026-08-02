@@ -8,7 +8,7 @@ if (!mikhmon_superadmin_authenticated()) {
 }
 
 $saView = isset($_GET['view']) ? preg_replace('/[^a-z]/', '', (string) $_GET['view']) : 'tenants';
-if (!in_array($saView, array('tenants', 'create', 'settings'), true)) {
+if (!in_array($saView, array('tenants', 'create', 'edit', 'settings'), true)) {
     $saView = 'tenants';
 }
 
