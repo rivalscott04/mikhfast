@@ -2103,3 +2103,11 @@ body.theme-light .mm-sa-account-meta__row{
   }
 }
 
+
+/* Super Admin & tenant: hamburger open sidenav on mobile */
+@media screen and (max-width: 750px){
+  body.mm-nav-open .sidenav{
+    width:210px !important;
+    border-right:1px solid var(--mm-border, #23282c) !important;
+  }
+}
