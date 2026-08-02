@@ -1,0 +1,2 @@
+# Block direct HTTP access to tenant data and secrets (Apache).
+Require all denied

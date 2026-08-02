@@ -6,6 +6,8 @@ mikhmon_ai_guidelines/
 include/config.php
 include/config.php.bak
 include/quickbt.php
+voucher/templates/*
+!voucher/templates/.gitkeep
 
 # Build output (generated on server via bun run build)
 js/mikhmon.bundle.prod.js
@@ -13,3 +15,14 @@ node_modules/
 
 # graphify knowledge graph (generated)
 graphify-out/
+
+# Tenant SQLite databases (generated per subdomain)
+data/tenants/**/*.sqlite
+data/tenants/**/*.sqlite-*
+data/tenants/**/config.php
+data/tenants/**/config.php.bak
+
+# Local env files (never in document root / never commit secrets)
+.env
+.env.local
+.env.*.local

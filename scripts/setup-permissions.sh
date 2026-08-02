@@ -119,10 +119,10 @@ check_deploy_files() {
 apply_permissions() {
   local web="$1"
 
-  chown -R "$web:$web" "$APP/include" "$APP/img" "$APP/voucher"
+  chown -R "$web:$web" "$APP/include" "$APP/img" "$APP/voucher" "$APP/data"
 
   chmod 755 "$APP/include"
-  chmod 775 "$APP/img" "$APP/voucher"
+  chmod 775 "$APP/img" "$APP/voucher" "$APP/data" "$APP/data/tenants"
 
   # include — writable
   chmod 664 "$APP/include/config.php"
@@ -141,9 +141,14 @@ apply_permissions() {
 
   # voucher — generate user & template editor
   chmod 664 "$APP/voucher/temp.php"
+  mkdir -p "$APP/voucher/templates"
+  chmod 775 "$APP/voucher/templates"
   while IFS= read -r -d '' tpl; do
     chmod 664 "$tpl"
   done < <(find "$APP/voucher" -maxdepth 1 -name 'template*.php' -print0 2>/dev/null)
+  while IFS= read -r -d '' tpl; do
+    chmod 664 "$tpl"
+  done < <(find "$APP/voucher/templates" -name 'template*.php' -print0 2>/dev/null)
 
   # img — static assets
   chmod 644 "$APP/img/mikfast.svg" 2>/dev/null || true
@@ -180,6 +185,7 @@ verify_as_web_user() {
   run_check "include/quickbt.php writable" test -w "$APP/include/quickbt.php"
   run_check "voucher/temp.php writable"    test -w "$APP/voucher/temp.php"
   run_check "img/ writable"                test -w "$APP/img"
+  run_check "data/tenants writable"       test -w "$APP/data/tenants"
   run_check "img/mikfast.svg readable"     test -r "$APP/img/mikfast.svg"
 
   echo ""
@@ -201,6 +207,7 @@ main() {
   ensure_dir "$APP/include"
   ensure_dir "$APP/img"
   ensure_dir "$APP/voucher"
+  ensure_dir "$APP/data/tenants"
 
   ensure_config_php
   ensure_file "$APP/include/quickbt.php" '<?php $qrbt="disable";?>'

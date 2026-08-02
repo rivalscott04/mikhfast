@@ -27,6 +27,7 @@ $mikhmonJsModules = array(
   'mikhmon/widget-accordion.js',
   'mikhmon/widget-lang.js',
   'mikhmon/widget-form-select.js',
+  'mikhmon/router-switcher.js',
   'mikhmon/bootstrap.js',
 );
 

@@ -13,11 +13,11 @@ function mikhmon_is_ajax() {
 
 /**
  * True when the current request should open a RouterOS API connection.
- * Home/dashboard/about skip API; routes like hotspot-user=add do not set ?hotspot=.
+ * Home/dashboard/about/template-editor skip API; routes like hotspot-user=add do not set ?hotspot=.
  */
 function mikhmon_request_needs_router_api() {
   $hotspot = isset($_GET['hotspot']) ? (string) $_GET['hotspot'] : '';
-  if ($hotspot === 'about') {
+  if ($hotspot === 'about' || $hotspot === 'template-editor') {
     return false;
   }
   if ($hotspot !== '' && $hotspot !== 'dashboard') {

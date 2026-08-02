@@ -219,6 +219,10 @@ body .progress .progress-bar.mm-meter-fill--danger{
 .mm-chip i{ font-size:10px; }
 .mm-chip--ok i{ color:#2ecc71; }
 .mm-chip--muted i{ color:rgba(255,255,255,.55); }
+.mm-chip--warn{ border-color:rgba(241,196,15,.45); color:#f1c40f; }
+.mm-chip--warn i{ color:#f1c40f; }
+.mm-chip--danger{ border-color:rgba(231,76,60,.45); color:#e74c3c; }
+.mm-chip--danger i{ color:#e74c3c; }
 
 .mm-btn-ghost{
   border-radius:12px !important;
@@ -1565,4 +1569,198 @@ body.theme-light .mm-confirm__panel{
 }
 body.mm-confirm-open{
   overflow:hidden;
+}
+
+/* Router Hub cards */
+.mm-router-hub-toolbar{
+  margin-bottom:12px;
+}
+.mm-router-card .card-body{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-height:160px;
+}
+.mm-router-card__head{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  justify-content:flex-end;
+}
+.mm-router-card__name{
+  font-size:1.05rem;
+  font-weight:800;
+  line-height:1.25;
+}
+.mm-router-card__actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-top:auto;
+  padding-top:8px;
+}
+@media (max-width: 1024px){
+  .mm-router-hub-col{
+    flex:0 0 50%;
+    max-width:50%;
+  }
+}
+@media (max-width: 750px){
+  .mm-router-hub-col{
+    flex:0 0 100%;
+    max-width:100%;
+  }
+  .mm-router-card__actions .btn,
+  .mm-router-card__actions .mm-action-btn{
+    min-height:44px;
+    min-width:44px;
+  }
+}
+
+/* Wizard steps */
+.mm-wizard-steps{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 16px;
+}
+.mm-wizard-steps__item{
+  font-size:12px;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:999px;
+  opacity:.65;
+  border:1px solid rgba(255,255,255,.14);
+}
+.mm-wizard-steps__item--active{
+  opacity:1;
+  background:rgba(45,156,219,.18);
+  box-shadow:0 0 0 1px rgba(45,156,219,.28) inset;
+}
+body.theme-light .mm-wizard-steps__item{
+  border-color:rgba(17,24,39,.12);
+}
+body.theme-light .mm-wizard-steps__item--active{
+  background:rgba(0,139,201,.10);
+}
+.mm-wizard-step[hidden]{ display:none !important; }
+
+/* Router switcher panel */
+.mm-router-switcher-wrap{ position:relative; }
+.mm-router-switcher-trigger{
+  width:100%;
+  margin-top:8px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.18);
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+.mm-router-switcher-trigger__row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.mm-router-switcher-trigger__name{
+  font-weight:800;
+  font-size:14px;
+  line-height:1.2;
+}
+.mm-router-switcher-trigger__chip{ margin-top:6px; }
+.mm-router-switcher{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 6px);
+  max-height:min(360px, calc(100vh - 120px));
+  overflow:auto;
+  padding:8px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(24,28,33,.96);
+  box-shadow:0 14px 34px rgba(0,0,0,.32);
+  backdrop-filter:blur(10px);
+  z-index:10052;
+}
+.mm-router-switcher[hidden]{ display:none !important; }
+.mm-router-switcher__search{ margin-bottom:8px; }
+.mm-router-switcher__item{
+  appearance:none;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  padding:8px 10px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:rgba(255,255,255,.92);
+  text-align:left;
+  cursor:pointer;
+}
+.mm-router-switcher__item:hover,
+.mm-router-switcher__item:focus{
+  outline:none;
+  background:rgba(255,255,255,.08);
+}
+.mm-router-switcher__item--active{
+  background:rgba(0,139,201,.18);
+}
+.mm-router-switcher__item--highlight{
+  background:rgba(0,139,201,.28);
+}
+.mm-router-switcher__item-name{ font-weight:700; font-size:13px; }
+.mm-router-switcher__check{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#2ecc71;
+}
+.mm-router-switcher__item{ position:relative; padding-right:28px; }
+.mm-router-switcher__footer{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+.mm-router-switcher__footer-link{
+  display:block;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+}
+.mm-router-switcher__footer-link:hover{
+  background:rgba(255,255,255,.08);
+  text-decoration:none;
+}
+body.theme-light .mm-router-switcher-trigger{
+  border-color:rgba(17,24,39,.12);
+  background:rgba(255,255,255,.85);
+}
+body.theme-light .mm-router-switcher{
+  border-color:rgba(17,24,39,.10);
+  background:rgba(255,255,255,.98);
+  box-shadow:0 14px 34px rgba(17,24,39,.14);
+}
+body.theme-light .mm-router-switcher__item{
+  color:rgba(17,24,39,.90);
+}
+body.theme-light .mm-router-switcher__item:hover,
+body.theme-light .mm-router-switcher__item:focus{
+  background:rgba(17,24,39,.05);
+}
+body.theme-light .mm-router-switcher__item--active{
+  background:rgba(0,139,201,.10);
+}
+body.theme-light .mm-router-switcher__item--highlight{
+  background:rgba(0,139,201,.16);
 }

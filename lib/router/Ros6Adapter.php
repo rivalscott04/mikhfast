@@ -108,7 +108,13 @@ class Ros6Adapter implements RouterAdapterInterface
         return true;
     }
 
-    public function getHotspotLogs($limit = 20)
+    public function getHotspotLogs($limit = 20, $maxFetch = 2000)
+    {
+        $rows = $this->getHotspotLogsAll($maxFetch);
+        return array_slice($rows, 0, (int) $limit);
+    }
+
+    public function getHotspotLogsAll($maxFetch = 2000)
     {
         $rows = $this->client->comm("/log/print", array(
             "?topics" => "hotspot,info,debug",
@@ -117,15 +123,11 @@ class Ros6Adapter implements RouterAdapterInterface
             return array();
         }
         $rows = array_reverse($rows);
-        return array_slice($rows, 0, (int) $limit);
-    }
-
-    public function getHotspotLogsAll()
-    {
-        $rows = $this->client->comm("/log/print", array(
-            "?topics" => "hotspot,info,debug",
-        ), array("time", "message"));
-        return is_array($rows) ? array_reverse($rows) : array();
+        $maxFetch = (int) $maxFetch;
+        if ($maxFetch > 0 && count($rows) > $maxFetch) {
+            $rows = array_slice($rows, 0, $maxFetch);
+        }
+        return $rows;
     }
 
     public function getHotspotCookies()

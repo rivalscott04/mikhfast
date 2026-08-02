@@ -196,6 +196,13 @@ Buat site config, contoh:
 
   root $app;
   index index.php;
+
+  # Jangan expose data tenant / env ke publik
+  location ^~ /data/ {
+    deny all;
+    return 403;
+  }
+
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
     fastcgi_pass unix:/run/php/php8.3-fpm.sock;
@@ -204,7 +211,18 @@ Buat site config, contoh:
     try_files \$uri \$uri/ /index.php?\$query_string;
   }
 
-Reload: nginx -t && systemctl reload nginx
+${CYAN}--- PHP-FPM pool (super-admin & cron, server env only) ---${NC}
+  env[MIKHMON_SUPERADMIN_USER] = superadmin
+  env[MIKHMON_SUPERADMIN_PASS] = ganti-password-kuat
+  env[MIKHMON_BASE_DOMAIN] = mikfast.com
+  env[MIKHMON_CRON_TOKEN] = token-cron-rahasia
+  env[MIKHMON_INGEST_TOKEN] = token-ingest-rahasia
+  env[MIKHMON_NOTIFY_WEBHOOK] = https://hooks.example.com/mikfast
+  env[MIKHMON_OFF_ROUTER] = 1
+
+  Jangan taruh .env di document root. Set env di pool systemd / php-fpm.d/*.conf saja.
+
+Reload: nginx -t && systemctl reload nginx && systemctl reload php8.3-fpm
 
 ${CYAN}--- Docker ---${NC}
   cd $app && docker compose up -d
@@ -224,10 +242,13 @@ print_done() {
   echo "  User   : mikhmon"
   echo "  Pass   : 1234"
   echo ""
-  echo "  Langkah berikutnya (cukup lewat UI):"
+  echo "  Langkah berikutnya (single-tenant / lokal):"
   echo "    1. Login"
   echo "    2. Admin Settings → Add Router"
   echo "    3. Isi IP, user, password MikroTik → Save"
+  echo ""
+  echo "  Deploy SaaS multi-tenant (wildcard subdomain):"
+  echo "    Baca $app/DEPLOY.md"
   echo ""
   print_nginx_hint "$app"
 }

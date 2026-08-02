@@ -108,14 +108,50 @@ class RouterService
         return $this->adapter->ensureHotspotLoggingToDisk();
     }
 
-    public function getHotspotLogs($limit = 20)
+    /**
+     * Skip enabling disk logging when router storage is low (≤20% free).
+     * Pass $resourceRow from a prior getSystemResource() call to avoid duplicate API round-trips.
+     */
+    public function ensureHotspotLoggingSafe($resourceRow = null)
     {
-        return $this->adapter->getHotspotLogs($limit);
+        require_once __DIR__ . '/../../include/router-hub.php';
+        if ($resourceRow === null) {
+            $resourceRow = $this->getSystemResource();
+        }
+        $row = is_array($resourceRow) ? $resourceRow : array();
+        if (isset($row[0]) && is_array($row[0])) {
+            $row = $row[0];
+        }
+        $storage = mikhmon_storage_from_resource($row);
+        if ($storage['hdd_total'] > 0 && $storage['hdd_free_pct'] <= mikhmon_storage_log_skip_pct()) {
+            return false;
+        }
+        return $this->ensureHotspotLoggingToDisk();
     }
 
-    public function getHotspotLogsAll()
+    public function removeScriptsByIds(array $ids)
     {
-        return $this->adapter->getHotspotLogsAll();
+        $removed = 0;
+        foreach ($ids as $id) {
+            if ($id !== '' && $this->removeScriptById($id)) {
+                $removed++;
+            }
+        }
+        return $removed;
+    }
+
+    public function getHotspotLogs($limit = 20)
+    {
+        $maxFetch = function_exists('mikhmon_log_fetch_max') ? mikhmon_log_fetch_max() : 2000;
+        return $this->adapter->getHotspotLogs($limit, $maxFetch);
+    }
+
+    public function getHotspotLogsAll($maxFetch = null)
+    {
+        if ($maxFetch === null) {
+            $maxFetch = function_exists('mikhmon_log_fetch_max') ? mikhmon_log_fetch_max() : 2000;
+        }
+        return $this->adapter->getHotspotLogsAll($maxFetch);
     }
 
     public function getHotspotCookies()

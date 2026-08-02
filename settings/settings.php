@@ -44,12 +44,12 @@ if (!isset($_SESSION["mikhmon"])) {
     $configPath = mikhmon_config_path();
     $configContent = mikhmon_config_ensure($configPath);
     if ($configContent === false) {
-      $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";
+      $mikhmon_config_write_error = "Cannot read include/load-config.php. Data was NOT modified.";
     } else {
     $line = "\n" . '$data' . "['" . $router . "'] = array ('1'=>'" . $router . "!','" . $router . "@|@','" . $router . "#|#','" . $router . "%','" . $router . "^','" . $router . "&Rp','" . $router . "*10','" . $router . "(1','" . $router . ")','" . $router . "=10','" . $router . "@!@disable');";
     $updated = rtrim($configContent) . $line . "\n";
     if (!mikhmon_config_write($updated, $configPath)) {
-      $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
+      $mikhmon_config_write_error = "Cannot write to include/load-config.php. Please check file permissions/ownership.";
     } else {
       $redirect = "./admin.php?id=settings&session=" . $router;
       if (mikhmon_is_ajax()) {
@@ -92,7 +92,7 @@ if (!isset($_SESSION["mikhmon"])) {
     $configContent = mikhmon_config_ensure($configPath);
     $writeOk = false;
     if ($configContent === false) {
-      $mikhmon_config_write_error = "Cannot read include/config.php. Data was NOT modified.";
+      $mikhmon_config_write_error = "Cannot read include/load-config.php. Data was NOT modified.";
     } else {
 
     // Rebuild the session line and replace only that line (avoid corrupting other sessions).
@@ -125,7 +125,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
     $writeOk = mikhmon_config_write($updated, $configPath);
     if ($writeOk === false) {
-      $mikhmon_config_write_error = "Cannot write to include/config.php. Please check file permissions/ownership.";
+      $mikhmon_config_write_error = "Cannot write to include/load-config.php. Please check file permissions/ownership.";
     }
     }
     $_SESSION["connect"] = "";

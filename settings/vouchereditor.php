@@ -28,9 +28,10 @@ if (!isset($_SESSION["mikhmon"])) {
 	$voucherDir = $baseDir . '/voucher';
 
 // load config
-include_once($baseDir . '/include/config.php');
+include_once($baseDir . '/include/load-config.php');
 include_once($baseDir . '/include/readcfg.php');
 include_once($baseDir . '/include/mikhmon-toast.php');
+require_once $voucherDir . '/template-resolver.php';
 
 $url = $_SERVER['REQUEST_URI'];
 $telplate = isset($_POST['template']) ? $_POST['template'] : (isset($_GET['template']) ? $_GET['template'] : 'default');
@@ -69,17 +70,8 @@ if ($telplate == "default" || $telplate == "rdefault") {
 	$popupQR = "javascript:window.open('./voucher/vpreview.php?usermode=up&qr=yes&session=" . $session . "','_blank','width=310,height=310')";
 }
 
-$templateFile = $voucherDir . '/' . $telplatet . '.php';
-$templateWriteError = '';
-if (!is_dir($voucherDir)) {
-	$templateWriteError = 'Folder voucher tidak ditemukan.';
-} elseif (!is_readable($voucherDir)) {
-	$templateWriteError = 'Folder voucher/ tidak bisa dibaca. Periksa permission folder.';
-} elseif (!is_writable($voucherDir)) {
-	$templateWriteError = 'Folder voucher/ tidak bisa ditulis. Set permission writable untuk user web server.';
-} elseif (file_exists($templateFile) && !is_writable($templateFile)) {
-	$templateWriteError = 'File ' . basename($templateFile) . ' tidak bisa ditulis. Periksa permission file template.';
-}
+$templateFile = mikhmon_voucher_template_write_path($session, $telplatet, $voucherDir);
+$templateWriteError = mikhmon_voucher_template_write_error($session, $telplatet, $voucherDir);
 
 if (isset($_POST['save'])) {
 	if ($templateWriteError !== '') {
@@ -182,20 +174,21 @@ textarea{
 						</tr>
 						</table>
 	        	<textarea class="bg-dark" id="editorMikhmon" name="editor" style="width:100%" height="700">
-						<?php if ($telplate == "default") {
-						echo file_get_contents($voucherDir . '/template.php');
+						<?php
+					if ($telplate == "default") {
+						echo mikhmon_voucher_template_read($session, 'template', $voucherDir);
 					} elseif ($telplate == "thermal") {
-						echo file_get_contents($voucherDir . '/template-thermal.php');
+						echo mikhmon_voucher_template_read($session, 'template-thermal', $voucherDir);
 					} elseif ($telplate == "small") {
-						echo file_get_contents($voucherDir . '/template-small.php');
+						echo mikhmon_voucher_template_read($session, 'template-small', $voucherDir);
 					} elseif ($telplate == "rdefault") {
-						echo file_get_contents($voucherDir . '/default.php');
+						echo mikhmon_voucher_template_read('', 'default', $voucherDir);
 					} elseif ($telplate == "rthermal") {
-						echo file_get_contents($voucherDir . '/default-thermal.php');
+						echo mikhmon_voucher_template_read('', 'default-thermal', $voucherDir);
 					} elseif ($telplate == "rsmall") {
-						echo file_get_contents($voucherDir . '/default-small.php');
+						echo mikhmon_voucher_template_read('', 'default-small', $voucherDir);
 					} else {
-						echo file_get_contents($voucherDir . '/template.php');
+						echo mikhmon_voucher_template_read($session, 'template', $voucherDir);
 					} ?>
 	        </textarea>
 			</form>

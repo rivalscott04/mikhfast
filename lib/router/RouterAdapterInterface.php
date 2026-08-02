@@ -15,9 +15,9 @@ interface RouterAdapterInterface
     public function countDhcpLeases();
 
     public function ensureHotspotLoggingToDisk();
-    public function getHotspotLogs($limit = 20);
+    public function getHotspotLogs($limit = 20, $maxFetch = 2000);
 
-    public function getHotspotLogsAll();
+    public function getHotspotLogsAll($maxFetch = 2000);
 
     public function getHotspotCookies();
     public function countHotspotCookies();

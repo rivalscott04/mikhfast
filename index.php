@@ -48,10 +48,10 @@ if (!isset($_SESSION["mikhmon"])) {
   if ($__mikhmon_ajax) {
     mikhmon_json(array(
       "ok" => false,
-      "redirect" => "./admin.php?id=sessions",
+      "redirect" => "./admin.php?id=routers",
     ), 400);
   }
-  echo "<script>window.location='./admin.php?id=sessions'</script>";
+  echo "<script>window.location='./admin.php?id=routers'</script>";
 } else {
   $_SESSION["$session"] = $session;
   $setsession = $_SESSION["$session"];
@@ -86,11 +86,8 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
 // load config
-  require_once __DIR__ . '/include/config-write.php';
-  if (mikhmon_config_read() === false) {
-    mikhmon_config_ensure();
-  }
-  include('./include/config.php');
+  require_once __DIR__ . '/include/mikhmon-bootstrap.php';
+  mikhmon_bootstrap_init();
   include('./include/readcfg.php');
 
 // theme  

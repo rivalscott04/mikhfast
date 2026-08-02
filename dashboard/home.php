@@ -16,6 +16,8 @@ $resource = null;
 $routerboard = null;
 ?>
 <div id="reloadHome">
+  <?php include __DIR__ . '/../include/router-offline-banner.php'; ?>
+  <?php include __DIR__ . '/../include/router-storage-banner.php'; ?>
   <div id="r_4" style="display:none"></div>
 
   <?php

@@ -24,6 +24,7 @@ if (!isset($_SESSION["mikhmon"])) {
 } else {
 
   include ('./include/version.php');
+  require_once __DIR__ . '/router-hub.php';
 
   $btnmenuactive = "font-weight: bold;background-color: #f9f9f9; color: #000000";
   if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?session") {
@@ -139,10 +140,14 @@ if (!isset($_SESSION["mikhmon"])) {
   } elseif ($hotspot == "about") {
     $mpage = $_about;
     $sabout = "active";
-  } elseif ($id == "sessions" || $id == "remove" || $router == "new") {
+  } elseif ($id == "sessions" || $id == "routers" || $id == "remove" || $router == "new") {
     $ssesslist = "active";
-    $mpage = $_admin_settings;
-  } elseif ($id == "settings" && $session == "new") {
+    $mpage = ($id == "sessions") ? (isset($_account_settings) ? $_account_settings : $_admin_settings) : (isset($_routers) ? $_routers : $_router_list);
+    if ($id == "routers") {
+      $srouterhub = "active";
+      $ssesslist = "";
+    }
+  } elseif ($id == "router-add" || ($id == "settings" && $session == "new") || ($router && explode("-", $router)[0] == "new")) {
     $snsettings = "active";
     $mpage = $_add_router;
   } elseif ($id == "settings" || $id == "connect") {
@@ -247,8 +252,9 @@ if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 
   <div class="menu spa"></div>
 <?php 
 } ?>  
-  <a href="./admin.php?id=sessions" class="menu <?= $ssesslist; ?>"><i class="fa fa-gear"></i> <?= $_admin_settings ?></a>
-  <a href="./admin.php?id=settings&router=new-<?= rand(1111,9999) ?>" class="menu <?= $snsettings ?>"><i class="fa fa-plus"></i> <?= $_add_router ?></a>
+  <a href="./admin.php?id=routers" class="menu <?= isset($srouterhub) ? $srouterhub : ''; ?>"><i class="fa fa-server"></i> <?= isset($_routers) ? $_routers : $_router_list ?></a>
+  <a href="./admin.php?id=sessions" class="menu <?= $ssesslist; ?>"><i class="fa fa-gear"></i> <?= isset($_account_settings) ? $_account_settings : $_admin_settings ?></a>
+  <a href="./admin.php?id=router-add" class="menu <?= $snsettings ?>"><i class="fa fa-plus"></i> <?= $_add_router ?></a>
   <a href="./admin.php?id=about" class="menu <?= $sabout; ?>"><i class="fa fa-info-circle"></i> <?= $_about ?></a>
 
 </div>
@@ -379,25 +385,56 @@ if (file_exists('./info.php')) {
 </div>
 
 <div id="sidenav" class="sidenav">
-  <div class="mm-sidenav-header">
+  <div class="mm-sidenav-header mm-router-switcher-wrap">
     <div class="mm-sidenav-brand">
       <img src="img/mikfast.svg" alt="MIKFAST" style="width:22px;height:22px;vertical-align:-4px;margin-right:8px;">
       MIKFAST
     </div>
-    <div class="mm-sidenav-sub"><?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?></div>
-    <select class="connect mm-sidenav-session" aria-label="Session">
-      <option id="MikhmonSession" value="<?= $session; ?>" selected><?= htmlspecialchars($session, ENT_QUOTES); ?> &#x2666;</option>
-        <?php
-        foreach (file('./include/config.php') as $line) {
-          $sesname = explode("'", $line)[1];
-          if ($sesname == "" || $sesname== "mikhmon" || $sesname == $session) {
-          } else {
-            echo '<option value="' . $sesname. '">'.$sesname. '</option>';
-          }
-        }
+    <?php
+      $mmRouterList = mikhmon_router_list(isset($data) ? $data : array());
+      $mmCurrentDisplay = ($hotspotname !== '') ? $hotspotname : $session;
+      $mmCurrentStatus = ($session !== '') ? mikhmon_router_status_get($session) : mikhmon_router_status_empty();
+      $mmStatusOnline = $mmCurrentStatus['online'] === true;
+      $mmStatusChip = $mmStatusOnline ? 'mm-chip--ok' : 'mm-chip--muted';
+      $mmStatusText = $mmStatusOnline
+        ? (isset($_online) ? $_online : 'Online')
+        : ($mmCurrentStatus['online'] === false ? (isset($_offline) ? $_offline : 'Offline') : (isset($_unknown) ? $_unknown : 'Unknown'));
+    ?>
+    <button type="button" class="mm-router-switcher-trigger" id="mmRouterSwitcherTrigger" aria-expanded="false" aria-haspopup="listbox" aria-label="<?= isset($_routers) ? $_routers : 'Routers' ?>">
+      <span class="mm-router-switcher-trigger__row">
+        <span class="mm-router-switcher-trigger__name"><?= htmlspecialchars($mmCurrentDisplay, ENT_QUOTES) ?></span>
+        <i class="fa fa-caret-down" aria-hidden="true"></i>
+      </span>
+      <span class="mm-chip <?= $mmStatusChip ?> mm-router-switcher-trigger__chip"><i class="fa fa-circle"></i> <?= htmlspecialchars($mmStatusText, ENT_QUOTES) ?></span>
+      <span class="mm-sidenav-sub"><?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES) ?> · Hotspot: <?= htmlspecialchars($hotspotname, ENT_QUOTES) ?></span>
+    </button>
+    <div id="mmRouterSwitcher" class="mm-router-switcher" hidden>
+      <?php if (count($mmRouterList) >= 4) { ?>
+      <input type="search" class="form-control mm-router-switcher__search" id="mmRouterSwitcherSearch" placeholder="<?= isset($_search) ? $_search : 'Search' ?>..." autocomplete="off">
+      <?php } ?>
+      <div class="mm-router-switcher__list" role="listbox" aria-label="<?= isset($_routers) ? $_routers : 'Routers' ?>">
+        <?php foreach ($mmRouterList as $mmR) {
+          $mmRStatus = mikhmon_router_status_get($mmR['slug']);
+          $mmRActive = ($mmR['slug'] === $session);
+          $mmROnline = $mmRStatus['online'] === true;
         ?>
-    </select>
-    <div class="mm-sidenav-sub" style="margin-top:8px;">Hotspot: <?= htmlspecialchars($hotspotname, ENT_QUOTES); ?></div>
+        <button type="button"
+          class="mm-router-switcher__item<?= $mmRActive ? ' mm-router-switcher__item--active' : '' ?> connect"
+          id="<?= htmlspecialchars($mmR['slug'], ENT_QUOTES) ?>"
+          role="option"
+          aria-selected="<?= $mmRActive ? 'true' : 'false' ?>"
+          data-mm-router-name="<?= htmlspecialchars(strtolower($mmR['display_name'] . ' ' . $mmR['slug']), ENT_QUOTES) ?>">
+          <span class="mm-router-switcher__item-name"><?= htmlspecialchars($mmR['display_name'], ENT_QUOTES) ?></span>
+          <span class="mm-sidenav-sub"><?= htmlspecialchars($mmR['slug'], ENT_QUOTES) ?><?= $mmROnline === false && $mmRStatus['online'] !== null ? ' · ' . (isset($_offline) ? $_offline : 'Offline') : '' ?></span>
+          <?php if ($mmRActive) { ?><i class="fa fa-check mm-router-switcher__check" aria-hidden="true"></i><?php } ?>
+        </button>
+        <?php } ?>
+      </div>
+      <div class="mm-router-switcher__footer">
+        <a class="mm-router-switcher__footer-link" href="./admin.php?id=router-add"><i class="fa fa-plus"></i> <?= $_add_router ?></a>
+        <a class="mm-router-switcher__footer-link" href="./admin.php?id=routers"><i class="fa fa-server"></i> <?= isset($_router_hub) ? $_router_hub : 'All Routers' ?></a>
+      </div>
+    </div>
   </div>
   <a href="./?session=<?= $session; ?>" class="menu <?= $shome; ?>"><i class="fa fa-dashboard"></i> <?= $_dashboard ?></a>
   <!--hotspot (balanced + simpler)-->
@@ -471,7 +508,8 @@ if (file_exists('./info.php')) {
   </div>
   <div class="dropdown-container <?= $settmenu; ?>">
   <a href="./admin.php?id=settings&session=<?= $session; ?>" class="menu "> <i class="fa fa-gear "></i> <?= $_session_settings ?> </a>
-  <a href="./admin.php?id=sessions" class="menu "> <i class="fa fa-gear "></i> <?= $_admin_settings ?> </a>
+  <a href="./admin.php?id=routers" class="menu "> <i class="fa fa-server "></i> <?= isset($_routers) ? $_routers : $_router_list ?> </a>
+  <a href="./admin.php?id=sessions" class="menu "> <i class="fa fa-gear "></i> <?= isset($_account_settings) ? $_account_settings : $_admin_settings ?> </a>
   <a href="./?hotspot=uplogo&session=<?= $session; ?>" class="menu <?= $uplogo; ?>"> <i class="fa fa-upload "></i> <?= $_upload_logo ?> </a>
   <a href="./?hotspot=template-editor&template=default&session=<?= $session; ?>" class="menu <?= $teditor; ?>"> <i class="fa fa-edit "></i> <?= $_template_editor ?> </a>          
   </div>
@@ -481,9 +519,12 @@ if (file_exists('./info.php')) {
 </div>
 <script>
 $(document).ready(function(){
-  $(".connect").change(function(){
-    connect(this.value)
+  $(".connect").click(function(){
+    connect(this.id)
   });
+  if (typeof mikhmon_initRouterSwitcher === "function") {
+    mikhmon_initRouterSwitcher();
+  }
   $(".mm-theme-toggle").click(function(){
     var body = document.body;
     if (!body || !body.classList) return;

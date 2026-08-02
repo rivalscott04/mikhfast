@@ -50,6 +50,7 @@ include('./settings/setlang.php');
 include('./include/lang.php');
 include('./lang/'.$langid.'.php');
 include('./include/mikhmon-toast.php');
+require_once __DIR__ . '/include/mikhmon-superadmin.php';
 
 // theme
 include('./include/theme.php');
@@ -64,12 +65,138 @@ if ($_SESSION['theme'] == "") {
 
 
 // load config (before HTML — headhtml needs $areload, $hotspotname)
-require_once __DIR__ . '/include/config-write.php';
-if (mikhmon_config_read() === false) {
-  mikhmon_config_ensure();
-}
-include('./include/config.php');
+require_once __DIR__ . '/include/mikhmon-bootstrap.php';
+mikhmon_bootstrap_init();
 include('./include/readcfg.php');
+
+if ($id === 'router-status') {
+  if (!isset($_SESSION['mikhmon'])) {
+    mikhmon_json(array('ok' => false, 'error' => 'unauthorized'), 401);
+  }
+  include_once('./lib/routeros_api.class.php');
+  include_once('./routers/router-status.php');
+  exit;
+}
+
+if ($id === 'router-test') {
+  if (!isset($_SESSION['mikhmon'])) {
+    mikhmon_json(array('ok' => false, 'error' => 'unauthorized'), 401);
+  }
+  include_once('./lib/routeros_api.class.php');
+  include_once('./routers/router-test.php');
+  exit;
+}
+
+if ($id === 'router-add' && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['wizard_save'])) {
+  if (!isset($_SESSION['mikhmon'])) {
+    mikhmon_json(array('ok' => false, 'error' => 'unauthorized'), 401);
+  }
+  include_once('./lib/routeros_api.class.php');
+  include_once('./routers/add-save.php');
+  exit;
+}
+
+if ($id === 'purge-reports') {
+  if (!isset($_SESSION['mikhmon'])) {
+    mikhmon_json(array('ok' => false, 'error' => 'unauthorized'), 401);
+  }
+  include_once('./lib/routeros_api.class.php');
+  include_once('./process/purge-reports.php');
+  exit;
+}
+
+if ($id === 'sync-reports') {
+  if (!isset($_SESSION['mikhmon'])) {
+    mikhmon_json(array('ok' => false, 'error' => 'unauthorized'), 401);
+  }
+  include_once('./lib/routeros_api.class.php');
+  include_once('./process/sync-reports.php');
+  exit;
+}
+
+if ($id === 'report-ingest') {
+  include_once('./process/report-ingest.php');
+  exit;
+}
+
+if ($id === 'log-ingest') {
+  include_once('./process/log-ingest.php');
+  exit;
+}
+
+if ($id === 'tenant-cron') {
+  include_once('./process/tenant-cron.php');
+  exit;
+}
+
+if ($id === 'superadmin-action') {
+  include_once('./process/superadmin-tenant.php');
+  exit;
+}
+
+if ($id === 'superadmin-logout') {
+  mikhmon_superadmin_logout();
+  if (!headers_sent()) {
+    header('Location: ./admin.php?id=superadmin-login');
+    exit;
+  }
+  echo "<script>window.location='./admin.php?id=superadmin-login'</script>";
+  exit;
+}
+
+if (mikhmon_superadmin_host()) {
+  include_once('./include/headhtml.php');
+
+  if ($id === 'superadmin-login' || ($id !== 'superadmin' && !mikhmon_superadmin_authenticated())) {
+    $superadmin_error = '';
+    if (isset($_POST['sa_login'])) {
+      $saUser = isset($_POST['sa_user']) ? (string) $_POST['sa_user'] : '';
+      $saPass = isset($_POST['sa_pass']) ? (string) $_POST['sa_pass'] : '';
+      if (mikhmon_superadmin_login($saUser, $saPass)) {
+        if (!headers_sent()) {
+          header('Location: ./admin.php?id=superadmin');
+          exit;
+        }
+        echo "<script>window.location='./admin.php?id=superadmin'</script>";
+        exit;
+      }
+      $superadmin_error = isset($_invalid_login) ? $_invalid_login : 'Invalid username or password.';
+    }
+    include_once('./superadmin/login.php');
+  } elseif ($id === 'superadmin' && mikhmon_superadmin_authenticated()) {
+    include_once('./superadmin/panel.php');
+  } elseif (mikhmon_superadmin_authenticated()) {
+    if (!headers_sent()) {
+      header('Location: ./admin.php?id=superadmin');
+      exit;
+    }
+    echo "<script>window.location='./admin.php?id=superadmin'</script>";
+  } else {
+    if (!headers_sent()) {
+      header('Location: ./admin.php?id=superadmin-login');
+      exit;
+    }
+    echo "<script>window.location='./admin.php?id=superadmin-login'</script>";
+  }
+?>
+  <script src="<?= mikhmon_asset_ver('js/mikhmon-ui.' . $theme . '.min.js'); ?>"></script>
+<?php
+  $mikhmonJsPrefix = 'js/';
+  include __DIR__ . '/include/mikhmon-scripts.php';
+?>
+</body>
+</html>
+<?php
+  if (isset($__mikhmon_ajax) && $__mikhmon_ajax) {
+    $full = ob_get_clean();
+    mikhmon_json(array(
+      'ok' => true,
+      'html' => mikhmon_extract_wrapper_html($full),
+      'url' => $url,
+    ));
+  }
+  exit;
+}
 
 include_once('./include/headhtml.php');
 
@@ -80,7 +207,10 @@ include_once('./lib/formatbytesbites.php');
 <?php
 if ($id == "login" || substr($url, -1) == "p") {
 
-  if (isset($_POST['login'])) {
+  $error = '';
+  if (function_exists('mikhmon_tenant_is_suspended') && mikhmon_tenant_is_suspended()) {
+    $error = '<div style="width: 100%; padding:5px 0px 5px 0px; border-radius:5px;" class="bg-danger"><i class="fa fa-ban"></i> ' . (isset($_tenant_suspended) ? htmlspecialchars($_tenant_suspended, ENT_QUOTES) : 'This workspace is suspended.') . '</div>';
+  } elseif (isset($_POST['login'])) {
     $user = $_POST['user'];
     $pass = $_POST['pass'];
     if ($user == $useradm && $pass == decrypt($passadm)) {
@@ -88,31 +218,27 @@ if ($id == "login" || substr($url, -1) == "p") {
       if (function_exists('session_regenerate_id')) {
         @session_regenerate_id(true);
       }
-      // Make sure session is persisted before redirecting.
       if (function_exists('session_write_close')) {
         @session_write_close();
       }
 
-      // If this was triggered via SPA/AJAX, return a redirect instruction.
       if ($__mikhmon_ajax) {
         mikhmon_json(array(
           "ok" => true,
-          "redirect" => "./admin.php?id=sessions",
+          "redirect" => "./admin.php?id=routers",
         ));
       }
 
-      // Use server-side redirect when possible; fallback to JS.
       if (!headers_sent()) {
-        header("Location: ./admin.php?id=sessions");
+        header("Location: ./admin.php?id=routers");
         exit;
       }
-      echo "<script>window.location.href='./admin.php?id=sessions'</script>";
+      echo "<script>window.location.href='./admin.php?id=routers'</script>";
     
     } else {
       $error = '<div style="width: 100%; padding:5px 0px 5px 0px; border-radius:5px;" class="bg-danger"><i class="fa fa-ban"></i> Alert!<br>Invalid username or password.</div>';
     }
   }
-  
 
   include_once('./include/login.php');
 } elseif (!isset($_SESSION["mikhmon"])) {
@@ -131,15 +257,23 @@ if ($id == "login" || substr($url, -1) == "p") {
   if ($__mikhmon_ajax) {
     mikhmon_json(array(
       "ok" => false,
-      "redirect" => "./admin.php?id=sessions",
+      "redirect" => "./admin.php?id=routers",
     ), 400);
   }
   if (!headers_sent()) {
-    header("Location:./admin.php?id=sessions");
+    header("Location:./admin.php?id=routers");
     exit;
   }
-  echo "<script>window.location='./admin.php?id=sessions'</script>";
+  echo "<script>window.location='./admin.php?id=routers'</script>";
 
+} elseif ($id == "routers") {
+  $_SESSION["connect"] = "";
+  include_once('./include/menu.php');
+  include_once('./routers/hub.php');
+} elseif ($id == "router-add") {
+  $_SESSION["connect"] = "";
+  include_once('./include/menu.php');
+  include_once('./routers/add.php');
 } elseif ($id == "sessions") {
   $_SESSION["connect"] = "";
   if (isset($_POST['save'])) {
@@ -187,7 +321,7 @@ if ($id == "login" || substr($url, -1) == "p") {
   require_once __DIR__ . '/include/config-write.php';
   $configPath = mikhmon_config_path();
   $fc = mikhmon_config_ensure($configPath);
-  $redirect = "./admin.php?id=sessions";
+  $redirect = "./admin.php?id=routers";
   $flash = "Deleted";
   $flashType = "ok";
   $ok = false;
@@ -218,6 +352,11 @@ if ($id == "login" || substr($url, -1) == "p") {
         $flashType = "error";
       } else {
         $ok = true;
+        if (function_exists('mikhmon_router_store_delete_slug')) {
+          mikhmon_router_store_delete_slug($session);
+        }
+        require_once __DIR__ . '/voucher/template-resolver.php';
+        mikhmon_voucher_template_remove_router($session);
       }
     }
   }
@@ -248,9 +387,9 @@ if ($id == "login" || substr($url, -1) == "p") {
   include_once('./include/menu.php');
   include_once('./settings/vouchereditor.php');
 } elseif (empty($id)) {
-  echo "<script>window.location='./admin.php?id=sessions'</script>";
+  echo "<script>window.location='./admin.php?id=routers'</script>";
 } elseif(in_array($id, $ids) && empty($session)){
-	echo "<script>window.location='./admin.php?id=sessions'</script>";
+	echo "<script>window.location='./admin.php?id=routers'</script>";
 }
 ?>
 <?php if ($id != "login") { ?>

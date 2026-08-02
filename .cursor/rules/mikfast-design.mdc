@@ -1,0 +1,113 @@
+---
+description: MIKFAST UI design constraints — reuse existing components, no unnecessary custom CSS
+globs: "{css/**/*.css,**/*.php,js/mikhmon/**/*.js,routers/**/*}"
+alwaysApply: false
+---
+
+# MIKFAST Design Rule — Reuse First
+
+When implementing Router Hub, wizard, switcher, or any new UI: **extend the existing design system**. Do not introduce new libraries, design tokens, or custom components unless listed in "Allowed new classes" below.
+
+## Source of truth
+
+| Layer | File | Use for |
+|-------|------|---------|
+| Theme base | `css/mikhmon-ui.{dark,light,...}.min.css` | Colors, `.btn`, `.bg-*`, grid `.col-*`, `.navbar`, `.sidenav` |
+| Overrides | `css/mikhmon-custom.css` | All `mm-*` components, theme-light fixes, breakpoints |
+| Patterns | `include/dashboard-header.php`, `dashboard/home.php` | Page headers, KPI cards, layout |
+| Interactions | `js/mikhmon/ui-confirm.js`, `js/mikhmon/ui-toast.js`, `include/menu.php` | confirm, toast, session switch |
+
+Read surrounding page before adding markup. Match PHP + HTML patterns already in that folder.
+
+## Component inventory (use these, don't reinvent)
+
+```
+Layout:     .row  .col-4|.col-6|.col-8|.col-12
+Surface:    .card  .card-header  .card-body  .card-title  .box
+Form:       .form-control  .table (label|input rows)  .input-group
+Buttons:    .btn  .btn-sm  .bg-danger  .bg-secondary  .mm-btn-ghost
+Actions:    .mm-action-btn  .mm-action-btn--danger
+Status:     .mm-chip  .mm-chip--ok  .mm-chip--muted
+Header:     .mm-dashheader  .mm-dashheader__title  .mm-dashheader__meta
+Sidebar:    .mm-sidenav-header  .mm-sidenav-brand  .mm-sidenav-sub
+KPI/stats:  .mm-kpi  .mm-kpi__value  .mm-kpi__label  .mm-kpi__icon
+Loading:    .mm-loaderbar  #mmPageSkeleton  body.mm-switching
+Feedback:   mikhmon_toast()  mikhmon_confirm()  .alert .alert-success|.alert-warning
+Icons:      Font Awesome 4 (`fa fa-*`) only — no new icon set
+i18n:       $_* keys via existing lang files — no hardcoded user strings
+Spacing:    reuse existing padding in card-body (16px) and card-header patterns
+Radius:     already global — .card/.box 14px, .btn/.form-control 12px — don't override
+```
+
+## Hard rules
+
+1. **No new CSS framework** — no Tailwind, Bootstrap upgrade, Vue/React UI lib.
+2. **No random colors** — never `$color[rand()]` or inline `style="background:#..."`. Use `.card`/`.box` neutral surfaces + `.mm-chip` for status.
+3. **No new confirm/toast** — always `mikhmon_confirm()` and `mikhmon_toast()`.
+4. **Theme-aware** — every new visual rule needs `body.theme-light` counterpart if it sets background/border/color (copy pattern from `.mm-confirm`, `.mm-toast`, `.mm-lang-dropdown`).
+5. **Mobile tap targets** — interactive icons/buttons min ~44px via padding (`.mm-action-btn` pattern), not smaller raw `<i onclick>`.
+6. **CSS variables** — prefer `var(--mm-sidenav-w)`, `var(--primary)`, `var(--mm-accent)` over hardcoded px/colors.
+7. **Asset cache** — new JS/CSS must load with `mikhmon_asset_ver()` (see `include/headhtml.php`).
+8. **Minimal new CSS** — if existing class works, use it. New rules go in `mikhmon-custom.css` with `mm-` prefix only.
+
+## Allowed new classes (Router Hub scope only)
+
+Add only if no existing class fits:
+
+| Class | Purpose |
+|-------|---------|
+| `.mm-router-card` | Router hub card layout (flex header/body/actions) |
+| `.mm-router-card__name` | Display name typography |
+| `.mm-router-card__meta` | Secondary info (model, ROS) — mirror `.mm-sidenav-sub` |
+| `.mm-router-switcher` | Panel container — extend `.mm-lang-dropdown__menu` styles |
+| `.mm-router-switcher__item` | List row — extend `.mm-lang-dropdown__item` |
+| `.mm-wizard-steps` | Step indicator (dots or 1-2-3 text) |
+| `.mm-wizard-step` | Single step visibility toggle |
+
+Max ~80 lines new CSS total for Router Hub feature. If exceeding, refactor to reuse more existing classes.
+
+## Layout breakpoints (don't invent new ones)
+
+Use existing breakpoints only:
+- `max-width: 750px` — mobile stack
+- `751px–1024px` — tablet (collapsible nav, 2-col KPI)
+- `max-width: 480px` — form label stack (`.mm-user-form-row`)
+- `max-width: 1100px` — panel stack
+
+## Page structure template
+
+```php
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fa fa-server"></i> <?= $_routers ?></h3>
+      </div>
+      <div class="card-body">
+        <!-- content -->
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+## Anti-patterns (never do)
+
+```php
+<!-- BAD: random bg, raw onclick icon, native confirm -->
+<div class="box <?= $color[rand(1,11)] ?>">
+  <i class="fa fa-trash" onclick="if(confirm('?'))...">
+
+<!-- GOOD: neutral card, semantic button, themed confirm -->
+<div class="card mm-router-card">
+  <button type="button" class="mm-action-btn mm-action-btn--danger"
+    aria-label="Hapus" onclick="mikhmon_confirm('...', fn)">
+```
+
+## Before merging UI changes
+
+- [ ] Works in dark + light theme (`body.theme-light`)
+- [ ] Works at 390px, 820px, 1280px width
+- [ ] No new npm/CDN dependencies
+- [ ] i18n keys added for all user-visible strings
+- [ ] `graphify update .` after PHP/JS changes

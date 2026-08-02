@@ -31,11 +31,12 @@ if (!isset($_SESSION["mikhmon"])) {
   $session = $_GET['session'];
 
 // load config
-  include('../include/config.php');
+  include('../include/load-config.php');
   include('../include/readcfg.php');
 
   include('../lib/formatbytesbites.php');
   include('./logo.php');
+  include('./template-resolver.php');
 
   $id = $_GET['id'];
   $qr = $_GET['qr'];
@@ -179,12 +180,12 @@ table.voucher {
   ?>
 <?php
 if ($userp != "") {
-  include('./template-thermal.php');
+  mikhmon_voucher_template_include($session, 'thermal');
 } else {
   if ($small == "yes") {
-    include('./template-small.php');
+    mikhmon_voucher_template_include($session, 'small');
   } else {
-    include('./template.php');
+    mikhmon_voucher_template_include($session, 'default');
   }
 }
 ?>

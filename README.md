@@ -41,6 +41,8 @@ Repo ini adalah fork/pengembangan dari project upstream (MIKHMON/MIKFAST v3) den
 
 ## Deploy & Permission File (WAJIB BACA)
 
+> **Deploy SaaS multi-tenant (subdomain + Super Admin):** baca **[DEPLOY.md](./DEPLOY.md)** — panduan lengkap step-by-step untuk pemula (DNS wildcard, Nginx, env PHP-FPM, buat tenant).
+
 ### Install otomatis (recommended)
 
 Satu perintah — clone, protect config, permission, siap pakai UI:

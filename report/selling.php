@@ -35,47 +35,8 @@ if (!isset($_SESSION["mikhmon"])) {
 	$_SESSION['idbl'] = $idbl;
 	$remdata = ($_POST['remdata']);
 	$prefix = $_GET['prefix'];
-	
-	function __mikhmon_ros7_iso_from_idhr($idhr) {
-		// idhr format in UI: mon/DD/YYYY (e.g. may/28/2026)
-		if (!is_string($idhr) || $idhr === "") return "";
-		$parts = explode("/", $idhr);
-		if (count($parts) !== 3) return "";
-		$mon = strtolower(trim($parts[0]));
-		$day = trim($parts[1]);
-		$year = trim($parts[2]);
-		$monMap = array(
-			"jan" => "01", "feb" => "02", "mar" => "03", "apr" => "04",
-			"may" => "05", "jun" => "06", "jul" => "07", "aug" => "08",
-			"sep" => "09", "oct" => "10", "nov" => "11", "dec" => "12",
-		);
-		if (!isset($monMap[$mon])) return "";
-		$mm = $monMap[$mon];
-		if (strlen($day) === 1) $day = "0".$day;
-		if (strlen($day) !== 2) return "";
-		if (strlen($year) !== 4) return "";
-		return $year . "-" . $mm . "-" . $day;
-	}
 
-	function __mikhmon_normalize_date_for_display($dateStr) {
-		// Accept both "mon/DD/YYYY" and "YYYY-MM-DD". Return display string.
-		$s = is_string($dateStr) ? trim($dateStr) : "";
-		if ($s === "") return "";
-		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
-			$y = substr($s, 0, 4);
-			$m = substr($s, 5, 2);
-			$d = substr($s, 8, 2);
-			$monMap = array(
-				"01" => "jan", "02" => "feb", "03" => "mar", "04" => "apr",
-				"05" => "may", "06" => "jun", "07" => "jul", "08" => "aug",
-				"09" => "sep", "10" => "oct", "11" => "nov", "12" => "dec",
-			);
-			$mon = isset($monMap[$m]) ? $monMap[$m] : "";
-			return $mon ? ($mon . "/" . $d . "/" . $y) : $s;
-		}
-		return $s;
-	}
-
+	include_once(dirname(__DIR__) . '/include/mikhmon-report.php');
 
 	if ($API->connect($iphost, $userhost, decrypt($passwdhost))) {
 		$gettimezone = $API->comm("/system/clock/print", array(
@@ -87,32 +48,9 @@ if (!isset($_SESSION["mikhmon"])) {
 
 	if (isset($remdata)) {
 		if (strlen($idhr) > "0") {
-			// Support both ROS6 (mon/DD/YYYY) and ROS7 (YYYY-MM-DD) sources.
-			$idhrIso = __mikhmon_ros7_iso_from_idhr($idhr);
-			$ARREMD = $API->comm("/system/script/print", array(
-				"?comment" => "mikhmon",
-				".proplist" => ".id,source",
-			));
-			if (is_array($ARREMD)) {
-				for ($i = 0; $i < count($ARREMD); $i++) {
-					$src = isset($ARREMD[$i]['source']) ? $ARREMD[$i]['source'] : "";
-					if ($src !== $idhr && ($idhrIso === "" || $src !== $idhrIso)) continue;
-					$API->comm("/system/script/remove", array(
-						".id" => $ARREMD[$i]['.id'],
-					));
-				}
-			}
+			mikhmon_report_remove_filter($API, $session, $idhr, "");
 		} elseif (strlen($idbl) > "0") {
-			$ARREMD = $API->comm("/system/script/print", array(
-				"?owner" => "$idbl",
-				".proplist" => ".id",
-			));
-			for ($i = 0; $i < count($ARREMD); $i++) {
-				$API->comm("/system/script/remove", array(
-					".id" => $ARREMD[$i]['.id'],
-				));
-			}
-
+			mikhmon_report_remove_filter($API, $session, "", $idbl);
 		}
 		echo "<script>window.location='./?report=selling&session=" . $session . "'</script>";
 	}
@@ -123,50 +61,23 @@ if (!isset($_SESSION["mikhmon"])) {
 		$fprefix = "";
 	}
 	if (strlen($idhr) > "0") {
-		// Support both ROS6 (mon/DD/YYYY) and ROS7 (YYYY-MM-DD) sources.
-		$idhrIso = __mikhmon_ros7_iso_from_idhr($idhr);
-		$getData = $API->comm("/system/script/print", array(
-			"?comment" => "mikhmon",
-			".proplist" => "name,source",
-		));
-		if (!is_array($getData)) $getData = array();
-		$tmp = array();
-		for ($i = 0; $i < count($getData); $i++) {
-			$src = isset($getData[$i]['source']) ? $getData[$i]['source'] : "";
-			if ($src === $idhr || ($idhrIso !== "" && $src === $idhrIso)) $tmp[] = $getData[$i];
-		}
-		$getData = $tmp;
+		$getData = mikhmon_report_fetch($API, $session, $idhr, "");
 		$TotalReg = count($getData);
 		$filedownload = $idhr;
 		$shf = "hidden";
 		$shd = "inline-block";
 	} elseif (strlen($idbl) > "0") {
-		$getData = $API->comm("/system/script/print", array(
-			"?owner" => "$idbl",
-			".proplist" => "name",
-		));
+		$getData = mikhmon_report_fetch($API, $session, "", $idbl);
 		$TotalReg = count($getData);
 		$filedownload = $idbl;
 		$shf = "hidden";
 		$shd = "inline-block";
-	} elseif ($idhr == "" || $idbl == "") {
-		$getData = $API->comm("/system/script/print", array(
-			"?comment" => "mikhmon",
-			".proplist" => "name",
-		));
+	} else {
+		$getData = mikhmon_report_fetch($API, $session, "", "");
 		$TotalReg = count($getData);
 		$filedownload = "all";
 		$shf = "text";
 		$shd = "none";
-	} elseif (strlen($idbl) > "0" ) {
-		$getData = $API->comm("/system/script/print", array(
-			"?owner" => "$idbl",
-			".proplist" => "name",
-		));
-		$TotalReg = count($getData);
-		$filedownload = $idbl;
-		$shf = "hidden";
-		$shd = "inline-block";
 	}
 	
 }
@@ -272,6 +183,67 @@ $(document).ready(function(){
   });
 });
 </script>
+<script>
+(function () {
+  function executePurge(session, days, done) {
+    var body = new FormData();
+    body.append("session", session);
+    body.append("days", days);
+    fetch("./admin.php?id=purge-reports", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      body: body
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok) {
+          alert((res && res.error) || "Purge failed");
+          return;
+        }
+        if (res.remaining_count > 0) {
+          executePurge(session, days, done);
+          return;
+        }
+        if (typeof done === "function") done(res);
+      })
+      .catch(function () { alert("Purge failed"); });
+  }
+
+  function runPurge(btn) {
+    if (!btn || typeof mikhmon_confirm !== "function") return;
+    var session = btn.getAttribute("data-session") || "";
+    var days = btn.getAttribute("data-days") || "90";
+    var confirmTpl = btn.getAttribute("data-confirm-tpl") || "Delete {count} old report entries?";
+    if (!session) return;
+    fetch("./admin.php?id=purge-reports&session=" + encodeURIComponent(session) + "&days=" + encodeURIComponent(days) + "&preview=1", {
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.ok) {
+          alert((data && data.error) || "Preview failed");
+          return;
+        }
+        var msg = confirmTpl.replace("{count}", String(data.count || 0));
+        mikhmon_confirm(msg, function () {
+          executePurge(session, days, function (res) {
+            if (typeof mikhmon_toast === "function") {
+              mikhmon_toast("OK: " + (res.removed_count || 0) + " removed", "success");
+            }
+            location.reload();
+          });
+        });
+      })
+      .catch(function () { alert("Preview failed"); });
+  }
+  document.addEventListener("click", function (ev) {
+    var btn = ev.target.closest("#mmPurgeReportsBtn");
+    if (btn) runPurge(btn);
+  });
+})();
+</script>
 <div class="row">
 <div class="col-12">
 <div class="card">
@@ -291,6 +263,14 @@ $(document).ready(function(){
 				echo '<a class="btn bg-primary" href="./?report=selling&idbl='.$idbl2.'&session='.$session.'" title="Show '.ucfirst(substr($idbl2,0,3).' '.substr($idbl2,3,5)).'"><i class="fa fa-search"></i> '.ucfirst(substr($idbl2,0,3).' '.substr($idbl2,3,5)).'</a>';}?>
 		  <button name="print" class="btn bg-primary" onclick="window.open('./report/print.php?<?= explode("?report=selling&",$url)[1] ?>','_blank');" title="Print"><i class="fa fa-print"></i> <?= $_print ?></button>
 		  <button style="display: <?= $shd; ?>;" name="remdata" class="btn bg-danger" onclick="location.href='#remdata';" title="Delete Data <?= $filedownload; ?>"><i class="fa fa-trash"></i> <?= $_delete_data.' '. $filedownload; ?></button>
+		  <button type="button" class="btn bg-warning" id="mmPurgeReportsBtn"
+		    data-session="<?= htmlspecialchars($session, ENT_QUOTES) ?>"
+		    data-days="90"
+		    data-purge-label="<?= htmlspecialchars(str_replace('{days}', '90', isset($_purge_old_reports) ? $_purge_old_reports : 'Delete reports older than {days} days'), ENT_QUOTES) ?>"
+		    data-confirm-tpl="<?= htmlspecialchars(isset($_purge_reports_confirm) ? $_purge_reports_confirm : 'Delete {count} old report entries from this router?', ENT_QUOTES) ?>"
+		    title="<?= htmlspecialchars(str_replace('{days}', '90', isset($_purge_old_reports) ? $_purge_old_reports : 'Delete reports older than {days} days'), ENT_QUOTES) ?>">
+		    <i class="fa fa-trash"></i> <?= htmlspecialchars(str_replace('{days}', '90', isset($_purge_old_reports) ? $_purge_old_reports : 'Delete reports older than {days} days'), ENT_QUOTES) ?>
+		  </button>
 		  <button  id="remSelected" style="display: none;" class="btn bg-danger" onclick="MikhmonRemoveReportSelected()"><i class="fa fa-trash"></i> <span id="selected"></span> <?= $_selected ?></button>
 		</div>
 	</div>
@@ -404,83 +384,35 @@ $(document).ready(function(){
 			if ($prefix != "") {
 				$rowNo = 0;
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					if (substr($getname[2], 0, strlen($prefix)) == $prefix) {
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
+					if (substr($row['user'], 0, strlen($prefix)) == $prefix) {
 						$rowNo++;
-						// Backward-compatible parsing: older records may not include profile field.
-						if (isset($getname[8])) {
-							$profile = isset($getname[7]) ? $getname[7] : "";
-							$comment = $getname[8];
-						} else {
-							$profile = "";
-							$comment = isset($getname[7]) ? $getname[7] : "";
-						}
 						echo "<tr>";
 						echo "<td>" . $rowNo . "</td>";
-						echo "<td>";
-						$tgl = __mikhmon_normalize_date_for_display($getname[0]);
-						echo $tgl;
-						echo "</td>";
-						echo "<td>";
-						$ltime = $getname[1];
-						echo $ltime;
-						echo "</td>";
-						echo "<td>";
-						$username = $getname[2];
-						echo $username;
-						echo "</td>";
-						echo "<td>";
-						echo $profile;
-						echo "</td>";
-						echo "<td>";
-						echo $comment;
-						echo "</td>";
-						echo "<td style='text-align:right;'>";
-						$price = $getname[3];
-						echo $price;
-						echo "</td>";
+						echo "<td>" . $row['date'] . "</td>";
+						echo "<td>" . $row['time'] . "</td>";
+						echo "<td>" . $row['user'] . "</td>";
+						echo "<td>" . $row['profile'] . "</td>";
+						echo "<td>" . $row['comment'] . "</td>";
+						echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 						echo "</tr>";
 					}
 				}
 			} else {
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					// Backward-compatible parsing: older records may not include profile field.
-					if (isset($getname[8])) {
-						$profile = isset($getname[7]) ? $getname[7] : "";
-						$comment = $getname[8];
-					} else {
-						$profile = "";
-						$comment = isset($getname[7]) ? $getname[7] : "";
-					}
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
 					echo "<tr>";
 					echo "<td>" . ($i + 1) . "</td>";
-					echo "<td>";
-					$tgl = __mikhmon_normalize_date_for_display($getname[0]);
-					echo $tgl;
-					echo "</td>";
-					echo "<td>";
-					$ltime = $getname[1];
-					echo $ltime;
-					echo "</td>";
-					echo "<td>";
-					$username = $getname[2];
-					echo $username;
-					echo "</td>";
-					echo "<td>";
-					echo $profile;
-					echo "</td>";
-					echo "<td>";
-					echo $comment;
-					echo "</td>";
-					echo "<td style='text-align:right;'>";
-					$price = $getname[3];
-					echo $price;
-					echo "</td>";
+					echo "<td>" . $row['date'] . "</td>";
+					echo "<td>" . $row['time'] . "</td>";
+					echo "<td>" . $row['user'] . "</td>";
+					echo "<td>" . $row['profile'] . "</td>";
+					echo "<td>" . $row['comment'] . "</td>";
+					echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 					echo "</tr>";
 				
-				$dataresume .= $getname[0].$getname[3];
-				$totalresume += $getname[3];
+				$dataresume .= $row['date'] . $row['price'];
+				$totalresume += $row['price'];
 				$_SESSION['dataresume'] = $dataresume;
 				$_SESSION['totalresume'] = $TotalReg.'/'.$totalresume;
 				}

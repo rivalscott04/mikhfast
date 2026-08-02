@@ -26,8 +26,18 @@ if ($offset < 0) $offset = 0;
 if ($limit < 1) $limit = 1;
 if ($limit > 500) $limit = 500;
 
-include('../include/config.php');
+include('../include/load-config.php');
+include('../include/router-hub.php');
+
+$session = mikhmon_validate_session_slug($session, isset($data) ? $data : array());
+if ($session === "") {
+  http_response_code(404);
+  echo json_encode(array("ok" => false, "error" => "unknown session"));
+  exit;
+}
+
 include('../include/readcfg.php');
+include_once('../include/mikhmon-report.php');
 include_once('../lib/routeros_api.class.php');
 include_once('../lib/router/RouterService.php');
 
@@ -79,13 +89,40 @@ if (!is_array($cached)) {
     exit;
   }
   $router = new RouterService($API, null, $session);
-  // ensure disk logging is enabled (idempotent)
-  try { $router->ensureHotspotLoggingToDisk(); } catch (Exception $e) {}
-  $allLogs = $router->getHotspotLogsAll();
+
+  $resource = $router->getSystemResource();
+  $storage = mikhmon_storage_from_resource(is_array($resource) ? $resource : array());
+  if ($storage['hdd_total'] > 0) {
+    mikhmon_router_status_merge_hdd($session, $resource);
+  }
+
+  $storageCritical = ($storage['hdd_total'] > 0 && $storage['storage_status'] === 'critical');
+  if (!$storageCritical) {
+    try { $router->ensureHotspotLoggingSafe($resource); } catch (Exception $e) {}
+  }
+
+  if ($storageCritical) {
+    try { $API->disconnect(); } catch (Exception $e) {}
+    $_SESSION[$cacheKey] = array('t' => $now, 'v' => array());
+    echo json_encode(array(
+      "ok" => true,
+      "total" => 0,
+      "offset" => $offset,
+      "limit" => $limit,
+      "rows" => array(),
+      "storage_critical" => true,
+      "message" => isset($_log_unavailable_storage) ? $_log_unavailable_storage : "Log unavailable — router storage is full",
+    ));
+    exit;
+  }
+
+  $maxFetch = mikhmon_log_fetch_max();
+  $allLogs = $router->getHotspotLogsAll($maxFetch);
   try { $API->disconnect(); } catch (Exception $e) {}
 
   // Filter only hotspot prefixed rows, newest-first already.
   $filtered = array();
+  $n = 0;
   if (is_array($allLogs)) {
     $n = count($allLogs);
     for ($i = 0; $i < $n; $i++) {
@@ -93,14 +130,24 @@ if (!is_array($cached)) {
       if ($parsed !== null) $filtered[] = $parsed;
     }
   }
-  $cached = $filtered;
+  $cached = array(
+    'rows' => $filtered,
+    'truncated' => ($n >= $maxFetch),
+    'max_fetch' => $maxFetch,
+  );
+  if (mikhmon_db_enabled() && count($filtered) > 0) {
+    mikhmon_hotspot_log_store_batch($session, $filtered);
+  }
   $_SESSION[$cacheKey] = array('t' => $now, 'v' => $cached);
 }
 
-$total = is_array($cached) ? count($cached) : 0;
+$rows = is_array($cached) && isset($cached['rows']) ? $cached['rows'] : (is_array($cached) ? $cached : array());
+$truncated = is_array($cached) && !empty($cached['truncated']);
+$maxFetch = is_array($cached) && isset($cached['max_fetch']) ? (int) $cached['max_fetch'] : mikhmon_log_fetch_max();
+$total = count($rows);
 $slice = array();
 if ($total > 0 && $offset < $total) {
-  $slice = array_slice($cached, $offset, $limit);
+  $slice = array_slice($rows, $offset, $limit);
 }
 $nextOffset = $offset + (is_array($slice) ? count($slice) : 0);
 $hasMore = $nextOffset < $total;
@@ -110,5 +157,7 @@ echo json_encode(array(
   "rows" => $slice,
   "nextOffset" => $nextOffset,
   "hasMore" => $hasMore,
+  "truncated" => $truncated,
+  "max_fetch" => $maxFetch,
 ));
 

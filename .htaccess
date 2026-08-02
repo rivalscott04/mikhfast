@@ -1,0 +1,4 @@
+# Block dotenv files if document root is misconfigured (Apache).
+<FilesMatch "^\.env">
+Require all denied
+</FilesMatch>

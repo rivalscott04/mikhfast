@@ -24,7 +24,7 @@ $configPath = mikhmon_config_path();
 $content = mikhmon_config_ensure($configPath);
 
 if ($content === false) {
-  $_SESSION['mikhmon_flash'] = 'Cannot read include/config.php. Data was NOT modified.';
+  $_SESSION['mikhmon_flash'] = 'Cannot read include/load-config.php. Data was NOT modified.';
   header('Location: ./admin.php?id=sessions');
   exit;
 }

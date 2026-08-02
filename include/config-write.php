@@ -1,10 +1,21 @@
 <?php
 /**
- * Safe read/write helpers for include/config.php
+ * Safe read/write helpers for tenant config (data/tenants/{slug}/config.php).
  */
 
-function mikhmon_config_path() {
+require_once __DIR__ . '/mikhmon-tenant.php';
+
+function mikhmon_config_legacy_path() {
   return dirname(__DIR__) . '/include/config.php';
+}
+
+function mikhmon_config_path() {
+  $slug = mikhmon_tenant_slug();
+  $dir = mikhmon_tenant_data_dir($slug);
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0775, true);
+  }
+  return $dir . '/config.php';
 }
 
 function mikhmon_config_is_valid($content) {
@@ -28,7 +39,7 @@ function mikhmon_config_create_default($path = null) {
     }
   }
   $content = "<?php \n"
-    . "if(substr(\$_SERVER[\"REQUEST_URI\"], -10) == \"config.php\"){header(\"Location:./\");}; \n"
+    . "if(isset(\$_SERVER[\"REQUEST_URI\"]) && substr(\$_SERVER[\"REQUEST_URI\"], -10) == \"config.php\"){header(\"Location:./\");}; \n"
     . "\$data['mikhmon'] = array ('1'=>'mikhmon<|<mikhmon','mikhmon>|>aWNlbA==','qrbt<|<disable');\n";
   if (mikhmon_config_write($content, $path)) {
     return $content;

@@ -121,7 +121,7 @@ function mikhmon_logo_random_hex($bytes) {
 
 function mikhmon_logo_bootstrap_config() {
   if (!isset($GLOBALS['data']) || !is_array($GLOBALS['data'])) {
-    require_once dirname(__DIR__) . '/include/config.php';
+    require_once dirname(__DIR__) . '/include/load-config.php';
     require_once dirname(__DIR__) . '/include/readcfg.php';
   }
 }

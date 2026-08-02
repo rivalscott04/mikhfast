@@ -32,7 +32,7 @@ include('../lang/'.$langid.'.php');
 
 
 // load config
-  include('../include/config.php');
+  include('../include/load-config.php');
   include('../include/readcfg.php');
 
 // routeros api
@@ -64,30 +64,19 @@ include('../lang/'.$langid.'.php');
 
     $_SESSION[$session.'idhr'] = $idhr;
 
-   /* $getSRHr = $API->comm("/system/script/print", array(
-      "?source" => "$idhr",
-    ));
-    $TotalRHr = count($getSRHr);
-    $_SESSION[$session.'totalHr'] = $TotalRHr;*/
-    $getSRBl = $API->comm("/system/script/print", array(
-      "?owner" => "$idbl",
-    ));
+    include_once('../include/mikhmon-report.php');
+    $getSRBl = mikhmon_report_fetch($API, $session, "", $idbl);
     $TotalRBl = count($getSRBl);
     $_SESSION[$session.'totalBl'] = $TotalRBl;
-/*
-    for ($i = 0; $i < $TotalRHr; $i++) {
 
-      $tHr += explode("-|-", $getSRHr[$i]['name'])[3];
-
-    }*/
     foreach($getSRBl as $row){
-    
-      if((explode("-|-", $row['name'])[0]) == $idhr){
-         $tHr += explode("-|-", $row['name'])[3];
-         $TotalRHr += count((array)$row['source']); /*Modif line add (array) by github https://github.com/MasKawer*/
- 
+      $parsed = mikhmon_report_parse_name($row['name']);
+      $price = isset($parsed['price']) ? (float) $parsed['price'] : 0;
+      if (mikhmon_report_row_matches_day($row, $idhr)) {
+         $tHr += $price;
+         $TotalRHr++;
        }
-       $tBl += explode("-|-", $row['name'])[3];
+       $tBl += $price;
 
       if($TotalRHr == ""){
         $TotalRHr = "0";

@@ -21,6 +21,12 @@ error_reporting(0);
 if (substr($_SERVER["REQUEST_URI"], -11) == "readcfg.php") {
     header("Location:./");
 };
+
+if (!isset($data) || !is_array($data) || !isset($data['mikhmon'])) {
+    require_once __DIR__ . '/mikhmon-bootstrap.php';
+    mikhmon_bootstrap_init();
+}
+
 // read config (defensive parsing: config.php formats vary)
 if (!function_exists('mikhmon_cfg_value')) {
 function mikhmon_cfg_value($raw, $delimiter) {

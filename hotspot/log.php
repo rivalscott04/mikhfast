@@ -26,16 +26,30 @@ if (!isset($_SESSION["mikhmon"])) {
 		include_once('./lib/router/RouterService.php');
 		$router = new RouterService($API);
 	}
+	require_once('./include/router-hub.php');
+	$mmLogStorageCritical = false;
+	$resource = $router->getSystemResource();
+	$mmLogStorage = mikhmon_storage_from_resource(is_array($resource) ? $resource : array());
+	if ($mmLogStorage['hdd_total'] > 0) {
+		mikhmon_router_status_merge_hdd($session, $resource);
+		$mmLogStorageCritical = ($mmLogStorage['storage_status'] === 'critical');
+	}
 	// Loading the full RouterOS log can be very slow on busy routers.
 	// Default to a reasonable limit; allow explicit full load via ?all=1.
 	$all = isset($_GET['all']) ? (string) $_GET['all'] : "0";
 	$limit = 200;
-	if ($all === "1") {
+	if ($mmLogStorageCritical) {
+		$log = array();
+		$TotalReg = 0;
+	} elseif ($all === "1") {
+		try { $router->ensureHotspotLoggingSafe($resource); } catch (Exception $e) {}
 		$log = $router->getHotspotLogsAll();
+		$TotalReg = is_array($log) ? count($log) : 0;
 	} else {
+		try { $router->ensureHotspotLoggingSafe($resource); } catch (Exception $e) {}
 		$log = $router->getHotspotLogs($limit);
+		$TotalReg = is_array($log) ? count($log) : 0;
 	}
-	$TotalReg = is_array($log) ? count($log) : 0;
 
 	function __mikhmon_parse_hotspot_log_row($row)
 	{
@@ -68,6 +82,9 @@ if (!isset($_SESSION["mikhmon"])) {
 	}
 }
 ?>
+<?php if (!empty($mmLogStorageCritical)) { ?>
+<div class="row"><div class="col-12"><div class="alert alert-danger" role="alert"><i class="fa fa-hdd-o"></i> <?= isset($_log_unavailable_storage) ? $_log_unavailable_storage : 'Log unavailable — router storage is full' ?></div></div></div>
+<?php } ?>
 <div class="row">
 <div class="col-12">
 <div class="card">

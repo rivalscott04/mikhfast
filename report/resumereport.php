@@ -26,7 +26,7 @@ $session = $_GET['session'];
 
 
 // load config
-  include('../include/config.php');
+  include('../include/load-config.php');
   include('../include/readcfg.php');
 
 $idbl = $_GET['idbl'];

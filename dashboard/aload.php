@@ -30,7 +30,7 @@ include('../include/lang.php');
 include('../lang/'.$langid.'.php');
 
 // load config
-  include('../include/config.php');
+  include('../include/load-config.php');
   include('../include/readcfg.php');
 
 // routeros api
@@ -40,6 +40,7 @@ include('../lang/'.$langid.'.php');
   $API->debug = false;
 
   include_once('../lib/router/RouterService.php');
+  require_once('../include/router-hub.php');
   if (!$API->connect($iphost, $userhost, decrypt($passwdhost))) {
     $failMsg = "MIKFAST not connected! Please check the IP, User, Password and ensure the API port is enabled.";
     if (isset($cekindo) && in_array($currency, $cekindo['indo'])) {
@@ -99,6 +100,10 @@ include('../lang/'.$langid.'.php');
     $timezone = isset($clock['time-zone-name']) ? $clock['time-zone-name'] : '';
     if ($timezone !== '') {
       date_default_timezone_set($timezone);
+    }
+
+    if (is_array($resource) && !empty($resource)) {
+      mikhmon_router_status_merge_hdd($session, $resource);
     }
 
     ?>
@@ -319,10 +324,21 @@ include('../lang/'.$langid.'.php');
   if (is_array($cached)) {
     $log = $cached;
   } else {
-    // move hotspot log to disk (idempotent)
-    $router->ensureHotspotLoggingToDisk();
-    // get hotspot log
-    $log = $router->getHotspotLogs(20);
+    $cachedStorage = mikhmon_router_status_get($session, 300);
+    $storageCritical = ($cachedStorage['hdd_total'] > 0 && $cachedStorage['storage_status'] === 'critical');
+    if ($storageCritical) {
+      $log = array();
+    } else {
+      $resourceRow = null;
+      if ($cachedStorage['hdd_total'] > 0) {
+        $resourceRow = array(
+          'free-hdd-space' => $cachedStorage['hdd_free'],
+          'total-hdd-space' => $cachedStorage['hdd_total'],
+        );
+      }
+      $router->ensureHotspotLoggingSafe($resourceRow);
+      $log = $router->getHotspotLogs(20);
+    }
     __mikhmon_cache_set($cacheKey, $log);
   }
   //$THotspotLog = count($getlog);
@@ -477,7 +493,8 @@ else if ($load == "all") {
   $logKey = 'dash:' . $session . ':logs20';
   $log = __mikhmon_cache_get($logKey, 5);
   if (!is_array($log)) {
-    $router->ensureHotspotLoggingToDisk();
+    $resourceRow = (is_array($resource) && !empty($resource)) ? $resource : null;
+    $router->ensureHotspotLoggingSafe($resourceRow);
     $log = $router->getHotspotLogs(20);
     __mikhmon_cache_set($logKey, $log);
   }
@@ -505,24 +522,19 @@ else if ($load == "all") {
     $TotalRBl = 0;
     $TotalRHr = 0;
 
-    // keep payload minimal
-    $getSRBl = $API->comm("/system/script/print", array(
-      "?owner" => "$idbl",
-      ".proplist" => "name,source",
-    ));
-    $TotalRBl = is_array($getSRBl) ? count($getSRBl) : 0;
+    include_once(dirname(__DIR__) . '/include/mikhmon-report.php');
+    $getSRBl = mikhmon_report_fetch($API, $session, "", $idbl);
+    $TotalRBl = count($getSRBl);
 
-    if (is_array($getSRBl)) {
-      foreach ($getSRBl as $row) {
-        if (!isset($row['name'])) continue;
-        $parts = explode("-|-", $row['name']);
-        if (!isset($parts[3])) continue;
-        $price = (float) $parts[3];
-        $tBl += $price;
-        if (isset($parts[0]) && $parts[0] === $idhr) {
-          $tHr += $price;
-          $TotalRHr += count((array) (isset($row['source']) ? $row['source'] : null));
-        }
+    foreach ($getSRBl as $row) {
+      if (!isset($row['name'])) continue;
+      $parsed = mikhmon_report_parse_name($row['name']);
+      if (!isset($parsed['price']) || $parsed['price'] === "") continue;
+      $price = (float) $parsed['price'];
+      $tBl += $price;
+      if (mikhmon_report_row_matches_day($row, $idhr)) {
+        $tHr += $price;
+        $TotalRHr++;
       }
     }
 

@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bun run scripts/build.ts"
+    "build": "bun run scripts/build.ts",
+    "test": "php tests/router-hub-test.php && php tests/router-wizard-test.php && php tests/router-switcher-test.php && php tests/router-storage-test.php && php tests/report-db-test.php && php tests/tenant-test.php && php tests/superadmin-test.php && php tests/fase6-test.php",
+    "test:router-hub": "php tests/router-hub-test.php",
+    "test:router-wizard": "php tests/router-wizard-test.php"
   }
 }

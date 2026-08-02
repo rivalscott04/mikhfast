@@ -30,7 +30,7 @@ if (!isset($_SESSION["mikhmon"])) {
   include('../lang/'.$langid.'.php');
 
   // load config
-  include('../include/config.php');
+  include('../include/load-config.php');
   include('../include/readcfg.php');
 
   // routeros api
@@ -55,6 +55,8 @@ if (!isset($_SESSION["mikhmon"])) {
 	$fcomment = $_GET['comment'];
 	$range = $_GET['range'];
 	if(!empty($range)){$trange = "[".$range."]";}
+
+	include_once('../include/mikhmon-report.php');
 	
 	$pcomment = substr($prefix, 0,2);
 	if($pcomment == "!!"){
@@ -71,26 +73,9 @@ if (!isset($_SESSION["mikhmon"])) {
 
 	if (isset($remdata)) {
 		if (strlen($idhr) > "0") {
-			$ARREMD = $API->comm("/system/script/print", array(
-				"?source" => "$idhr",
-				".proplist" => ".id",
-			));
-			for ($i = 0; $i < count($ARREMD); $i++) {
-				$API->comm("/system/script/remove", array(
-					".id" => $ARREMD[$i]['.id'],
-				));
-			}
+			mikhmon_report_remove_filter($API, $session, $idhr, "");
 		} elseif (strlen($idbl) > "0") {
-			$ARREMD = $API->comm("/system/script/print", array(
-				"?owner" => "$idbl",
-				".proplist" => ".id",
-			));
-			for ($i = 0; $i < count($ARREMD); $i++) {
-				$API->comm("/system/script/remove", array(
-					".id" => $ARREMD[$i]['.id'],
-				));
-			}
-
+			mikhmon_report_remove_filter($API, $session, "", $idbl);
 		}
 		echo "<script>window.location='./?report=selling&session=" . $session . "'</script>";
 	}
@@ -103,41 +88,23 @@ if (!isset($_SESSION["mikhmon"])) {
 		$fprefix = "";
 	}
 	if (strlen($idhr) > "0") {
-		$getData = $API->comm("/system/script/print", array(
-			"?source" => "$idhr",
-			".proplist" => "name",
-		));
+		$getData = mikhmon_report_fetch($API, $session, $idhr, "");
 		$TotalReg = count($getData);
 		$filedownload = $idhr;
 		$shf = "hidden";
 		$shd = "inline-block";
 	} elseif (strlen($idbl) > "0") {
-		$getData = $API->comm("/system/script/print", array(
-			"?owner" => "$idbl",
-			".proplist" => "name",
-		));
+		$getData = mikhmon_report_fetch($API, $session, "", $idbl);
 		$TotalReg = count($getData);
 		$filedownload = $idbl;
 		$shf = "hidden";
 		$shd = "inline-block";
-	} elseif ($idhr == "" || $idbl == "") {
-		$getData = $API->comm("/system/script/print", array(
-			"?comment" => "mikhmon",
-			".proplist" => "name",
-		));
+	} else {
+		$getData = mikhmon_report_fetch($API, $session, "", "");
 		$TotalReg = count($getData);
 		$filedownload = "all";
 		$shf = "text";
 		$shd = "none";
-	} elseif (strlen($idbl) > "0" ) {
-		$getData = $API->comm("/system/script/print", array(
-			"?owner" => "$idbl",
-			".proplist" => "name",
-		));
-		$TotalReg = count($getData);
-		$filedownload = $idbl;
-		$shf = "hidden";
-		$shd = "inline-block";
 	}
 	
 }
@@ -284,79 +251,29 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 			if ($fcomment != "" || $pcomment == "!!") {
 
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					// Backward-compatible parsing: older records may not include profile field.
-					if (isset($getname[8])) {
-						$profile = isset($getname[7]) ? $getname[7] : "";
-						$comment = $getname[8];
-					} else {
-						$profile = "";
-						$comment = isset($getname[7]) ? $getname[7] : "";
-					}
-					if ($fcomment !== "" && strpos($comment, $fcomment) !== false){
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
+					if ($fcomment !== "" && strpos($row['comment'], $fcomment) !== false){
 						echo "<tr>";
-						echo "<td>";
-						
-						$tgl = $getname[0];
-						echo $tgl;
-						echo "</td>";
-						echo "<td>";
-						$ltime = $getname[1];
-						echo $ltime;
-						echo "</td>";
-						echo "<td>";
-						$username = $getname[2];
-						echo $username;
-						echo "</td>";
-						echo "<td>";
-						echo $profile;
-						echo "</td>";
-						echo "<td>";
-						echo $comment;
-						echo "</td>";
-						echo "<td style='text-align:right;'>";
-						$price = $getname[3];
-						echo $price;
-						echo "</td>";
+						echo "<td>" . $row['date'] . "</td>";
+						echo "<td>" . $row['time'] . "</td>";
+						echo "<td>" . $row['user'] . "</td>";
+						echo "<td>" . $row['profile'] . "</td>";
+						echo "<td>" . $row['comment'] . "</td>";
+						echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 						echo "</tr>";
 					}
 				}
 			} elseif ($prefix != "") {
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					if (substr($getname[2], 0, strlen($prefix)) == $prefix) {
-						// Backward-compatible parsing: older records may not include profile field.
-						if (isset($getname[8])) {
-							$profile = isset($getname[7]) ? $getname[7] : "";
-							$comment = $getname[8];
-						} else {
-							$profile = "";
-							$comment = isset($getname[7]) ? $getname[7] : "";
-						}
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
+					if (substr($row['user'], 0, strlen($prefix)) == $prefix) {
 						echo "<tr>";
-						echo "<td>";
-						
-						$tgl = $getname[0];
-						echo $tgl;
-						echo "</td>";
-						echo "<td>";
-						$ltime = $getname[1];
-						echo $ltime;
-						echo "</td>";
-						echo "<td>";
-						$username = $getname[2];
-						echo $username;
-						echo "</td>";
-						echo "<td>";
-						echo $profile;
-						echo "</td>";
-						echo "<td>";
-						echo $comment;
-						echo "</td>";
-						echo "<td style='text-align:right;'>";
-						$price = $getname[3];
-						echo $price;
-						echo "</td>";
+						echo "<td>" . $row['date'] . "</td>";
+						echo "<td>" . $row['time'] . "</td>";
+						echo "<td>" . $row['user'] . "</td>";
+						echo "<td>" . $row['profile'] . "</td>";
+						echo "<td>" . $row['comment'] . "</td>";
+						echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 						echo "</tr>";
 					}
 				}
@@ -367,83 +284,33 @@ function number_format(number, decimals, dec_point, thousands_sep) {
         $range = range($x, $y);
         
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					$day = substr($getname[0],4,2); if(substr($day,0,1) == "0"){$day = substr($day,-1);}else{$day=$day;}
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
+					$day = (int) explode("/", $row['date'])[1];
 					if (in_array($day, $range)) {
-						// Backward-compatible parsing: older records may not include profile field.
-						if (isset($getname[8])) {
-							$profile = isset($getname[7]) ? $getname[7] : "";
-							$comment = $getname[8];
-						} else {
-							$profile = "";
-							$comment = isset($getname[7]) ? $getname[7] : "";
-						}
 						echo "<tr>";
-						echo "<td>";
-						
-						$tgl = $getname[0];
-						echo $tgl;
-						echo "</td>";
-						echo "<td>";
-						$ltime = $getname[1];
-						echo $ltime;
-						echo "</td>";
-						echo "<td>";
-						$username = $getname[2];
-						echo $username;
-						echo "</td>";
-						echo "<td>";
-						echo $profile;
-						echo "</td>";
-						echo "<td>";
-						echo $comment;
-						echo "</td>";
-						echo "<td style='text-align:right;'>";
-						$price = $getname[3];
-						echo $price;
-						echo "</td>";
+						echo "<td>" . $row['date'] . "</td>";
+						echo "<td>" . $row['time'] . "</td>";
+						echo "<td>" . $row['user'] . "</td>";
+						echo "<td>" . $row['profile'] . "</td>";
+						echo "<td>" . $row['comment'] . "</td>";
+						echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 						echo "</tr>";
 					}
 				}
 			} else {
 				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					// Backward-compatible parsing: older records may not include profile field.
-					if (isset($getname[8])) {
-						$profile = isset($getname[7]) ? $getname[7] : "";
-						$comment = $getname[8];
-					} else {
-						$profile = "";
-						$comment = isset($getname[7]) ? $getname[7] : "";
-					}
+					$row = mikhmon_report_parse_name($getData[$i]['name']);
 					echo "<tr>";
-					echo "<td>";
-					
-					$tgl = $getname[0];
-					echo $tgl;
-					echo "</td>";
-					echo "<td>";
-					$ltime = $getname[1];
-					echo $ltime;
-					echo "</td>";
-					echo "<td>";
-					$username = $getname[2];
-					echo $username;
-					echo "</td>";
-					echo "<td>";
-					echo $profile;
-					echo "</td>";
-					echo "<td>";
-					echo $comment;
-					echo "</td>";
-					echo "<td style='text-align:right;'>";
-					$price = $getname[3];
-					echo $price;
-					echo "</td>";
+					echo "<td>" . $row['date'] . "</td>";
+					echo "<td>" . $row['time'] . "</td>";
+					echo "<td>" . $row['user'] . "</td>";
+					echo "<td>" . $row['profile'] . "</td>";
+					echo "<td>" . $row['comment'] . "</td>";
+					echo "<td style='text-align:right;'>" . $row['price'] . "</td>";
 					echo "</tr>";
 				
-				$dataresume .= $getname[0].$getname[3];
-				$totalresume += $getname[3];
+				$dataresume .= $row['date'] . $row['price'];
+				$totalresume += $row['price'];
 				$_SESSION['dataresume'] = $dataresume;
 				$_SESSION['totalresume'] = $TotalReg.'/'.$totalresume;
 				}
