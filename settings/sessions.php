@@ -129,9 +129,8 @@ if (!isset($_SESSION["mikhmon"])) {
           <td class="align-middle"><?= $_quick_print ?> QR</td>
           <td>
             <select class="form-control" name="qrbt">
-            <option><?= $qrbt ?></option>
-              <option>enable</option>
-              <option>disable</option>
+              <option value="enable" <?= $qrbt == "enable" ? "selected" : ""; ?>>enable</option>
+              <option value="disable" <?= $qrbt == "enable" ? "" : "selected"; ?>>disable</option>
             </select>
           </td>
         </tr>

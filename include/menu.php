@@ -287,14 +287,14 @@ $(document).ready(function(){
     (function(){
       var hcTheme = document.getElementById("mm-hc-theme");
       if (!hcTheme) return;
-      var src = hcTheme.getAttribute("src") || "";
+      var src = (hcTheme.getAttribute("src") || "").split("?")[0];
       var nextSrc = src.replace(/hc\.(dark|light)\.js/i, "hc." + nextTheme + ".js");
       if (nextSrc === src) nextSrc = "./js/highcharts/themes/hc." + nextTheme + ".js";
 
       // Recreate the <script> so the theme file executes again.
       var s = document.createElement("script");
       s.id = "mm-hc-theme";
-      s.src = nextSrc + (nextSrc.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
+      s.src = nextSrc + "?t=" + Date.now();
       s.onload = function(){
         try {
           if (typeof mikhmon_initTrafficChart === "function") mikhmon_initTrafficChart();
@@ -386,17 +386,13 @@ if (file_exists('./info.php')) {
     </div>
     <div class="mm-sidenav-sub"><?= htmlspecialchars($mmDeviceLabel, ENT_QUOTES); ?></div>
     <select class="connect mm-sidenav-session" aria-label="Session">
-      <option id="MikhmonSession" value="<?= $session; ?>"><?= htmlspecialchars($session, ENT_QUOTES); ?></option>
+      <option id="MikhmonSession" value="<?= $session; ?>" selected><?= htmlspecialchars($session, ENT_QUOTES); ?> &#x2666;</option>
         <?php
         foreach (file('./include/config.php') as $line) {
           $sesname = explode("'", $line)[1];
-          if ($sesname == "" || $sesname== "mikhmon") {
+          if ($sesname == "" || $sesname== "mikhmon" || $sesname == $session) {
           } else {
-          if($sesname == $session){
-            echo '<option value="' . $sesname. '">'.$sesname. ' &#x2666;</option>';
-          }else{
             echo '<option value="' . $sesname. '">'.$sesname. '</option>';
-          }
           }
         }
         ?>
@@ -514,13 +510,13 @@ $(document).ready(function(){
     (function(){
       var hcTheme = document.getElementById("mm-hc-theme");
       if (!hcTheme) return;
-      var src = hcTheme.getAttribute("src") || "";
+      var src = (hcTheme.getAttribute("src") || "").split("?")[0];
       var nextSrc = src.replace(/hc\.(dark|light)\.js/i, "hc." + nextTheme + ".js");
       if (nextSrc === src) nextSrc = "./js/highcharts/themes/hc." + nextTheme + ".js";
 
       var s = document.createElement("script");
       s.id = "mm-hc-theme";
-      s.src = nextSrc + (nextSrc.indexOf("?") === -1 ? "?" : "&") + "t=" + Date.now();
+      s.src = nextSrc + "?t=" + Date.now();
       s.onload = function(){
         try {
           if (typeof mikhmon_initTrafficChart === "function") mikhmon_initTrafficChart();
@@ -563,7 +559,8 @@ if (file_exists('./include/info.php')) {
 }
 } ?>
 
-<div id="main">  
+<div id="overL" onclick="if(document.getElementById('closeNav'))document.getElementById('closeNav').click();"></div>
+<div id="main">
 <div id="loading" class="lds-dual-ring" style="display:none;"></div>
 <?php
   // Keep content visible even if JS/AJAX fails.

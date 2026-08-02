@@ -1364,15 +1364,30 @@ body.theme-light .about-changelog kbd{
     width:0 !important;
     border-right:0 !important;
   }
+  /* JS toggles body.mm-nav-open; without this the click handler's inline
+     width/margin can never beat the !important rules above (bug: hamburger
+     did nothing at tablet widths). */
+  body.mm-nav-open .sidenav{
+    width:210px !important;
+    border-right:1px solid var(--mm-border, #23282c) !important;
+  }
   #main{
     margin-left:0 !important;
   }
-  #openNav{
+  body:not(.mm-nav-open) #openNav{
+    display:block !important;
+  }
+  body.mm-nav-open #openNav{
+    display:none !important;
+  }
+  body.mm-nav-open #closeNav{
     display:block !important;
   }
   #brand,
-  #closeNav,
   #cpage{
+    display:none !important;
+  }
+  body:not(.mm-nav-open) #closeNav{
     display:none !important;
   }
   .row > .col-4{
@@ -1386,6 +1401,25 @@ body.theme-light .about-changelog kbd{
   .row > .col-8 + .col-4{
     width:100% !important;
     float:none;
+  }
+}
+
+/* Off-canvas nav scrim: dim + block taps on the rest of the page while the
+   drawer is open on mobile/tablet. JS references #overL but the element
+   was never added to the markup, so this never showed up before. */
+#overL{
+  display:none;
+  position:fixed;
+  top:51px;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,.45);
+  z-index:8;
+}
+@media screen and (max-width:1024px){
+  body.mm-nav-open #overL{
+    display:block;
   }
 }
 

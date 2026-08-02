@@ -1,11 +1,91 @@
 # Audit UI/UX — MIKFAST (mikhmonnew)
 
 Tanggal: 2026-08-02
-Metode: code review langsung terhadap markup PHP + CSS (bukan click-through browser), fokus pada konsistensi komponen dan perilaku responsive di breakpoint mobile / tablet / desktop. Semua temuan disertai lokasi file agar mudah diverifikasi & dieksekusi.
+Metode: audit dua tahap. Tahap 1 (bagian bawah dokumen) adalah code review statis terhadap markup PHP + CSS di repo lokal. Tahap 2 (bagian atas, di bawah ini) adalah pengujian langsung via browser (Chrome DevTools automation, klik & resize sungguhan) terhadap server produksi **mikh.rivaldev.site**, login sebagai `rival`, memakai data hotspot nyata (session `kos` / `goa.io`, 170 user, 7 active).
+
+> **Catatan penting:** server produksi ternyata menjalankan kode yang **lebih baru dari repo lokal** — ditemukan blok CSS khusus tablet (`@media screen and (min-width: 751px) and (max-width: 1024px)` di `mikhmon-custom.css`) yang sama sekali tidak ada di checkout lokal. Sebagian rekomendasi Tahap 1 (breakpoint tablet, KPI 2-kolom) sepertinya **sudah pernah dikerjakan di server**, tapi implementasinya menabrak kode JS lama yang belum ikut di-update — lihat temuan #A di bawah. Disarankan tarik kode dari server produksi kembali ke repo lokal supaya kedua sisi sinkron sebelum lanjut kerja.
 
 ---
 
-## Ringkasan
+## 🔴 Temuan hasil klik-langsung di server produksi (prioritas tertinggi)
+
+> **Status: A, B, C, E sudah di-fix di repo lokal ini (belum di-deploy ke server).** F: bug sampingan (cache-buster numpuk) sudah di-fix, tapi gejala utama yang kamu laporkan belum berhasil direproduksi — lihat catatan di bagian F. D: **ralat**, ternyata bukan bug — lihat penjelasan di bagian D.
+
+### A. ✅ FIXED — KRITIS: di lebar tablet (751–1024px), menu navigasi sama sekali tidak bisa dibuka
+**Lokasi:** `css/mikhmon-custom.css` baris ~1362 vs `js/mikhmon-ui.dark.min.js` (handler `openNav`/`closeNav`/`resize`).
+
+**Reproduksi (terverifikasi, diulang 3×):** buka `mikh.rivaldev.site` di lebar viewport 820px atau 900px (iPad portrait, tablet Android umum) → sidebar otomatis tertutup → tap ikon hamburger (☰) → **tidak terjadi apa-apa**. Menu Hotspot, Log, System, Report, Settings — semuanya jadi tidak terjangkau kecuali user tahu harus resize/rotate browser ke atas 1024px atau di bawah 751px.
+
+**Akar masalah (dikonfirmasi lewat console):** ada dua sistem yang saling menimpa:
+- CSS (baris 1362-1390, ditambahkan belakangan, komentar "Tablet: collapsible sidenav + 2-column KPI cards") memaksa `.sidenav{width:0 !important}` khusus di rentang 751–1024px — ini investasi bagus untuk KPI card 2-kolom di tablet.
+- Tapi file JS `mikhmon-ui.dark.min.js` (lama, belum di-update) masih pakai logika 2-state saja: `window.innerWidth < 800` = mobile, `> 800` = desktop-pinned, dan saat tombol hamburang diklik ia coba men-set `sidenav.style = "width: 210px..."` **inline**. Inline style biasanya menang lawan CSS — tapi `!important` di CSS baru tetap menang lawan inline style apa pun. Hasilnya: klik hamburger di 751-1024px selalu kalah melawan `!important`, sidebar permanen tertutup, tidak ada error di console jadi user (dan developer yang cuma lihat console) tidak dapat petunjuk apa pun.
+
+**Dampak:** setiap admin yang buka MIKFAST dari tablet (atau ponsel besar dalam mode landscape, atau browser desktop yang di-resize ke lebar itu) benar-benar terkunci dari seluruh menu selain halaman yang lagi dibuka. Ini bug fungsional, bukan cuma kosmetik.
+
+**Fix yang diterapkan** (opsi 2 dari rekomendasi awal — class-based, bukan band-aid ganti angka doang):
+- Kelima file `js/mikhmon-ui.{dark,light,blue,green,pink}.min.js`: threshold `800` → `1024` di ketiga tempat (klik `openNav`, klik `closeNav`, handler `resize`), dan sekarang toggle `document.body.classList.add/remove/toggle("mm-nav-open")` di semua handler itu — bukan cuma mengandalkan inline `style=`.
+- `css/mikhmon-custom.css` blok tablet (~baris 1362): tambah `body.mm-nav-open .sidenav{width:210px !important; ...}` supaya ada rule `!important` yang menang saat nav dibuka (sebelumnya cuma ada rule `!important` untuk versi *tertutup*, tidak ada lawannya). Juga diperbaiki: sebelumnya `#openNav{display:block !important}` unconditional artinya tombol hamburger tidak pernah hilang & tombol close (`#closeNav`) tidak pernah muncul di tablet meski nav sudah kebuka — sekarang keduanya ikut merespons `body.mm-nav-open`, jadi ada cara untuk MENUTUP lagi menu di tablet (sebelumnya, walau bug utamanya kebetulan ke-fix, tetap tidak ada tombol close yang berfungsi).
+
+Sudah diverifikasi ulang: dengan fix ini, JS-nya konsisten treat 751–1024px sama seperti mobile (overlay, bukan push) — sesuai maksud komentar CSS "Tablet: collapsible sidenav", dan >1024px tetap pinned permanen seperti desktop asli.
+
+---
+
+### B. ✅ FIXED — Dropdown sesi menampilkan sesi aktif dua kali
+**Lokasi:** `include/menu.php` (blok `<select class="connect mm-sidenav-session">`), dikonfirmasi live: `document.querySelectorAll('.mm-sidenav-session option')` → `["kos", "kos ♦", "plampang"]`.
+
+**Masalah:** ada `<option>` hardcoded untuk sesi aktif di awal, LALU loop-nya menambahkan lagi semua sesi termasuk yang aktif (ditandai ♦). Sesi yang sedang dipakai muncul dua kali di dropdown, sesi lain cuma sekali — user yang buka dropdown switcher bisa bingung "kos" vs "kos ♦" itu beda apa.
+
+**Fix yang diterapkan:** loop `foreach` di `include/menu.php` sekarang skip saat `$sesname == $session` (opsi sudah ditulis manual sebelum loop, jadi tidak perlu ditulis ulang), dan opsi manual di awal ditandai `selected` + diberi tanda ♦ juga (konsisten dengan tanda yang tadinya cuma muncul di opsi kedua).
+
+---
+
+### C. ✅ FIXED — Dropdown "Quick Print QR" menampilkan "disable" dua kali
+**Lokasi:** `settings/sessions.php` baris 131-135, dikonfirmasi live di halaman Admin Settings.
+
+**Masalah:** `<option><?= $qrbt ?></option>` mencetak nilai tersimpan saat ini ("disable" secara default) sebagai opsi pertama, lalu diikuti `<option>enable</option><option>disable</option>` yang hardcoded — kalau setting saat ini "disable" (kasus paling umum, default), dropdown menampilkan "disable" dua kali.
+
+**Fix yang diterapkan:** `settings/sessions.php` — dua `<option>` hardcoded sekarang pakai `selected` dinamis berdasarkan `$qrbt`, opsi ketiga yang mencetak `$qrbt` mentah-mentah dihapus.
+
+---
+
+### D. ❌ RALAT — bukan bug, saya salah baca
+Awalnya saya kira ada dua "jam sekarang" yang beda ~5-6 jam (jam kecil di navbar vs label "Updated"). Setelah cek isi `js/mikhmon.bundle.legacy.js` (fungsi `idleTimer()`/`startTimer()`), elemen `#timer` itu **bukan jam** — itu **hitung mundur idle-logout** (format `menit:detik`, default mulai dari `10:00`, reset tiap ada gerakan mouse/klik/keyboard, auto-logout di `0:00`). Angka "9:57", "9:35", dst yang saya kira "jam" itu sebenarnya "9 menit 57 detik lagi sebelum auto-logout" — dan cocok persis polanya (selalu di bawah 10:00, turun seiring waktu saya diam nunggu response tool). Tidak ada yang perlu diperbaiki di sini. Maaf atas temuan palsunya.
+
+---
+
+### E. ✅ FIXED — Nav mobile/tablet: drawer tanpa scrim gelap (elemen overlay tidak pernah dipasang)
+**Lokasi:** perilaku hamburger di lebar ≤750px; ada referensi `#overL` (overlay) di `mikhmon-ui.dark.min.js` tapi elemen itu **tidak pernah ada di DOM** (`document.getElementById('overL')` → `null`, dikonfirmasi live) — kode overlay-nya sudah direncanakan tapi tidak pernah selesai dipasang.
+
+**Masalah:** saat drawer dibuka, sisa halaman di sebelah kanan drawer masih terlihat terang & masih bisa disentuh — tidak ada dimming yang menandakan "fokus sekarang di menu".
+
+**Fix yang diterapkan:**
+- `include/menu.php`: tambah `<div id="overL" onclick="...klik closeNav..."></div>` tepat sebelum `<div id="main">` (satu tempat, berlaku untuk kedua varian navbar/halaman admin & non-admin).
+- `css/mikhmon-custom.css`: `#overL` diberi `position:fixed`, mulai dari bawah navbar (`top:51px`) sampai penuh, `background:rgba(0,0,0,.45)`, `z-index:8` (di bawah sidenav yang `z-index:9`), default `display:none`. Muncul lewat `body.mm-nav-open #overL{display:block}` dibungkus `@media (max-width:1024px)` — supaya TIDAK muncul di desktop asli (>1024px) yang sidenav-nya memang permanen terbuka, cuma muncul saat drawer mobile/tablet dibuka.
+- Klik di area gelap ini akan memanggil `closeNav.click()` kalau elemennya ada, jadi berfungsi juga sebagai "tap di luar untuk menutup".
+
+---
+
+### F. Toggle dark/light: gejala utama belum berhasil direproduksi; bug sampingan sudah di-fix
+Kamu laporkan toggle dark→light jalan, tapi light→dark berikutnya tidak jalan di HP. Sudah dicoba reproduksi dengan: klik biasa berkali-kali, klik cepat berturutan, klik dengan touch-emulation, klik setelah navigasi SPA (pindah halaman), dan reload penuh setelah ganti tema (persist tetap benar) — **semua berhasil normal di pengujian ini**, gejala yang kamu laporkan tidak berhasil saya reproduksi. Belum di-"fix" karena belum tahu apa yang sebenarnya rusak.
+
+**✅ Bug sampingan yang ditemukan & sudah di-fix:** setiap toggle bikin request script grafik traffic baru (`hc.light.js`/`hc.dark.js`) dengan cache-buster `?t=<timestamp>` — tapi kodenya (`include/menu.php`, dua tempat, ~baris 290 & ~513) cuma cek `indexOf("?")===-1` untuk memutuskan pakai `?` atau `&`, sementara `src` yang dibaca untuk membangun URL berikutnya adalah `src` dari script sebelumnya yang **sudah** punya `?t=...`. Setiap toggle berikutnya numpuk jadi `?t=X&t=Y&t=Z...` tanpa batas. Fix: sekarang `src` di-strip query string-nya dulu (`.split("?")[0]`) sebelum dipakai, jadi cache-buster selalu bersih satu `?t=...` per request. Ini bukan penyebab langsung tombolnya "tidak jalan" (tidak ada indikasi itu memblokir apa pun), tapi tetap bug nyata yang sekarang beres.
+
+**Untuk saya bisa reproduksi lebih tepat, tolong info:**
+- Browser & device persis apa (mis. Chrome Android / Safari iOS, model HP)?
+- Apakah tombol switch-nya sendiri terlihat bergerak/berubah posisi saat ditekan, atau benar-benar tidak merespon sentuhan sama sekali?
+- Apakah kejadiannya selalu di percobaan toggle kedua persis setelah yang pertama, atau baru gagal setelah sempat pindah-pindah halaman dulu?
+- Koneksi saat itu WiFi kencang atau data seluler yang lambat?
+
+Kalau bisa dapat salah satu dari itu, saya bisa coba reproduksi ulang dengan kondisi yang lebih mirip.
+
+---
+
+### G. Konfirmasi temuan Tahap 1 dengan data asli (170 user nyata)
+Tabel Users (10 kolom, `text-nowrap`) dan ikon aksi kecil (hapus/lock/print/sort) terkonfirmasi persis seperti prediksi code-review: di lebar 820px maupun 390px, tabel tetap butuh scroll horizontal tanpa indikator visual, dan ikon aksi (≈16-20px, jarak antar-ikon sempit) berisiko salah-tap di layar sentuh. Lihat temuan #4 di bagian Tahap 1 di bawah untuk detail & saran.
+
+---
+
+## Ringkasan (Tahap 1 — code review repo lokal)
 
 Sistem grid & tema (`css/mikhmon-ui.*.css` + `mikhmon-custom.css`) sudah cukup rapi untuk ukuran proyek legacy PHP — ada dark/light theme, skeleton loader, toast. Tapi ada **satu breakpoint tunggal (750px)** yang membuat rentang tablet (751–1024px) tidak pernah benar-benar dioptimalkan, ditambah beberapa **inkonsistensi lintas file** (kelas tombol, dialog konfirmasi, pola form) yang muncul karena halaman-halaman dibangun terpisah dari waktu ke waktu tanpa komponen bersama.
 
