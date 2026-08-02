@@ -62,7 +62,7 @@ function mikhmon_superadmin_host()
         $prefix = mikhmon_superadmin_subdomain_prefix();
         return isset($parts[0]) && $parts[0] === $prefix;
     }
-    return !mikhmon_is_tenant_subdomain_host();
+    return mikhmon_superadmin_host();
 }
 }
 
@@ -73,7 +73,7 @@ function mikhmon_superadmin_active($id = null)
         $id = isset($_GET['id']) ? (string) $_GET['id'] : '';
     }
     if (in_array($id, array('superadmin', 'superadmin-login', 'superadmin-action', 'superadmin-logout'), true)) {
-        return !mikhmon_is_tenant_subdomain_host();
+        return mikhmon_superadmin_host();
     }
     return false;
 }

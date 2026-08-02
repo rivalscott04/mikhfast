@@ -161,7 +161,7 @@ if (($id === '' || $id === null) && $saPlatformHost) {
   exit;
 }
 
-if (in_array($id, array('superadmin', 'superadmin-login'), true) && mikhmon_is_tenant_subdomain_host()) {
+if (in_array($id, array('superadmin', 'superadmin-login'), true) && mikhmon_is_tenant_subdomain_host() && !mikhmon_env_bool('MIKHMON_SUPERADMIN_ALLOW_ANY_HOST')) {
   if (!headers_sent()) {
     header('Location: ./admin.php?id=login');
     exit;
