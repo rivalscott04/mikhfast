@@ -135,9 +135,10 @@
     });
   });
 })();
-</script>
 
-  var editForm = document.getElementById('saEditForm');
+
+  // Edit tenant form handler
+var editForm = document.getElementById('saEditForm');
   if (editForm) {
     editForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -155,3 +156,4 @@
         });
     });
   }
+</script>

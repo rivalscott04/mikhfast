@@ -70,8 +70,9 @@
                 <div class="mm-sa-tenant-card__actions">
                   <?php if ($host !== '') { ?>
                   <a class="btn btn-sm mm-btn-ghost" href="<?= htmlspecialchars($tenantUrl, ENT_QUOTES) ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-sign-in"></i> <?= isset($_superadmin_open_tenant) ? $_superadmin_open_tenant : 'Open' ?></a>
-                  <a class="btn btn-sm mm-btn-ghost" href="<?= htmlspecialchars(mikhmon_superadmin_view_url('edit') . '&slug=' . $t['slug'], ENT_QUOTES) ?>"><i class="fa fa-pencil"></i></a>
+                  
                   <?php } ?>
+                  <a class="btn btn-sm mm-btn-ghost" href="<?= htmlspecialchars(mikhmon_superadmin_view_url('edit') . '&slug=' . $t['slug'], ENT_QUOTES) ?>"><i class="fa fa-pencil"></i></a>
                   <?php if ($isSuspended) { ?>
                   <button type="button" class="btn btn-sm mm-btn-ghost sa-action" data-action="unsuspend" data-slug="<?= htmlspecialchars($t['slug'], ENT_QUOTES) ?>"><i class="fa fa-play"></i> <?= isset($_superadmin_unsuspend) ? $_superadmin_unsuspend : 'Activate' ?></button>
                   <?php } else { ?>

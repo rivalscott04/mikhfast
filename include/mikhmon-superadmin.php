@@ -741,38 +741,42 @@ function mikhmon_superadmin_require_auth()
 }
 }
 
-?>
+
 
 if (!function_exists('mikhmon_superadmin_tenant_update')) {
-function mikhmon_superadmin_tenant_update(, )
+function mikhmon_superadmin_tenant_update($slug, $data)
 {
-     = mikhmon_tenant_data_dir();
-    if (!is_dir()) {
+    $slug = preg_replace('/[^a-z0-9-]/', '', (string) $slug);
+    if ($slug === '') {
+        return array('ok' => false, 'error' => 'invalid_slug');
+    }
+    $dir = mikhmon_tenant_data_dir($slug);
+    if (!is_dir($dir)) {
         return array('ok' => false, 'error' => 'tenant_not_found');
     }
-     = mikhmon_tenant_meta_read();
-    if (isset(['label'])) {
-        ['label'] = (string) ['label'];
+    $meta = mikhmon_tenant_meta_read($slug);
+    if (isset($data['label'])) {
+        $meta['label'] = (string) $data['label'];
     }
-    if (isset(['domain'])) {
-        ['domain'] = (string) ['domain'];
+    if (isset($data['domain'])) {
+        $meta['domain'] = (string) $data['domain'];
     }
-     = mikhmon_tenant_meta_write(, );
-    if (!) {
+    $ok = mikhmon_tenant_meta_write($slug, $meta);
+    if (!$ok) {
         return array('ok' => false, 'error' => 'meta_write_failed');
     }
-    if (isset(['admin_pass']) && ['admin_pass'] !== '') {
-         =  . '/config.php';
-        if (is_file()) {
-             = isset(['admin_user']) && ['admin_user'] !== ''
-                ? ['admin_user']
-                : mikhmon_tenant_config_admin();
-             = mikhmon_superadmin_tenant_config_content(, ['admin_pass']);
-            if (@file_put_contents(, ) === false) {
+    if (isset($data['admin_pass']) && $data['admin_pass'] !== '') {
+        $cfgPath = $dir . '/config.php';
+        if (is_file($cfgPath)) {
+            $adminUser = isset($data['admin_user']) && $data['admin_user'] !== ''
+                ? $data['admin_user']
+                : (function_exists("mikhmon_tenant_config_admin") ? mikhmon_tenant_config_admin($slug) : "admin");
+            $content = mikhmon_superadmin_tenant_config_content($adminUser, $data['admin_pass']);
+            if (@file_put_contents($cfgPath, $content, LOCK_EX) === false) {
                 return array('ok' => false, 'error' => 'config_write_failed');
             }
         }
     }
-    return array('ok' => true, 'slug' => );
+    return array('ok' => true, 'slug' => $slug);
 }
 }

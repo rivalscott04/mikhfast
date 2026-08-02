@@ -75,7 +75,7 @@ if ($action === 'delete') {
     mikhmon_json(array('ok' => true, 'message' => 'Tenant deleted: ' . $slug));
 }
 
-mikhmon_json(array('ok' => false, 'error' => 'unknown_action'), 400);
+
 
 if ($action === 'update') {
     $label = isset($_POST['label']) ? (string) $_POST['label'] : '';
@@ -93,3 +93,6 @@ if ($action === 'update') {
     }
     mikhmon_json(array('ok' => true, 'message' => 'Tenant updated: ' . $slug));
 }
+
+
+mikhmon_json(array('ok' => false, 'error' => 'unknown_action'), 400);
