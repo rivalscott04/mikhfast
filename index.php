@@ -552,7 +552,7 @@ elseif ($ppp == "edit-profile") {
 </div>
 <script src="./js/highcharts/highcharts.js"></script>
 <script id="mm-hc-theme" src="./js/highcharts/themes/hc.<?= $theme; ?>.js"></script>
-<script src="./js/mikhmon-ui.<?= $theme; ?>.min.js"></script>
+<script src="./<?= mikhmon_asset_ver('js/mikhmon-ui.' . $theme . '.min.js'); ?>"></script>
 <?php
   $mikhmonJsPrefix = './js/';
   include __DIR__ . '/include/mikhmon-scripts.php';

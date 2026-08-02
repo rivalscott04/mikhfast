@@ -254,7 +254,7 @@ if ($id == "login" || substr($url, -1) == "p") {
 }
 ?>
 <?php if ($id != "login") { ?>
-  <script src="js/mikhmon-ui.<?= $theme; ?>.min.js"></script>
+  <script src="<?= mikhmon_asset_ver('js/mikhmon-ui.' . $theme . '.min.js'); ?>"></script>
 <?php } ?>
 <?php
   $mikhmonJsPrefix = 'js/';

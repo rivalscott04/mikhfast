@@ -18,6 +18,18 @@
 session_start();
  // hide all error
 error_reporting(0);
+
+// Cache-busting for core theme assets: query string tracks file mtime so a
+// CDN (e.g. Cloudflare) serves a fresh copy right after deploy, but still
+// caches normally between deploys (unlike the per-request timestamp used
+// for js/mikhmon/* modules, which never caches at all).
+if (!function_exists('mikhmon_asset_ver')) {
+  function mikhmon_asset_ver($relPath) {
+    $abs = __DIR__ . '/../' . ltrim($relPath, '/');
+    $mtime = is_file($abs) ? @filemtime($abs) : false;
+    return $relPath . '?v=' . ($mtime !== false ? $mtime : '0');
+  }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -35,9 +47,9 @@ error_reporting(0);
 		<!-- Font Awesome -->
 		<link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css" />
 		<!-- Mikfast UI -->
-		<link id="mm-theme-css" rel="stylesheet" href="css/mikhmon-ui.<?= $theme; ?>.min.css">
+		<link id="mm-theme-css" rel="stylesheet" href="<?= mikhmon_asset_ver('css/mikhmon-ui.' . $theme . '.min.css'); ?>">
 		<!-- Custom overrides (theme-aware) -->
-		<link rel="stylesheet" href="css/mikhmon-custom.css">
+		<link rel="stylesheet" href="<?= mikhmon_asset_ver('css/mikhmon-custom.css'); ?>">
 		<!-- favicon / brand mark -->
 		<link rel="icon" href="./img/mikfast.svg" type="image/svg+xml" />
 		<link rel="alternate icon" href="./img/favicon.png" />

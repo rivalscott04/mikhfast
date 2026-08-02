@@ -85,6 +85,17 @@ Tabel Users (10 kolom, `text-nowrap`) dan ikon aksi kecil (hapus/lock/print/sort
 
 ---
 
+### H. ✅ FIXED — Deploy fix A/B/C/E gagal terlihat di live karena Cloudflare edge cache, bukan browser
+Setelah fix A-E dipush, saya cek `mikh.rivaldev.site` langsung dan file JS/CSS-nya **masih versi lama** meski server sudah di-`git pull`. Ternyata bukan cache browser (hard refresh tidak akan menembus ini) — response header dari Cloudflare menunjukkan `cf-cache-status: HIT`, `age: 2087`, `cache-control: max-age=14400` (4 jam), `last-modified` jauh sebelum deploy hari ini. Cloudflare menahan salinan lama di edge selama origin tidak mengubah URL asetnya.
+
+Akar masalah: `css/mikhmon-ui.<?=$theme?>.min.css`, `css/mikhmon-custom.css`, dan `js/mikhmon-ui.<?=$theme?>.min.js` dimuat **tanpa query-string versi apa pun**, jadi Cloudflare tidak tahu kapan harus ambil ulang dari origin. (Sebagian file lain di app ini, `js/mikhmon/*.js`, sudah punya `?t=<timestamp>` — tapi itu timestamp **request saat itu juga** yang dihasilkan tiap page load, bukan versi deploy, jadi malah membuang manfaat caching untuk file-file itu.)
+
+**Fix yang diterapkan:** helper `mikhmon_asset_ver()` baru di `include/headhtml.php` — menambah `?v=<filemtime file>` ke URL aset. Dipakai di 3 tempat: dua `<link>` di `headhtml.php` (tema + custom.css) dan `<script>` tema di `index.php` + `admin.php`. Query string ini cuma berubah kalau isi file berubah (bukan tiap request), jadi caching normal tetap jalan di antara deploy, tapi begitu ada deploy baru URL-nya otomatis beda → Cloudflare otomatis MISS → ambil versi baru dari origin, **tanpa perlu purge manual**.
+
+**Catatan:** ini juga menjelaskan kenapa testing saya sempat kelihatan "gagal" padahal fix-nya sudah benar di kode — bukan bug baru, cuma lapisan cache yang belum pernah dipikirkan sebelumnya.
+
+---
+
 ## Ringkasan (Tahap 1 — code review repo lokal)
 
 Sistem grid & tema (`css/mikhmon-ui.*.css` + `mikhmon-custom.css`) sudah cukup rapi untuk ukuran proyek legacy PHP — ada dark/light theme, skeleton loader, toast. Tapi ada **satu breakpoint tunggal (750px)** yang membuat rentang tablet (751–1024px) tidak pernah benar-benar dioptimalkan, ditambah beberapa **inkonsistensi lintas file** (kelas tombol, dialog konfirmasi, pola form) yang muncul karena halaman-halaman dibangun terpisah dari waktu ke waktu tanpa komponen bersama.
