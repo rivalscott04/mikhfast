@@ -40,4 +40,4 @@ if (!mikhmon_superadmin_store_write($user, $pass)) {
 echo "Super-admin tersimpan (encrypted).\n";
 echo "  User : $user\n";
 echo "  File : " . mikhmon_superadmin_store_path() . "\n";
-echo "  URL  : https://admin.{domain}/admin.php?id=superadmin\n";
+echo "  URL  : " . mikhmon_superadmin_public_url() . "\n";

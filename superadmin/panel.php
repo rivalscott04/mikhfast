@@ -33,7 +33,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
       </div>
       <div class="mm-dashheader__right">
         <a class="btn btn-sm mm-btn-ghost" href="javascript:void(0)" onclick="location.reload();"><i class="fa fa-refresh"></i></a>
-        <a class="btn btn-sm mm-btn-ghost" href="./admin.php?id=superadmin-logout"><i class="fa fa-sign-out"></i> <?= isset($_logout) ? $_logout : 'Logout' ?></a>
+        <a class="btn btn-sm mm-btn-ghost" href="<?= htmlspecialchars(mikhmon_superadmin_url('logout'), ENT_QUOTES) ?>"><i class="fa fa-sign-out"></i> <?= isset($_logout) ? $_logout : 'Logout' ?></a>
       </div>
     </div>
   </div>
@@ -158,7 +158,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
       e.preventDefault();
       var fd = new FormData(passForm);
       fd.append('action', 'change_password');
-      fetch('./admin.php?id=superadmin-action', { method: 'POST', body: fd, credentials: 'same-origin' })
+      fetch('<?= htmlspecialchars(mikhmon_superadmin_url('action'), ENT_QUOTES) ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.ok) {
@@ -176,7 +176,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
       e.preventDefault();
       var fd = new FormData(createForm);
       fd.append('action', 'create');
-      fetch('./admin.php?id=superadmin-action', { method: 'POST', body: fd, credentials: 'same-origin' })
+      fetch('<?= htmlspecialchars(mikhmon_superadmin_url('action'), ENT_QUOTES) ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.ok) {
@@ -201,7 +201,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
         var fd = new FormData();
         fd.append('action', action);
         fd.append('slug', slug);
-        fetch('./admin.php?id=superadmin-action', { method: 'POST', body: fd, credentials: 'same-origin' })
+        fetch('<?= htmlspecialchars(mikhmon_superadmin_url('action'), ENT_QUOTES) ?>', { method: 'POST', body: fd, credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (res) {
             if (res.ok) {

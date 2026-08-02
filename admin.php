@@ -130,65 +130,47 @@ if ($id === 'tenant-cron') {
 }
 
 if ($id === 'superadmin-action') {
-  if (!mikhmon_superadmin_host()) {
+  if (!mikhmon_superadmin_host() && !mikhmon_superadmin_authenticated()) {
     mikhmon_json(array('ok' => false, 'error' => 'forbidden'), 403);
   }
   include_once('./process/superadmin-tenant.php');
   exit;
 }
 
-if (in_array($id, array('superadmin', 'superadmin-login', 'superadmin-logout'), true) && !mikhmon_superadmin_host()) {
-  if (!headers_sent()) {
-    header('Location: ./admin.php?id=login');
-    exit;
-  }
-  echo "<script>window.location='./admin.php?id=login'</script>";
-  exit;
-}
-
 if ($id === 'superadmin-logout') {
   mikhmon_superadmin_logout();
+  $saLogoutUrl = mikhmon_superadmin_url('home');
   if (!headers_sent()) {
-    header('Location: ./admin.php?id=superadmin-login');
+    header('Location: ' . $saLogoutUrl);
     exit;
   }
-  echo "<script>window.location='./admin.php?id=superadmin-login'</script>";
+  echo "<script>window.location='" . $saLogoutUrl . "'</script>";
   exit;
 }
 
 if (mikhmon_superadmin_host()) {
   include_once('./include/headhtml.php');
 
-  if ($id === 'superadmin-login' || ($id !== 'superadmin' && !mikhmon_superadmin_authenticated())) {
-    $superadmin_error = '';
-    if (isset($_POST['sa_login'])) {
-      $saUser = isset($_POST['sa_user']) ? (string) $_POST['sa_user'] : '';
-      $saPass = isset($_POST['sa_pass']) ? (string) $_POST['sa_pass'] : '';
-      if (mikhmon_superadmin_login($saUser, $saPass)) {
-        if (!headers_sent()) {
-          header('Location: ./admin.php?id=superadmin');
-          exit;
-        }
-        echo "<script>window.location='./admin.php?id=superadmin'</script>";
+  $superadmin_error = '';
+  if (isset($_POST['sa_login'])) {
+    $saUser = isset($_POST['sa_user']) ? (string) $_POST['sa_user'] : '';
+    $saPass = isset($_POST['sa_pass']) ? (string) $_POST['sa_pass'] : '';
+    if (mikhmon_superadmin_login($saUser, $saPass)) {
+      $saHome = mikhmon_superadmin_url('home');
+      if (!headers_sent()) {
+        header('Location: ' . $saHome);
         exit;
       }
-      $superadmin_error = isset($_invalid_login) ? $_invalid_login : 'Invalid username or password.';
+      echo "<script>window.location='" . $saHome . "'</script>";
+      exit;
     }
-    include_once('./superadmin/login.php');
-  } elseif ($id === 'superadmin' && mikhmon_superadmin_authenticated()) {
+    $superadmin_error = isset($_invalid_login) ? $_invalid_login : 'Invalid username or password.';
+  }
+
+  if (mikhmon_superadmin_authenticated()) {
     include_once('./superadmin/panel.php');
-  } elseif (mikhmon_superadmin_authenticated()) {
-    if (!headers_sent()) {
-      header('Location: ./admin.php?id=superadmin');
-      exit;
-    }
-    echo "<script>window.location='./admin.php?id=superadmin'</script>";
   } else {
-    if (!headers_sent()) {
-      header('Location: ./admin.php?id=superadmin-login');
-      exit;
-    }
-    echo "<script>window.location='./admin.php?id=superadmin-login'</script>";
+    include_once('./superadmin/login.php');
   }
 ?>
   <script src="<?= mikhmon_asset_ver('js/mikhmon-ui.' . $theme . '.min.js'); ?>"></script>

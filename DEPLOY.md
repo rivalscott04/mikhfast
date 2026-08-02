@@ -275,9 +275,29 @@ sudo bash scripts/check-persistence.sh /var/www/mikhfast
 
 ---
 
+### Local dev
+
+Pakai subdomain admin (sama seperti production), tambahkan di `/etc/hosts`:
+
+```
+127.0.0.1 admin.localhost
+```
+
+Buka: **`http://admin.localhost/admin.php`** — login superadmin otomatis (host-based, tanpa `?id=`).
+
+Alternatif tanpa hosts file: set `MIKHMON_SUPERADMIN_DEV=1` di env, lalu `http://localhost/admin.php`.
+
+Set password:
+
+```bash
+php scripts/superadmin-init.php superadmin password-anda
+```
+
+---
+
 ## Langkah 6 — Login Super Admin & buat tenant
 
-1. Buka browser: **`https://admin.mikfast.com/admin.php?id=superadmin`**
+1. Buka browser: **`https://admin.mikfast.com/admin.php`** (subdomain `admin` + domain Anda)
 2. Login dengan user/password dari Langkah 4 (`superadmin-init.php`)
 3. Ubah password kapan saja di kartu **Change Password** di panel
 3. Di form **Create Tenant**, isi:

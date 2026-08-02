@@ -26,7 +26,44 @@ function mikhmon_superadmin_host()
         return mikhmon_env_bool('MIKHMON_SUPERADMIN_DEV');
     }
     $parts = explode('.', $host);
-    return isset($parts[0]) && $parts[0] === 'admin';
+    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
+    if ($prefix === '') {
+        $prefix = 'admin';
+    }
+    return isset($parts[0]) && $parts[0] === $prefix;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_public_url')) {
+function mikhmon_superadmin_public_url()
+{
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    if (mikhmon_superadmin_host()) {
+        $host = isset($_SERVER['HTTP_HOST']) ? (string) $_SERVER['HTTP_HOST'] : 'localhost';
+        return $scheme . '://' . $host . '/admin.php';
+    }
+    $base = mikhmon_superadmin_base_domain();
+    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
+    if ($prefix === '') {
+        $prefix = 'admin';
+    }
+    if ($base === 'localhost' || filter_var($base, FILTER_VALIDATE_IP)) {
+        return $scheme . '://' . $prefix . '.localhost/admin.php';
+    }
+    return $scheme . '://' . $prefix . '.' . $base . '/admin.php';
+}
+}
+
+if (!function_exists('mikhmon_superadmin_url')) {
+function mikhmon_superadmin_url($target = 'home')
+{
+    if ($target === 'action') {
+        return './admin.php?id=superadmin-action';
+    }
+    if ($target === 'logout') {
+        return './admin.php?id=superadmin-logout';
+    }
+    return './admin.php';
 }
 }
 
@@ -40,7 +77,11 @@ function mikhmon_superadmin_base_domain()
     $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
     $host = preg_replace('/:\d+$/', '', $host);
     $parts = explode('.', $host);
-    if (count($parts) >= 2 && $parts[0] === 'admin') {
+    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
+    if ($prefix === '') {
+        $prefix = 'admin';
+    }
+    if (count($parts) >= 2 && $parts[0] === $prefix) {
         array_shift($parts);
         return implode('.', $parts);
     }

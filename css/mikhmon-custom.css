@@ -1764,3 +1764,158 @@ body.theme-light .mm-router-switcher__item--active{
 body.theme-light .mm-router-switcher__item--highlight{
   background:rgba(0,139,201,.16);
 }
+
+/* --- Login screens: tenant vs super-admin --- */
+.mm-login{
+  padding-top:5%;
+}
+.mm-login__card{
+  max-width:420px;
+  margin:0 auto;
+  overflow:hidden;
+}
+.mm-login__brand{
+  text-align:center;
+  margin-bottom:4px;
+}
+.mm-login__logo{
+  width:72px;
+  height:72px;
+  margin:0 auto 8px;
+  display:block;
+}
+.mm-login__title{
+  font-size:22px;
+  font-weight:700;
+  margin:0;
+  letter-spacing:.02em;
+}
+.mm-login__badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:10px auto 0;
+  padding:5px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.mm-login__subtitle{
+  margin:10px 0 0;
+  font-size:13px;
+  opacity:.78;
+}
+.mm-login__host{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+  padding:4px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  opacity:.85;
+}
+.mm-login__fields{
+  width:90%;
+  margin:16px auto 0;
+}
+.mm-login__submit{
+  width:100%;
+  margin-top:8px;
+  height:38px;
+  font-weight:700;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+}
+
+/* Tenant workspace login */
+.mm-login--tenant .mm-login__card{
+  border-top:4px solid #008bc9;
+  box-shadow:0 18px 40px rgba(0,139,201,.12);
+}
+.mm-login--tenant .card-header{
+  background:linear-gradient(135deg, rgba(0,139,201,.18), rgba(0,139,201,.04));
+  border-bottom:1px solid rgba(0,139,201,.22);
+}
+.mm-login--tenant .mm-login__badge{
+  background:rgba(0,139,201,.14);
+  border:1px solid rgba(0,139,201,.35);
+  color:#5dccff;
+}
+.mm-login--tenant .mm-login__host{
+  background:rgba(0,139,201,.10);
+  border:1px solid rgba(0,139,201,.22);
+  color:#9ee4ff;
+}
+.mm-login--tenant .mm-login__submit{
+  background:#008bc9;
+  color:#fff;
+}
+.mm-login--tenant .mm-login__submit:hover{
+  filter:brightness(1.08);
+}
+
+/* Super-admin platform login */
+.mm-login--superadmin .mm-login__card{
+  border-top:4px solid #7c5cff;
+  box-shadow:0 18px 40px rgba(124,92,255,.16);
+}
+.mm-login--superadmin .card-header{
+  background:linear-gradient(135deg, rgba(124,92,255,.22), rgba(91,33,182,.08));
+  border-bottom:1px solid rgba(124,92,255,.28);
+}
+.mm-login--superadmin .mm-login__badge{
+  background:rgba(124,92,255,.18);
+  border:1px solid rgba(167,139,250,.45);
+  color:#c4b5fd;
+}
+.mm-login--superadmin .mm-login__host{
+  background:rgba(124,92,255,.12);
+  border:1px solid rgba(124,92,255,.28);
+  color:#ddd6fe;
+}
+.mm-login--superadmin .mm-login__submit{
+  background:linear-gradient(135deg, #6d28d9, #7c3aed);
+  color:#fff;
+}
+.mm-login--superadmin .mm-login__submit:hover{
+  filter:brightness(1.06);
+}
+.mm-login--superadmin .mm-login__title{
+  color:#ede9fe;
+}
+
+body.theme-light .mm-login--tenant .mm-login__badge{
+  background:rgba(0,139,201,.10);
+  border-color:rgba(0,139,201,.28);
+  color:#0369a1;
+}
+body.theme-light .mm-login--tenant .mm-login__host{
+  background:rgba(0,139,201,.06);
+  border-color:rgba(0,139,201,.18);
+  color:#0c4a6e;
+}
+body.theme-light .mm-login--tenant .mm-login__subtitle{
+  color:rgba(17,24,39,.65);
+}
+body.theme-light .mm-login--superadmin .mm-login__badge{
+  background:rgba(109,40,217,.10);
+  border-color:rgba(109,40,217,.28);
+  color:#5b21b6;
+}
+body.theme-light .mm-login--superadmin .mm-login__host{
+  background:rgba(109,40,217,.06);
+  border-color:rgba(109,40,217,.18);
+  color:#4c1d95;
+}
+body.theme-light .mm-login--superadmin .mm-login__title{
+  color:#312e81;
+}
+body.theme-light .mm-login--superadmin .mm-login__subtitle{
+  color:rgba(17,24,39,.65);
+}
+
