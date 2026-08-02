@@ -27,7 +27,7 @@ $saHost = isset($_SERVER['HTTP_HOST']) ? preg_replace('/:\d+$/', '', (string) $_
       </div>
       <?php } ?>
       <center>
-      <form method="post" action="">
+      <form method="post" action="<?= htmlspecialchars(mikhmon_superadmin_url('login'), ENT_QUOTES) ?>">
       <div class="mm-login-fields mm-login__fields">
         <div class="form-group text-center" style="margin-bottom:12px;">
           <label class="sr-only" for="_sa_username">Username</label>

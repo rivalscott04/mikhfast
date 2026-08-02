@@ -72,10 +72,27 @@ function mikhmon_superadmin_active($id = null)
     if ($id === null) {
         $id = isset($_GET['id']) ? (string) $_GET['id'] : '';
     }
-    if (in_array($id, array('superadmin', 'superadmin-login'), true)) {
+    if (in_array($id, array('superadmin', 'superadmin-login', 'superadmin-action', 'superadmin-logout'), true)) {
         return !mikhmon_is_tenant_subdomain_host();
     }
-    return mikhmon_superadmin_host();
+    return false;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_route_ids')) {
+function mikhmon_superadmin_route_ids()
+{
+    return array('superadmin', 'superadmin-login', 'superadmin-action', 'superadmin-logout');
+}
+}
+
+if (!function_exists('mikhmon_superadmin_is_route')) {
+function mikhmon_superadmin_is_route($id = null)
+{
+    if ($id === null) {
+        $id = isset($_GET['id']) ? (string) $_GET['id'] : '';
+    }
+    return in_array($id, mikhmon_superadmin_route_ids(), true);
 }
 }
 
@@ -85,14 +102,25 @@ function mikhmon_superadmin_public_url()
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = isset($_SERVER['HTTP_HOST']) ? preg_replace('/:\d+$/', '', (string) $_SERVER['HTTP_HOST']) : '';
     if ($host !== '' && !mikhmon_is_tenant_subdomain_host($host)) {
-        return $scheme . '://' . $host . '/admin.php';
+        return $scheme . '://' . $host . '/admin.php?id=superadmin-login';
     }
     $base = mikhmon_superadmin_base_domain();
     $prefix = mikhmon_superadmin_subdomain_prefix();
     if ($base === 'localhost' || filter_var($base, FILTER_VALIDATE_IP)) {
-        return $scheme . '://' . ($host !== '' ? $host : 'localhost') . '/admin.php';
+        return $scheme . '://' . ($host !== '' ? $host : 'localhost') . '/admin.php?id=superadmin-login';
     }
-    return $scheme . '://' . $prefix . '.' . $base . '/admin.php';
+    return $scheme . '://' . $prefix . '.' . $base . '/admin.php?id=superadmin-login';
+}
+}
+
+if (!function_exists('mikhmon_superadmin_view_url')) {
+function mikhmon_superadmin_view_url($view = 'tenants')
+{
+    $view = preg_replace('/[^a-z]/', '', (string) $view);
+    if ($view === '') {
+        $view = 'tenants';
+    }
+    return './admin.php?id=superadmin&view=' . $view;
 }
 }
 
@@ -105,7 +133,10 @@ function mikhmon_superadmin_url($target = 'home')
     if ($target === 'logout') {
         return './admin.php?id=superadmin-logout';
     }
-    return './admin.php';
+    if ($target === 'login') {
+        return './admin.php?id=superadmin-login';
+    }
+    return './admin.php?id=superadmin';
 }
 }
 

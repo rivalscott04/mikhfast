@@ -10,7 +10,8 @@ Bayangkan **satu aplikasi** di satu server, tapi bisa melayani banyak pelanggan:
 
 | Alamat | Fungsi |
 |--------|--------|
-| `mikfast.com/admin.php` (atau IP VPS) | **Super Admin** — buat/hapus tenant |
+| `mikfast.com/admin.php?id=superadmin-login` | **Super Admin** — login console |
+| `mikfast.com/admin.php?id=superadmin` | Panel CRUD tenant (setelah login) |
 | `kos.mikfast.com` | Tenant "kos" — admin kos login dari domain yang didaftarkan |
 | `warnet.client.com` | Tenant lain — bisa pakai domain berbeda per pelanggan |
 
@@ -274,7 +275,7 @@ sudo bash scripts/check-persistence.sh /var/www/mikhfast
 
 ### Local dev
 
-Buka langsung: **`http://localhost/admin.php`**
+Buka: **`http://localhost/admin.php?id=superadmin-login`**
 
 Set password:
 
@@ -288,8 +289,8 @@ Saat buat tenant di local, isi domain `localhost` → login tenant di `http://ko
 
 ## Langkah 6 — Login Super Admin & buat tenant
 
-1. Buka **`https://mikfast.com/admin.php`** — atau IP VPS (`http://203.0.113.5/admin.php`). Domain bebas, tidak perlu subdomain khusus.
-2. Login dengan user/password dari Langkah 4
+1. Buka **`https://mikfast.com/admin.php?id=superadmin-login`** — atau IP VPS (`http://203.0.113.5/admin.php?id=superadmin-login`)
+2. Login → redirect ke **`admin.php?id=superadmin`** (panel dengan sidebar — sama seperti admin tenant)
 3. Di form **Create Tenant**, isi:
 
 | Field | Contoh | Keterangan |

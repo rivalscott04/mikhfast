@@ -21,6 +21,11 @@ function mikhmon_bootstrap_init()
         return;
     }
 
+    $saId = isset($_GET['id']) ? (string) $_GET['id'] : '';
+    if (function_exists('mikhmon_superadmin_is_route') && mikhmon_superadmin_is_route($saId)) {
+        return;
+    }
+
     global $data;
     if (isset($data) && is_array($data) && isset($data['mikhmon'])) {
         return;
