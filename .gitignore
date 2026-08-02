@@ -16,11 +16,15 @@ node_modules/
 # graphify knowledge graph (generated)
 graphify-out/
 
+# Tests (local / CI only — not committed)
+tests/
+
 # Tenant SQLite databases (generated per subdomain)
 data/tenants/**/*.sqlite
 data/tenants/**/*.sqlite-*
 data/tenants/**/config.php
 data/tenants/**/config.php.bak
+data/superadmin/credentials.json
 
 # Local env files (never in document root / never commit secrets)
 .env

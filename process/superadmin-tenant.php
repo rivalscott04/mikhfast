@@ -15,7 +15,17 @@ mikhmon_superadmin_require_auth();
 $action = isset($_POST['action']) ? (string) $_POST['action'] : '';
 $slug = isset($_POST['slug']) ? (string) $_POST['slug'] : '';
 
-if ($action === 'create') {
+if ($action === 'change_password') {
+    $current = isset($_POST['current_pass']) ? (string) $_POST['current_pass'] : '';
+    $newPass = isset($_POST['new_pass']) ? (string) $_POST['new_pass'] : '';
+    $newUser = isset($_POST['new_user']) ? (string) $_POST['new_user'] : '';
+    $result = mikhmon_superadmin_change_password($current, $newPass, $newUser !== '' ? $newUser : null);
+    if (!$result['ok']) {
+        mikhmon_json(array('ok' => false, 'error' => isset($result['error']) ? $result['error'] : 'change_failed'), 400);
+    }
+    mikhmon_json(array('ok' => true, 'message' => 'Password updated'));
+}
+
     $label = isset($_POST['label']) ? (string) $_POST['label'] : '';
     $adminUser = isset($_POST['admin_user']) ? (string) $_POST['admin_user'] : 'admin';
     $adminPass = isset($_POST['admin_pass']) ? (string) $_POST['admin_pass'] : '';

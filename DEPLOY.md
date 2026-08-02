@@ -163,9 +163,34 @@ sudo certbot --nginx -d mikfast.com -d "*.mikfast.com"
 
 ---
 
-## Langkah 4 — Secret di environment (PHP-FPM)
+## Langkah 4 — Super Admin password (encrypted file)
 
-Password super-admin **tidak** disimpan di file web. Set di **PHP-FPM pool** saja.
+Password super-admin **disimpan terenkripsi** di server (bukan plain text di env). Folder `data/` sudah diblok dari akses web.
+
+### Set password (sekali, password bebas — yang bisa dihafal)
+
+```bash
+cd /var/www/mikhfast
+sudo php scripts/superadmin-init.php superadmin password-kamu
+```
+
+Contoh password sederhana: `admin123`, `mikfast2026` — bebas, minimal 4 karakter.
+
+File hasil: `data/superadmin/credentials.json` (encrypted, sama seperti password tenant di config).
+
+### Env opsional (fallback legacy)
+
+Kalau file belum ada, bisa pakai env di PHP-FPM pool:
+
+```ini
+; Opsional — hanya jika belum jalankan superadmin-init.php
+env[MIKHMON_SUPERADMIN_USER] = superadmin
+env[MIKHMON_SUPERADMIN_PASS] = ...
+```
+
+Setelah file `credentials.json` ada, **env diabaikan** — ubah password lewat panel Super Admin atau jalankan `superadmin-init.php` lagi.
+
+### Env lain (bukan login super-admin)
 
 Edit pool (sesuaikan versi PHP):
 
@@ -176,10 +201,6 @@ sudo nano /etc/php/8.3/fpm/pool.d/www.conf
 Tambahkan di bagian bawah:
 
 ```ini
-; Super Admin (panel admin.mikfast.com)
-env[MIKHMON_SUPERADMIN_USER] = superadmin
-env[MIKHMON_SUPERADMIN_PASS] = GantiPasswordKuat123!
-
 ; Domain tenant (tanpa subdomain)
 env[MIKHMON_BASE_DOMAIN] = mikfast.com
 
@@ -213,19 +234,6 @@ Generate token acak:
 
 ```bash
 openssl rand -hex 32
-```
-
-**Opsi lebih aman** — pakai hash password (tanpa plain text di config):
-
-```bash
-php -r "echo password_hash('GantiPasswordKuat123!', PASSWORD_DEFAULT) . PHP_EOL;"
-```
-
-Lalu di pool:
-
-```ini
-env[MIKHMON_SUPERADMIN_USER] = superadmin
-env[MIKHMON_SUPERADMIN_PASS_HASH] = $2y$10$...hasil-hash...
 ```
 
 Restart PHP-FPM:
@@ -270,7 +278,8 @@ sudo bash scripts/check-persistence.sh /var/www/mikhfast
 ## Langkah 6 — Login Super Admin & buat tenant
 
 1. Buka browser: **`https://admin.mikfast.com/admin.php?id=superadmin`**
-2. Login dengan user/password dari Langkah 4
+2. Login dengan user/password dari Langkah 4 (`superadmin-init.php`)
+3. Ubah password kapan saja di kartu **Change Password** di panel
 3. Di form **Create Tenant**, isi:
    - **Slug** — nama subdomain (huruf kecil, contoh: `kos`, `warnet-jaya`)
    - **Label** — nama tampilan (opsional, contoh: "Kos Coffee")

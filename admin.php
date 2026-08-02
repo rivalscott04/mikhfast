@@ -130,7 +130,19 @@ if ($id === 'tenant-cron') {
 }
 
 if ($id === 'superadmin-action') {
+  if (!mikhmon_superadmin_host()) {
+    mikhmon_json(array('ok' => false, 'error' => 'forbidden'), 403);
+  }
   include_once('./process/superadmin-tenant.php');
+  exit;
+}
+
+if (in_array($id, array('superadmin', 'superadmin-login', 'superadmin-logout'), true) && !mikhmon_superadmin_host()) {
+  if (!headers_sent()) {
+    header('Location: ./admin.php?id=login');
+    exit;
+  }
+  echo "<script>window.location='./admin.php?id=login'</script>";
   exit;
 }
 

@@ -211,9 +211,8 @@ Buat site config, contoh:
     try_files \$uri \$uri/ /index.php?\$query_string;
   }
 
-${CYAN}--- PHP-FPM pool (super-admin & cron, server env only) ---${NC}
-  env[MIKHMON_SUPERADMIN_USER] = superadmin
-  env[MIKHMON_SUPERADMIN_PASS] = ganti-password-kuat
+${CYAN}--- PHP-FPM pool (cron & domain, bukan login super-admin) ---${NC}
+  php scripts/superadmin-init.php superadmin password-anda
   env[MIKHMON_BASE_DOMAIN] = mikfast.com
   env[MIKHMON_CRON_TOKEN] = token-cron-rahasia
   env[MIKHMON_INGEST_TOKEN] = token-ingest-rahasia
@@ -304,6 +303,16 @@ main() {
 
   info "Setup permission ..."
   bash "$INSTALL_DIR/scripts/setup-permissions.sh" "$INSTALL_DIR"
+
+  if [[ ! -f "$INSTALL_DIR/data/superadmin/credentials.json" ]]; then
+    echo ""
+    read -r -p "Password super-admin (default user: superadmin, min 4 char): " SA_PASS
+    if [[ -n "$SA_PASS" && ${#SA_PASS} -ge 4 ]]; then
+      php "$INSTALL_DIR/scripts/superadmin-init.php" superadmin "$SA_PASS" || warn "superadmin-init gagal — jalankan manual: php scripts/superadmin-init.php"
+    else
+      warn "Skip super-admin init — jalankan nanti: php scripts/superadmin-init.php superadmin password-anda"
+    fi
+  fi
 
   info "Cek persistence ..."
   bash "$INSTALL_DIR/scripts/check-persistence.sh" "$INSTALL_DIR" || true

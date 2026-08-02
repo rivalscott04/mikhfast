@@ -64,21 +64,117 @@ function mikhmon_superadmin_tenant_url($slug)
 }
 }
 
+if (!function_exists('mikhmon_superadmin_store_path')) {
+function mikhmon_superadmin_store_path()
+{
+    return dirname(__DIR__) . '/data/superadmin/credentials.json';
+}
+}
+
+if (!function_exists('mikhmon_superadmin_store_read')) {
+function mikhmon_superadmin_store_read()
+{
+    $path = mikhmon_superadmin_store_path();
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+    $raw = @file_get_contents($path);
+    if ($raw === false || $raw === '') {
+        return null;
+    }
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return null;
+    }
+    if (empty($decoded['user']) || empty($decoded['pass'])) {
+        return null;
+    }
+    return array(
+        'user' => (string) $decoded['user'],
+        'pass' => (string) $decoded['pass'],
+        'updated_at' => isset($decoded['updated_at']) ? (int) $decoded['updated_at'] : 0,
+    );
+}
+}
+
+if (!function_exists('mikhmon_superadmin_store_write')) {
+function mikhmon_superadmin_store_write($user, $plainPass)
+{
+    require_once dirname(__DIR__) . '/lib/routeros_api.class.php';
+    $user = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $user);
+    if ($user === '') {
+        $user = 'superadmin';
+    }
+    $plainPass = (string) $plainPass;
+    if ($plainPass === '') {
+        return false;
+    }
+    $dir = dirname(mikhmon_superadmin_store_path());
+    if (!is_dir($dir)) {
+        if (!@mkdir($dir, 0775, true) && !is_dir($dir)) {
+            return false;
+        }
+    }
+    $payload = array(
+        'user' => $user,
+        'pass' => encrypt($plainPass),
+        'updated_at' => time(),
+    );
+    $ok = @file_put_contents(
+        mikhmon_superadmin_store_path(),
+        json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    ) !== false;
+    if ($ok) {
+        mikhmon_superadmin_credentials_reset();
+    }
+    return $ok;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_credentials_reset')) {
+function mikhmon_superadmin_credentials_reset()
+{
+    // Force re-read after store_write (static cache in credentials()).
+    $GLOBALS['__mikhmon_sa_creds'] = null;
+}
+}
+
 if (!function_exists('mikhmon_superadmin_credentials')) {
 function mikhmon_superadmin_credentials()
 {
-    static $cached = null;
-    if ($cached !== null) {
-        return $cached;
+    if (isset($GLOBALS['__mikhmon_sa_creds']) && $GLOBALS['__mikhmon_sa_creds'] !== null) {
+        return $GLOBALS['__mikhmon_sa_creds'];
     }
-    $user = mikhmon_env('MIKHMON_SUPERADMIN_USER');
-    $pass = mikhmon_env('MIKHMON_SUPERADMIN_PASS');
-    $passHash = mikhmon_env('MIKHMON_SUPERADMIN_PASS_HASH');
+    $store = mikhmon_superadmin_store_read();
+    $envUser = mikhmon_env('MIKHMON_SUPERADMIN_USER');
+    $envPass = mikhmon_env('MIKHMON_SUPERADMIN_PASS');
+    $envHash = mikhmon_env('MIKHMON_SUPERADMIN_PASS_HASH');
     $cached = array(
-        'user' => $user,
-        'pass' => $pass,
-        'pass_hash' => $passHash,
+        'user' => '',
+        'pass' => '',
+        'pass_hash' => '',
+        'pass_enc' => '',
+        'source' => 'none',
     );
+    if ($store !== null) {
+        $cached['user'] = $store['user'];
+        $cached['pass_enc'] = $store['pass'];
+        $cached['source'] = 'store';
+    } elseif ($envUser !== '' || $envPass !== '' || $envHash !== '') {
+        if ($envUser !== '') {
+            $cached['user'] = $envUser;
+        }
+        if ($envPass !== '') {
+            $cached['pass'] = $envPass;
+            $cached['source'] = 'env';
+        }
+        if ($envHash !== '') {
+            $cached['pass_hash'] = $envHash;
+            $cached['source'] = 'env_hash';
+        }
+    }
+    $GLOBALS['__mikhmon_sa_creds'] = $cached;
     return $cached;
 }
 }
@@ -87,7 +183,53 @@ if (!function_exists('mikhmon_superadmin_enabled')) {
 function mikhmon_superadmin_enabled()
 {
     $c = mikhmon_superadmin_credentials();
-    return $c['user'] !== '' && ($c['pass'] !== '' || $c['pass_hash'] !== '');
+    if ($c['user'] === '') {
+        return false;
+    }
+    return $c['pass_enc'] !== '' || $c['pass'] !== '' || $c['pass_hash'] !== '';
+}
+}
+
+if (!function_exists('mikhmon_superadmin_verify_password')) {
+function mikhmon_superadmin_verify_password($pass)
+{
+    $c = mikhmon_superadmin_credentials();
+    if ($c['pass_enc'] !== '') {
+        require_once dirname(__DIR__) . '/lib/routeros_api.class.php';
+        $plain = decrypt($c['pass_enc']);
+        return $plain !== '' && hash_equals($plain, (string) $pass);
+    }
+    if ($c['pass_hash'] !== '') {
+        return password_verify((string) $pass, $c['pass_hash']);
+    }
+    if ($c['pass'] !== '') {
+        return hash_equals($c['pass'], (string) $pass);
+    }
+    return false;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_change_password')) {
+function mikhmon_superadmin_change_password($currentPass, $newPass, $newUser = null)
+{
+    if (!mikhmon_superadmin_verify_password($currentPass)) {
+        return array('ok' => false, 'error' => 'wrong_password');
+    }
+    $newPass = (string) $newPass;
+    if (strlen($newPass) < 4) {
+        return array('ok' => false, 'error' => 'password_too_short');
+    }
+    $c = mikhmon_superadmin_credentials();
+    $user = $newUser !== null && $newUser !== ''
+        ? preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $newUser)
+        : $c['user'];
+    if ($user === '') {
+        $user = 'superadmin';
+    }
+    if (!mikhmon_superadmin_store_write($user, $newPass)) {
+        return array('ok' => false, 'error' => 'write_failed');
+    }
+    return array('ok' => true, 'user' => $user);
 }
 }
 
@@ -108,11 +250,7 @@ function mikhmon_superadmin_login($user, $pass)
     if ($user !== $c['user']) {
         return false;
     }
-    if ($c['pass_hash'] !== '') {
-        if (!password_verify($pass, $c['pass_hash'])) {
-            return false;
-        }
-    } elseif ($c['pass'] === '' || !hash_equals($c['pass'], $pass)) {
+    if (!mikhmon_superadmin_verify_password($pass)) {
         return false;
     }
     $_SESSION['mikhmon_superadmin'] = $user;
@@ -256,6 +394,7 @@ function mikhmon_superadmin_tenant_list()
             'label' => isset($meta['label']) ? $meta['label'] : '',
             'status' => isset($meta['status']) ? $meta['status'] : 'active',
             'created_at' => isset($meta['created_at']) ? (int) $meta['created_at'] : (int) @filemtime($path),
+            'router_limit' => isset($meta['router_limit']) ? (int) $meta['router_limit'] : 5,
             'has_config' => is_file($cfgPath),
             'db_bytes' => is_file($dbPath) ? (int) @filesize($dbPath) : 0,
             'router_count' => $routerCount,
@@ -311,14 +450,21 @@ function mikhmon_superadmin_tenant_create($slug, $label, $adminUser, $adminPass)
         'created_at' => time(),
         'router_limit' => 5,
     ));
-    if (function_exists('mikhmon_tenant_meta_set')) {
-        require_once __DIR__ . '/mikhmon-tenant-meta.php';
-        mikhmon_tenant_meta_set('router_limit', '5');
-    }
     if (function_exists('mikhmon_db_enabled')) {
         require_once __DIR__ . '/mikhmon-db.php';
         if (mikhmon_db_enabled()) {
-            mikhmon_db($slug);
+            $pdo = mikhmon_db($slug);
+            $tenantId = mikhmon_db_tenant_id($slug);
+            if ($pdo && $tenantId) {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tenant_meta (tenant_id, meta_key, meta_value, updated_at)
+                     VALUES (?, ?, ?, ?)
+                     ON CONFLICT(tenant_id, meta_key) DO UPDATE SET
+                        meta_value = excluded.meta_value,
+                        updated_at = excluded.updated_at'
+                );
+                $stmt->execute(array($tenantId, 'router_limit', '5', time()));
+            }
         }
     }
     return array('ok' => true, 'slug' => $slug, 'url' => mikhmon_superadmin_tenant_url($slug));

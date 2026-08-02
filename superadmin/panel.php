@@ -72,6 +72,23 @@ $baseDomain = mikhmon_superadmin_base_domain();
 <div class="row">
   <div class="col-12">
     <div class="card">
+      <div class="card-header"><i class="fa fa-key"></i> <?= isset($_superadmin_change_password) ? $_superadmin_change_password : 'Change Password' ?></div>
+      <div class="card-body">
+        <form id="saPassForm" class="table" style="margin:0;">
+          <tr><td><?= isset($_password) ? $_password : 'Password' ?> (now)</td><td><input class="form-control" type="password" name="current_pass" id="saCurrentPass" required minlength="4"></td></tr>
+          <tr><td><?= isset($_superadmin_new_password) ? $_superadmin_new_password : 'New password' ?></td><td><input class="form-control" type="password" name="new_pass" id="saNewPass" required minlength="4"></td></tr>
+          <tr><td><?= isset($_admin) ? $_admin : 'Admin' ?> (<?= isset($_optional) ? $_optional : 'optional' ?>)</td><td><input class="form-control" type="text" name="new_user" id="saNewUser" placeholder="superadmin"></td></tr>
+          <tr><td></td><td><button type="submit" class="btn mm-btn-ghost"><i class="fa fa-save"></i> <?= isset($_save) ? $_save : 'Save' ?></button></td></tr>
+        </form>
+        <p class="mm-sidenav-sub" style="margin:12px 0 0;"><?= isset($_superadmin_pass_hint) ? $_superadmin_pass_hint : 'Stored encrypted in data/superadmin/credentials.json (not in env).' ?></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
       <div class="card-header"><i class="fa fa-list"></i> <?= isset($_superadmin_tenants) ? $_superadmin_tenants : 'Tenants' ?></div>
       <div class="card-body" style="padding:0;">
         <?php if ($tenantCount === 0) { ?>
@@ -112,7 +129,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
                   <span class="mm-chip mm-chip--ok"><i class="fa fa-check"></i> <?= isset($_superadmin_active) ? $_superadmin_active : 'Active' ?></span>
                   <?php } ?>
                 </td>
-                <td><?= (int) (isset($t['router_count']) ? $t['router_count'] : 0) ?></td>
+                <td><?= (int) (isset($t['router_count']) ? $t['router_count'] : 0) ?> / <?= (int) (isset($t['router_limit']) ? $t['router_limit'] : 5) ?></td>
                 <td><?= htmlspecialchars($dbKb . ' KB', ENT_QUOTES) ?></td>
                 <td>
                   <?php if ($isSuspended) { ?>
@@ -135,6 +152,24 @@ $baseDomain = mikhmon_superadmin_base_domain();
 
 <script>
 (function () {
+  var passForm = document.getElementById('saPassForm');
+  if (passForm) {
+    passForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fd = new FormData(passForm);
+      fd.append('action', 'change_password');
+      fetch('./admin.php?id=superadmin-action', { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.ok) {
+            if (typeof mikhmon_toast === 'function') mikhmon_toast(res.message || 'Password updated', 'ok');
+            passForm.reset();
+          } else if (typeof mikhmon_toast === 'function') {
+            mikhmon_toast(res.error || 'Failed', 'error');
+          }
+        });
+    });
+  }
   var createForm = document.getElementById('saCreateForm');
   if (createForm) {
     createForm.addEventListener('submit', function (e) {
