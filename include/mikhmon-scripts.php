@@ -15,6 +15,7 @@ $mikhmonJsModules = array(
   'mikhmon/legacy-forms.js',
   'mikhmon/notify.js',
   'mikhmon/ui-toast.js',
+  'mikhmon/ui-confirm.js',
   'mikhmon/ui-skeleton.js',
   'mikhmon/ui-session.js',
   'mikhmon/table-sort.js',

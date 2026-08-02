@@ -81,7 +81,7 @@ for ($i = 0; $i < $TotalReg; $i++) {
 
 	echo "<tr>";
 	?>
-  	<td style='text-align:center;'><i class='fa fa-minus-square text-danger pointer' onclick="if(confirm('Are you sure to delete scheduler (<?= $name; ?>)?')){loadpage('./?remove-scheduler=<?= $id; ?>&session=<?= $session; ?>')}else{}" title='Remove <?= $name; ?>'></i>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+  	<td style='text-align:center;' class="mm-action-cell"><button type="button" class="mm-action-btn mm-action-btn--danger" aria-label="Remove <?= htmlspecialchars($name, ENT_QUOTES); ?>" onclick="mikhmon_confirm('Are you sure to delete scheduler (<?= $name; ?>)?', function(){ loadpage('./?remove-scheduler=<?= $id; ?>&session=<?= $session; ?>'); })"><i class="fa fa-minus-square" aria-hidden="true"></i></button>
   	<?php
 
 		if ($disabled == "true") {

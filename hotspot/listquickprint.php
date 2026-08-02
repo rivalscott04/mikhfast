@@ -88,7 +88,7 @@ $getquickprint = $API->comm("/system/script/print", array("?.id" => "$qpid"));
   }
 
 	// array color
-    $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-red', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
+    $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-danger', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
 
     $srvlist = $API->comm("/ip/hotspot/print");
     $getprofile = $API->comm("/ip/hotspot/user/profile/print");
@@ -340,7 +340,7 @@ for ($i = 0; $i < $TotalReg; $i++) {
 }
 ?>
 <tr>
-<td><i class='fa fa-minus-square text-danger pointer' onclick="if(confirm('Are you sure to delete (<?= $package; ?>)?')){loadpage('./?hotspot=list-quick-print&remove&qpid=<?= $qpid; ?>&session=<?= $session; ?>')}else{}" title='Remove <?= $package; ?>'></i>&nbsp</td>	
+<td class="mm-action-cell"><button type="button" class="mm-action-btn mm-action-btn--danger" aria-label="Remove <?= htmlspecialchars($package, ENT_QUOTES); ?>" onclick="mikhmon_confirm('Are you sure to delete (<?= $package; ?>)?', function(){ loadpage('./?hotspot=list-quick-print&remove&qpid=<?= $qpid; ?>&session=<?= $session; ?>'); })"><i class="fa fa-minus-square" aria-hidden="true"></i></button></td>	
 <td><a title="Edit <?= $_package.' '. $package; ?>" href="./?hotspot=list-quick-print&qpid=<?= $qpid; ?>&session=<?= $session; ?>"><i class="fa fa-edit"></i> <?= $package; ?></a></td>
 <td><?= $server ?></td>
 <td><?= $usermode ?></td>

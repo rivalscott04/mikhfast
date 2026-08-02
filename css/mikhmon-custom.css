@@ -976,15 +976,19 @@ body.theme-light .mm-lang-dropdown__item--active{
 }
 
 /* Upload / legacy loading indicators above page content */
+:root{
+  --mm-sidenav-w: 210px;
+}
+
 #loading{
   position: fixed;
   top: 50%;
-  left: calc(260px + 50%);
+  left: calc(var(--mm-sidenav-w) + 50%);
   transform: translate(-50%, -50%);
   z-index: 10055;
   pointer-events: none;
 }
-@media (max-width: 900px){
+@media (max-width: 1024px){
   #loading{
     left: 50%;
   }
@@ -1082,7 +1086,7 @@ body.mm-skel-active #main{
 #mmPageSkeleton{
   position: fixed;
   top: 56px;
-  left: 260px;
+  left: var(--mm-sidenav-w);
   right: 0;
   bottom: 0;
   z-index: 9998; /* below toast (9999), above #main */
@@ -1100,7 +1104,7 @@ body.theme-light #mmPageSkeleton{
 #mmPageSkeleton .mm-skel__inner{
   max-width: 1400px;
 }
-@media (max-width: 900px){
+@media (max-width: 1024px){
   #mmPageSkeleton{
     left: 0;
   }
@@ -1298,4 +1302,233 @@ body.theme-light .about-changelog kbd{
 .mm-user-form-row .card-body form .table .input-group,
 .mm-user-form-row .card-body form .table select{
   max-width:100%;
+}
+
+/* --- UI/UX audit fixes --- */
+
+/* Visually hidden labels (login, a11y) */
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+/* Navbar: prevent clipping controls on narrow screens */
+@media (max-width: 480px){
+  .navbar{
+    height:auto;
+    min-height:50px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .navbar-left,
+  .navbar-right{
+    float:none !important;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .navbar-right{
+    margin-left:auto;
+    justify-content:flex-end;
+  }
+  .navbar-right a,
+  .navbar-left a{
+    padding:10px 8px !important;
+  }
+  .navbar-logout-label{
+    display:none;
+  }
+  .mm-lang-dropdown__code{
+    display:none;
+  }
+  .mm-lang-dropdown{
+    margin:6px 4px 0 0;
+  }
+  .navbar-right a[title="Idle Timeout"] > span{
+    width:auto !important;
+    min-width:0;
+  }
+}
+
+/* Tablet: collapsible sidenav + 2-column KPI cards */
+@media screen and (min-width: 751px) and (max-width: 1024px){
+  .sidenav{
+    width:0 !important;
+    border-right:0 !important;
+  }
+  #main{
+    margin-left:0 !important;
+  }
+  #openNav{
+    display:block !important;
+  }
+  #brand,
+  #closeNav,
+  #cpage{
+    display:none !important;
+  }
+  .row > .col-4{
+    width:50% !important;
+    float:left;
+  }
+  .row > .col-8{
+    width:100% !important;
+    float:none;
+  }
+  .row > .col-8 + .col-4{
+    width:100% !important;
+    float:none;
+  }
+}
+
+/* Table horizontal scroll affordance */
+.overflow{
+  background:
+    linear-gradient(to right, var(--mm-bg, #2f353a) 30%, rgba(47,53,58,0)),
+    linear-gradient(to right, rgba(47,53,58,0), var(--mm-bg, #2f353a) 70%) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.18), transparent),
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.18), transparent) 100% 0;
+  background-repeat:no-repeat;
+  background-size:40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment:local, local, scroll, scroll;
+}
+body.theme-light .overflow{
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255,255,255,0)),
+    linear-gradient(to right, rgba(255,255,255,0), #fff 70%) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.10), transparent),
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.10), transparent) 100% 0;
+  background-repeat:no-repeat;
+  background-size:40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment:local, local, scroll, scroll;
+}
+
+/* Table action buttons: adequate touch targets */
+.mm-action-cell{
+  white-space:nowrap;
+}
+.mm-action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:36px;
+  min-height:36px;
+  padding:6px 8px;
+  margin:0 1px;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  cursor:pointer;
+  vertical-align:middle;
+  line-height:1;
+}
+.mm-action-btn:hover{
+  background:rgba(255,255,255,.08);
+}
+body.theme-light .mm-action-btn:hover{
+  background:rgba(17,24,39,.06);
+}
+.mm-action-btn--danger{
+  color:#f86c6b;
+}
+@media (max-width: 750px){
+  .mm-action-btn{
+    min-width:40px;
+    min-height:40px;
+    padding:8px 10px;
+  }
+}
+
+/* User forms: stack label above input on small screens */
+@media (max-width: 480px){
+  .mm-user-form-row .card-body form .table,
+  .mm-user-form-row .card-body form .table tbody,
+  .mm-user-form-row .card-body form .table tr,
+  .mm-user-form-row .card-body form .table td{
+    display:block;
+    width:100% !important;
+  }
+  .mm-user-form-row .card-body form .table tr{
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  body.theme-light .mm-user-form-row .card-body form .table tr{
+    border-bottom-color:var(--mm-border, rgba(17,24,39,.10));
+  }
+  .mm-user-form-row .card-body form .table td:first-child{
+    font-weight:600;
+    padding-bottom:4px;
+  }
+  .mm-user-form-row .card-body form .table td:last-child{
+    padding-bottom:8px;
+  }
+}
+
+/* Themed confirm dialog */
+.mm-confirm{
+  position:fixed;
+  inset:0;
+  z-index:10060;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+}
+.mm-confirm--show{
+  opacity:1;
+  pointer-events:auto;
+}
+.mm-confirm__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.45);
+}
+.mm-confirm__panel{
+  position:relative;
+  width:min(420px, 100%);
+  padding:16px 18px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#2f353a;
+  color:rgba(255,255,255,.92);
+  box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+body.theme-light .mm-confirm__panel{
+  border-color:var(--mm-border, rgba(17,24,39,.12));
+  background:#fff;
+  color:rgba(17,24,39,.90);
+  box-shadow:0 18px 40px rgba(17,24,39,.14);
+}
+.mm-confirm__header{
+  margin:0 0 8px;
+}
+.mm-confirm__title{
+  margin:0;
+  font-size:1.1rem;
+  font-weight:700;
+}
+.mm-confirm__message{
+  margin:0 0 16px;
+  font-size:.95rem;
+  line-height:1.45;
+}
+.mm-confirm__actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
+body.mm-confirm-open{
+  overflow:hidden;
 }

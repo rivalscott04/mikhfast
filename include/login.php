@@ -33,29 +33,23 @@ session_start();
       <span style="font-size: 25px; margin: 10px;">MIKFAST</span>
       </div>
       <center>
-      <form autocomplete="off" action="" method="post">
-      <table class="table" style="width:90%">
-        <tr>
-          <td class="align-middle text-center">
-            <input style="width: 100%; height: 35px; font-size: 16px;" class="form-control" type="text" name="user" id="_username" placeholder="Username" required="1" autofocus>
-          </td>
-        </tr>
-        <tr>
-          <td class="align-middle text-center">
-            <input style="width: 100%; height: 35px; font-size: 16px;" class="form-control" type="password" name="pass" placeholder="Password" required="1">
-          </td>
-        </tr>
-        <tr>
-          <td class="align-middle text-center">
-            <input style="width: 100%; margin-top:20px; height: 35px; font-weight: bold; font-size: 17px;" class="btn-login bg-primary pointer" type="submit" name="login" value="Login">
-          </td>
-        </tr>
-        <tr>
-          <td class="align-middle text-center">
-            <?= $error; ?>
-          </td>
-        </tr>
-      </table>
+      <form method="post" action="">
+      <div class="mm-login-fields" style="width:90%;margin:0 auto;">
+        <div class="form-group text-center" style="margin-bottom:12px;">
+          <label class="sr-only" for="_username">Username</label>
+          <input style="width: 100%; height: 35px; font-size: 16px;" class="form-control" type="text" name="user" id="_username" placeholder="Username" autocomplete="username" required="1" autofocus>
+        </div>
+        <div class="form-group text-center" style="margin-bottom:12px;">
+          <label class="sr-only" for="_password">Password</label>
+          <input style="width: 100%; height: 35px; font-size: 16px;" class="form-control" type="password" name="pass" id="_password" placeholder="Password" autocomplete="current-password" required="1">
+        </div>
+        <div class="form-group text-center">
+          <input style="width: 100%; margin-top:8px; height: 35px; font-weight: bold; font-size: 17px;" class="btn-login bg-primary pointer" type="submit" name="login" value="Login">
+        </div>
+        <div class="text-center">
+          <?= $error; ?>
+        </div>
+      </div>
       </form>
       </center>
     </div>

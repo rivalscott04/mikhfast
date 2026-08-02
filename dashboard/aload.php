@@ -293,7 +293,7 @@ include('../lang/'.$langid.'.php');
                     </div>
                   </div>
                   <div class="col-3 col-box-6">
-                    <div class="box bg-red bmh-75">
+                    <div class="box bg-danger bmh-75">
                       <a href="./?hotspot-user=generate&session=<?= $session; ?>">
                         <div>
                           <h1><i class="fa fa-user-plus"></i>
@@ -580,7 +580,7 @@ else if ($load == "all") {
     <!-- KPI row -->
     <div id="r_1" class="row">
       <div class="col-4">
-        <div class="box bg-red bmh-75">
+        <div class="box bg-danger bmh-75">
           <a onclick="cancelPage()" href="./?hotspot=active&session=<?= $session; ?>">
             <div class="mm-kpi">
               <div class="mm-kpi__left">

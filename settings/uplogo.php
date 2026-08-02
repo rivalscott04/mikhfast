@@ -92,7 +92,7 @@ if (!isset($_SESSION["mikhmon"])) {
               ?>
               <tr>
                 <td><a href="javascript:window.open('./img/<?= $fileEsc; ?>','_blank','width=300,height=300')"><img height="30px" src="./img/<?= $fileEsc; ?>?t=<?= time(); ?>" title="Open <?= $fileEsc; ?>"></a><br><span><?= $fileEsc; ?></span></td>
-                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="if(confirm('Sure to delete <?= $fileEsc; ?> ?')){mikhmon_ajaxNavigate('<?= $deleteUrl; ?>');}return false;"><i class="fa fa-trash"></i> <?= $_delete ?></a></td>
+                <td><a class="btn bg-danger" href="javascript:void(0)" onclick="mikhmon_confirm('Sure to delete <?= $fileEsc; ?> ?', function(){ mikhmon_ajaxNavigate('<?= $deleteUrl; ?>'); }); return false;"><i class="fa fa-trash"></i> <?= $_delete ?></a></td>
               </tr>
               <?php
             }

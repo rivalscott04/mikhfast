@@ -29,7 +29,7 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
 // array color
-  $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-red', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
+  $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-danger', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
 
 }
 ?>
@@ -82,8 +82,8 @@ if (!isset($_SESSION["mikhmon"])) {
                                       <?= $_session_name ?> : <?= $value; ?><br>
                                       <span class="connect pointer"  id="<?= $value; ?>"><i class="fa fa-external-link"></i> <?= $_open ?></span>&nbsp;
                                       <a href="./admin.php?id=settings&session=<?= $value; ?>"><i class="fa fa-edit"></i> <?= $_edit ?></a>&nbsp;
-                                      <a href="javascript:void(0)" onclick="if(confirm('Are you sure to delete data <?= $value;
-                                      echo " (" . explode('%', $data[$value][4])[1] . ")"; ?>?')){mikhmon_ajaxNavigate('./admin.php?id=remove-session&session=<?= $value; ?>')}else{}"><i class="fa fa-remove"></i> <?= $_delete ?></a>
+                                      <a href="javascript:void(0)" onclick="mikhmon_confirm('Are you sure to delete data <?= $value;
+                                      echo " (" . explode('%', $data[$value][4])[1] . ")"; ?>?', function(){ mikhmon_ajaxNavigate('./admin.php?id=remove-session&session=<?= $value; ?>'); })"><i class="fa fa-remove"></i> <?= $_delete ?></a>
                                     </span>
 
                                   </div>

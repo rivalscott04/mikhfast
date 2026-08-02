@@ -152,9 +152,9 @@ if (!isset($_SESSION["mikhmon"])) {
  
   <div class="col-6">
     <?php if ($comm != "") { ?>
-  <button class="btn bg-red" onclick="if(confirm('Are you sure to delete username by comment (<?= $comm; ?>)?')){loadpage('./?remove-hotspot-user-by-comment=<?= $comm; ?>&session=<?= $session; ?>');loader();}else{}" title="Remove user by comment <?= $comm; ?>">  <i class="fa fa-trash"></i> <?= $_by_comment ?></button>
+  <button class="btn bg-danger" onclick="mikhmon_confirm('Are you sure to delete username by comment (<?= $comm; ?>)?', function(){ loadpage('./?remove-hotspot-user-by-comment=<?= $comm; ?>&session=<?= $session; ?>'); loader(); })" title="Remove user by comment <?= $comm; ?>">  <i class="fa fa-trash"></i> <?= $_by_comment ?></button>
     <?php ; }else if ($exp == "1"){ ?>
-  <button class="btn bg-red" onclick="if(confirm('Are you sure to delete users?')){loadpage('./?remove-hotspot-user-expired=1&session=<?= $session; ?>');loader();}else{}" title="Remove user expired">  <i class="fa fa-trash"></i> Expired Users</button>
+  <button class="btn bg-danger" onclick="mikhmon_confirm('Are you sure to delete users?', function(){ loadpage('./?remove-hotspot-user-expired=1&session=<?= $session; ?>'); loader(); })" title="Remove user expired">  <i class="fa fa-trash"></i> Expired Users</button>
       <?php } ?>
   <script>
     function printV(a,b){
@@ -225,14 +225,14 @@ for ($i = 0; $i < $TotalReg; $i++) {
 
   echo "<tr>";
   ?>
-  <td style='text-align:center;'>  <i class='fa fa-minus-square text-danger pointer' onclick="if(confirm('Are you sure to delete username (<?= $uname; ?>)?')){loadpage('./?remove-hotspot-user=<?= $uid; ?>&session=<?= $session; ?>')}else{}" title='Remove <?= $uname; ?>'></i>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+  <td style='text-align:center;' class="mm-action-cell"><button type="button" class="mm-action-btn mm-action-btn--danger" aria-label="Remove <?= htmlspecialchars($uname, ENT_QUOTES); ?>" onclick="mikhmon_confirm('Are you sure to delete username (<?= $uname; ?>)?', function(){ loadpage('./?remove-hotspot-user=<?= $uid; ?>&session=<?= $session; ?>'); })"><i class="fa fa-minus-square" aria-hidden="true"></i></button>
   <?php
   if ($udisabled == "true") {
     $uriprocess = "'./?enable-hotspot-user=" . $uid . "&session=" . $session."'";
-    echo '<span class="text-warning pointer" title="Enable User ' . $uname . '"  onclick="loadpage('.$uriprocess.')"><i class="fa fa-lock "></i></span></td>';
+    echo '<button type="button" class="mm-action-btn text-warning" aria-label="Enable User ' . htmlspecialchars($uname, ENT_QUOTES) . '" onclick="loadpage('.$uriprocess.')"><i class="fa fa-lock" aria-hidden="true"></i></button></td>';
   } else {
     $uriprocess = "'./?disable-hotspot-user=" . $uid . "&session=" . $session."'";
-    echo '<span class="pointer" title="Disable User ' . $uname . '"  onclick="loadpage('.$uriprocess.')"><i class="fa fa-unlock "></i></span></td>';
+    echo '<button type="button" class="mm-action-btn" aria-label="Disable User ' . htmlspecialchars($uname, ENT_QUOTES) . '" onclick="loadpage('.$uriprocess.')"><i class="fa fa-unlock" aria-hidden="true"></i></button></td>';
   }
   echo "<td>" . $userver . "</td>";
   if ($uname == $upass) {

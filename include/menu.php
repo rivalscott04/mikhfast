@@ -209,7 +209,7 @@ if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 
 <a id="cpage" class="navbar-left" href="javascript:void(0)"><?= $mpage; ?></a>
 </div>
  <div class="navbar-right">
-  <a id="logout" href="./admin.php?id=logout" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
+  <a id="logout" href="./admin.php?id=logout" ><i class="fa fa-sign-out mr-1"></i> <span class="navbar-logout-label"><?= $_logout ?></span></a>
   <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
   <?php include(__DIR__ . '/lang-dropdown.php'); ?>
   <?php
@@ -352,7 +352,7 @@ if (file_exists('./info.php')) {
 <a id="cpage" class="navbar-left" href="javascript:void(0)"><?= $mpage; ?></a>
 </div>
  <div class="navbar-right">
-  <a id="logout" href="./?hotspot=logout&session=<?= $session; ?>" ><i class="fa fa-sign-out mr-1"></i> <?= $_logout ?></a>
+  <a id="logout" href="./?hotspot=logout&session=<?= $session; ?>" ><i class="fa fa-sign-out mr-1"></i> <span class="navbar-logout-label"><?= $_logout ?></span></a>
   <a title="Idle Timeout" style="<?= $didleto; ?>"><span style="width:70px;" class="pd-5 radius-3"><i class="fa fa-clock-o mr-1"></i>  <span class="mr-1" id="timer"></span></span></a>
   <?php include(__DIR__ . '/lang-dropdown.php'); ?>
   <?php
