@@ -1,6 +1,8 @@
 <?php
 /**
- * Super-admin panel — manage SaaS tenants (admin.mikfast.com).
+ * Super-admin panel — manage SaaS tenants.
+ * Accessible on any host except tenant subdomains (kos.domain.com).
+ * New tenants get URLs like {slug}.{domain} — domain is set per tenant in Super Admin panel.
  */
 
 require_once __DIR__ . '/mikhmon-tenant.php';
@@ -14,23 +16,66 @@ function mikhmon_superadmin_reserved_slugs()
 }
 }
 
+if (!function_exists('mikhmon_superadmin_subdomain_prefix')) {
+function mikhmon_superadmin_subdomain_prefix()
+{
+    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
+    return $prefix !== '' ? $prefix : 'admin';
+}
+}
+
+if (!function_exists('mikhmon_is_tenant_subdomain_host')) {
+function mikhmon_is_tenant_subdomain_host($host = null)
+{
+    if ($host === null) {
+        $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
+        $host = preg_replace('/:\d+$/', '', $host);
+    } else {
+        $host = strtolower((string) $host);
+        $host = preg_replace('/:\d+$/', '', $host);
+    }
+    if ($host === '' || $host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP)) {
+        return false;
+    }
+    $parts = explode('.', $host);
+    if (count($parts) < 3) {
+        return false;
+    }
+    $sub = preg_replace('/[^a-z0-9-]/', '', $parts[0]);
+    if ($sub === '' || $sub === mikhmon_superadmin_subdomain_prefix()) {
+        return false;
+    }
+    return !in_array($sub, mikhmon_superadmin_reserved_slugs(), true);
+}
+}
+
 if (!function_exists('mikhmon_superadmin_host')) {
 function mikhmon_superadmin_host()
 {
     if (mikhmon_env_bool('MIKHMON_SUPERADMIN_ALLOW_ANY_HOST')) {
         return true;
     }
-    $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
-    $host = preg_replace('/:\d+$/', '', $host);
-    if ($host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP)) {
-        return mikhmon_env_bool('MIKHMON_SUPERADMIN_DEV');
+    if (mikhmon_env_bool('MIKHMON_SUPERADMIN_SUBDOMAIN_ONLY')) {
+        $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
+        $host = preg_replace('/:\d+$/', '', $host);
+        $parts = explode('.', $host);
+        $prefix = mikhmon_superadmin_subdomain_prefix();
+        return isset($parts[0]) && $parts[0] === $prefix;
     }
-    $parts = explode('.', $host);
-    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
-    if ($prefix === '') {
-        $prefix = 'admin';
+    return !mikhmon_is_tenant_subdomain_host();
+}
+}
+
+if (!function_exists('mikhmon_superadmin_active')) {
+function mikhmon_superadmin_active($id = null)
+{
+    if ($id === null) {
+        $id = isset($_GET['id']) ? (string) $_GET['id'] : '';
     }
-    return isset($parts[0]) && $parts[0] === $prefix;
+    if (in_array($id, array('superadmin', 'superadmin-login'), true)) {
+        return !mikhmon_is_tenant_subdomain_host();
+    }
+    return mikhmon_superadmin_host();
 }
 }
 
@@ -38,17 +83,14 @@ if (!function_exists('mikhmon_superadmin_public_url')) {
 function mikhmon_superadmin_public_url()
 {
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    if (mikhmon_superadmin_host()) {
-        $host = isset($_SERVER['HTTP_HOST']) ? (string) $_SERVER['HTTP_HOST'] : 'localhost';
+    $host = isset($_SERVER['HTTP_HOST']) ? preg_replace('/:\d+$/', '', (string) $_SERVER['HTTP_HOST']) : '';
+    if ($host !== '' && !mikhmon_is_tenant_subdomain_host($host)) {
         return $scheme . '://' . $host . '/admin.php';
     }
     $base = mikhmon_superadmin_base_domain();
-    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
-    if ($prefix === '') {
-        $prefix = 'admin';
-    }
+    $prefix = mikhmon_superadmin_subdomain_prefix();
     if ($base === 'localhost' || filter_var($base, FILTER_VALIDATE_IP)) {
-        return $scheme . '://' . $prefix . '.localhost/admin.php';
+        return $scheme . '://' . ($host !== '' ? $host : 'localhost') . '/admin.php';
     }
     return $scheme . '://' . $prefix . '.' . $base . '/admin.php';
 }
@@ -77,10 +119,7 @@ function mikhmon_superadmin_base_domain()
     $host = isset($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : '';
     $host = preg_replace('/:\d+$/', '', $host);
     $parts = explode('.', $host);
-    $prefix = mikhmon_env('MIKHMON_SUPERADMIN_SUBDOMAIN');
-    if ($prefix === '') {
-        $prefix = 'admin';
-    }
+    $prefix = mikhmon_superadmin_subdomain_prefix();
     if (count($parts) >= 2 && $parts[0] === $prefix) {
         array_shift($parts);
         return implode('.', $parts);
@@ -92,16 +131,80 @@ function mikhmon_superadmin_base_domain()
 }
 }
 
-if (!function_exists('mikhmon_superadmin_tenant_url')) {
-function mikhmon_superadmin_tenant_url($slug)
+if (!function_exists('mikhmon_superadmin_normalize_domain')) {
+function mikhmon_superadmin_normalize_domain($domain)
+{
+    $domain = strtolower(trim((string) $domain));
+    $domain = preg_replace('#^https?://#', '', $domain);
+    $domain = preg_replace('#/.*$#', '', $domain);
+    $domain = preg_replace('/:\d+$/', '', $domain);
+    return $domain;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_validate_domain')) {
+function mikhmon_superadmin_validate_domain($domain)
+{
+    $domain = mikhmon_superadmin_normalize_domain($domain);
+    if ($domain === '' || strlen($domain) > 253) {
+        return array('ok' => false, 'error' => 'invalid_domain');
+    }
+    if ($domain === 'localhost' || preg_match('/\.localhost$/', $domain)) {
+        return array('ok' => true, 'domain' => $domain);
+    }
+    if (filter_var($domain, FILTER_VALIDATE_IP)) {
+        return array('ok' => false, 'error' => 'invalid_domain');
+    }
+    if (!preg_match('/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/', $domain)) {
+        return array('ok' => false, 'error' => 'invalid_domain');
+    }
+    if (strpos($domain, '.') === false) {
+        return array('ok' => false, 'error' => 'invalid_domain');
+    }
+    return array('ok' => true, 'domain' => $domain);
+}
+}
+
+if (!function_exists('mikhmon_tenant_domain')) {
+function mikhmon_tenant_domain($slug)
+{
+    $meta = mikhmon_tenant_meta_read($slug);
+    if (!empty($meta['domain'])) {
+        return (string) $meta['domain'];
+    }
+    $fallback = mikhmon_superadmin_base_domain();
+    return $fallback !== 'localhost' && !filter_var($fallback, FILTER_VALIDATE_IP) ? $fallback : '';
+}
+}
+
+if (!function_exists('mikhmon_superadmin_tenant_host')) {
+function mikhmon_superadmin_tenant_host($slug, $domain = null)
 {
     $slug = preg_replace('/[^a-z0-9-]/', '', (string) $slug);
-    $base = mikhmon_superadmin_base_domain();
-    if ($base === 'localhost' || filter_var($base, FILTER_VALIDATE_IP)) {
+    if ($domain === null) {
+        $domain = mikhmon_tenant_domain($slug);
+    } else {
+        $domain = mikhmon_superadmin_normalize_domain($domain);
+    }
+    if ($domain === '') {
+        return '';
+    }
+    if ($slug !== '' && strpos($domain, $slug . '.') === 0) {
+        return $domain;
+    }
+    return $slug !== '' ? $slug . '.' . $domain : $domain;
+}
+}
+
+if (!function_exists('mikhmon_superadmin_tenant_url')) {
+function mikhmon_superadmin_tenant_url($slug, $domain = null)
+{
+    $host = mikhmon_superadmin_tenant_host($slug, $domain);
+    if ($host === '') {
         return './admin.php?id=login';
     }
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return $scheme . '://' . $slug . '.' . $base . '/admin.php?id=login';
+    return $scheme . '://' . $host . '/admin.php?id=login';
 }
 }
 
@@ -324,19 +427,20 @@ function mikhmon_tenant_meta_read($slug)
         return array(
             'status' => 'active',
             'label' => '',
+            'domain' => '',
             'created_at' => 0,
         );
     }
     $raw = @file_get_contents($path);
     if ($raw === false) {
-        return array('status' => 'active', 'label' => '', 'created_at' => 0);
+        return array('status' => 'active', 'label' => '', 'domain' => '', 'created_at' => 0);
     }
     $decoded = json_decode($raw, true);
     if (!is_array($decoded)) {
-        return array('status' => 'active', 'label' => '', 'created_at' => 0);
+        return array('status' => 'active', 'label' => '', 'domain' => '', 'created_at' => 0);
     }
         return array_merge(
-        array('status' => 'active', 'label' => '', 'created_at' => 0, 'router_limit' => 5),
+        array('status' => 'active', 'label' => '', 'domain' => '', 'created_at' => 0, 'router_limit' => 5),
         $decoded
     );
 }
@@ -356,6 +460,9 @@ function mikhmon_tenant_meta_write($slug, array $meta)
         'label' => isset($meta['label']) ? (string) $meta['label'] : '',
         'created_at' => isset($meta['created_at']) ? (int) $meta['created_at'] : time(),
     );
+    if (isset($meta['domain']) && (string) $meta['domain'] !== '') {
+        $payload['domain'] = mikhmon_superadmin_normalize_domain($meta['domain']);
+    }
     if (isset($meta['router_limit'])) {
         $payload['router_limit'] = (int) $meta['router_limit'];
     }
@@ -433,6 +540,8 @@ function mikhmon_superadmin_tenant_list()
         $tenants[] = array(
             'slug' => $entry,
             'label' => isset($meta['label']) ? $meta['label'] : '',
+            'domain' => isset($meta['domain']) ? (string) $meta['domain'] : '',
+            'host' => mikhmon_superadmin_tenant_host($entry, isset($meta['domain']) ? $meta['domain'] : null),
             'status' => isset($meta['status']) ? $meta['status'] : 'active',
             'created_at' => isset($meta['created_at']) ? (int) $meta['created_at'] : (int) @filemtime($path),
             'router_limit' => isset($meta['router_limit']) ? (int) $meta['router_limit'] : 5,
@@ -465,13 +574,18 @@ function mikhmon_superadmin_tenant_config_content($adminUser, $adminPass)
 }
 
 if (!function_exists('mikhmon_superadmin_tenant_create')) {
-function mikhmon_superadmin_tenant_create($slug, $label, $adminUser, $adminPass)
+function mikhmon_superadmin_tenant_create($slug, $label, $domain, $adminUser, $adminPass)
 {
     $valid = mikhmon_superadmin_validate_slug($slug);
     if (!$valid['ok']) {
         return $valid;
     }
     $slug = $valid['slug'];
+    $domainValid = mikhmon_superadmin_validate_domain($domain);
+    if (!$domainValid['ok']) {
+        return $domainValid;
+    }
+    $domain = $domainValid['domain'];
     $dir = mikhmon_tenant_data_dir($slug);
     if (is_dir($dir) && is_file($dir . '/config.php')) {
         return array('ok' => false, 'error' => 'exists');
@@ -488,6 +602,7 @@ function mikhmon_superadmin_tenant_create($slug, $label, $adminUser, $adminPass)
     mikhmon_tenant_meta_write($slug, array(
         'status' => 'active',
         'label' => (string) $label,
+        'domain' => $domain,
         'created_at' => time(),
         'router_limit' => 5,
     ));
@@ -508,7 +623,13 @@ function mikhmon_superadmin_tenant_create($slug, $label, $adminUser, $adminPass)
             }
         }
     }
-    return array('ok' => true, 'slug' => $slug, 'url' => mikhmon_superadmin_tenant_url($slug));
+    return array(
+        'ok' => true,
+        'slug' => $slug,
+        'domain' => $domain,
+        'host' => mikhmon_superadmin_tenant_host($slug, $domain),
+        'url' => mikhmon_superadmin_tenant_url($slug, $domain),
+    );
 }
 }
 

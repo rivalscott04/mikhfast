@@ -1,6 +1,6 @@
 <?php
 /*
- * Super-admin platform login (admin.mikfast.com).
+ * Super-admin platform login — works on any host (domain, IP, localhost).
  */
 $error = isset($superadmin_error) ? $superadmin_error : '';
 $saHost = isset($_SERVER['HTTP_HOST']) ? preg_replace('/:\d+$/', '', (string) $_SERVER['HTTP_HOST']) : '';

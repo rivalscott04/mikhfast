@@ -26,21 +26,28 @@ if ($action === 'change_password') {
     mikhmon_json(array('ok' => true, 'message' => 'Password updated'));
 }
 
+if ($action === 'create') {
     $label = isset($_POST['label']) ? (string) $_POST['label'] : '';
+    $domain = isset($_POST['domain']) ? (string) $_POST['domain'] : '';
     $adminUser = isset($_POST['admin_user']) ? (string) $_POST['admin_user'] : 'admin';
     $adminPass = isset($_POST['admin_pass']) ? (string) $_POST['admin_pass'] : '';
+    if ($domain === '') {
+        mikhmon_json(array('ok' => false, 'error' => 'domain_required'), 400);
+    }
     if ($adminPass === '') {
         mikhmon_json(array('ok' => false, 'error' => 'password_required'), 400);
     }
-    $result = mikhmon_superadmin_tenant_create($slug, $label, $adminUser, $adminPass);
+    $result = mikhmon_superadmin_tenant_create($slug, $label, $domain, $adminUser, $adminPass);
     if (!$result['ok']) {
         mikhmon_json(array('ok' => false, 'error' => isset($result['error']) ? $result['error'] : 'create_failed'), 400);
     }
     mikhmon_json(array(
         'ok' => true,
         'slug' => $result['slug'],
+        'domain' => $result['domain'],
+        'host' => $result['host'],
         'url' => $result['url'],
-        'message' => 'Tenant created: ' . $result['slug'],
+        'message' => 'Tenant created: ' . $result['host'],
     ));
 }
 

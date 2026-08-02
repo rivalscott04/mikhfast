@@ -18,7 +18,6 @@ foreach ($tenants as $t) {
         $activeCount++;
     }
 }
-$baseDomain = mikhmon_superadmin_base_domain();
 ?>
 
 <div class="row">
@@ -27,7 +26,6 @@ $baseDomain = mikhmon_superadmin_base_domain();
       <div class="mm-dashheader__left">
         <div class="mm-dashheader__title"><i class="fa fa-building"></i> <?= isset($_superadmin_panel) ? $_superadmin_panel : 'Super Admin' ?></div>
         <div class="mm-dashheader__subtitle">
-          <span class="mm-dashheader__meta"><i class="fa fa-globe"></i> <?= htmlspecialchars($baseDomain, ENT_QUOTES) ?></span>
           <span class="mm-dashheader__meta"><?= sprintf(isset($_superadmin_tenant_count) ? $_superadmin_tenant_count : '%d tenant(s)', $tenantCount) ?></span>
         </div>
       </div>
@@ -58,12 +56,13 @@ $baseDomain = mikhmon_superadmin_base_domain();
       <div class="card-body">
         <form id="saCreateForm" class="table" style="margin:0;">
           <tr><td><?= isset($_superadmin_slug) ? $_superadmin_slug : 'Slug' ?></td><td><input class="form-control" type="text" name="slug" id="saSlug" placeholder="kos" pattern="[a-z][a-z0-9-]{2,31}" required></td></tr>
+          <tr><td><?= isset($_superadmin_domain) ? $_superadmin_domain : 'Domain' ?></td><td><input class="form-control" type="text" name="domain" id="saDomain" placeholder="mikfast.com" required autocomplete="off"></td></tr>
           <tr><td><?= isset($_superadmin_label) ? $_superadmin_label : 'Label' ?></td><td><input class="form-control" type="text" name="label" id="saLabel" placeholder="Kos Coffee"></td></tr>
           <tr><td><?= isset($_admin) ? $_admin : 'Admin' ?></td><td><input class="form-control" type="text" name="admin_user" id="saAdminUser" value="admin" required></td></tr>
           <tr><td><?= isset($_password) ? $_password : 'Password' ?></td><td><input class="form-control" type="password" name="admin_pass" id="saAdminPass" required minlength="4"></td></tr>
           <tr><td></td><td><button type="submit" class="btn mm-btn-ghost"><i class="fa fa-plus"></i> <?= isset($_create) ? $_create : 'Create' ?></button></td></tr>
         </form>
-        <p class="mm-sidenav-sub" style="margin:12px 0 0;"><?= sprintf(isset($_superadmin_slug_hint) ? $_superadmin_slug_hint : 'Tenant URL: %s.{domain}', '{slug}') ?></p>
+        <p class="mm-sidenav-sub" id="saUrlPreview" style="margin:12px 0 0;"><?= isset($_superadmin_slug_hint) ? $_superadmin_slug_hint : 'Tenant login: https://{slug}.{domain}/admin.php?id=login' ?></p>
       </div>
     </div>
   </div>
@@ -102,6 +101,7 @@ $baseDomain = mikhmon_superadmin_base_domain();
             <thead>
               <tr>
                 <th><?= isset($_superadmin_slug) ? $_superadmin_slug : 'Slug' ?></th>
+                <th><?= isset($_superadmin_domain) ? $_superadmin_domain : 'Domain' ?></th>
                 <th><?= isset($_superadmin_label) ? $_superadmin_label : 'Label' ?></th>
                 <th><?= isset($_status) ? $_status : 'Status' ?></th>
                 <th><?= isset($_routers) ? $_routers : 'Routers' ?></th>
@@ -115,10 +115,12 @@ $baseDomain = mikhmon_superadmin_base_domain();
                 $dbKb = round((isset($t['db_bytes']) ? $t['db_bytes'] : 0) / 1024, 1);
               ?>
               <tr data-slug="<?= htmlspecialchars($t['slug'], ENT_QUOTES) ?>">
+                <td><strong><?= htmlspecialchars($t['slug'], ENT_QUOTES) ?></strong></td>
                 <td>
-                  <strong><?= htmlspecialchars($t['slug'], ENT_QUOTES) ?></strong>
-                  <?php if (!empty($t['url']) && strpos($t['url'], '://') !== false) { ?>
-                  <br><a href="<?= htmlspecialchars($t['url'], ENT_QUOTES) ?>" target="_blank" rel="noopener noreferrer" class="mm-sidenav-sub"><i class="fa fa-external-link"></i> <?= htmlspecialchars($t['slug'] . '.' . $baseDomain, ENT_QUOTES) ?></a>
+                  <?php if (!empty($t['host'])) { ?>
+                  <a href="<?= htmlspecialchars(isset($t['url']) ? $t['url'] : mikhmon_superadmin_tenant_url($t['slug']), ENT_QUOTES) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($t['host'], ENT_QUOTES) ?></a>
+                  <?php } else { ?>
+                  <span class="mm-sidenav-sub">—</span>
                   <?php } ?>
                 </td>
                 <td><?= htmlspecialchars(isset($t['label']) ? $t['label'] : '', ENT_QUOTES) ?></td>
@@ -171,6 +173,18 @@ $baseDomain = mikhmon_superadmin_base_domain();
     });
   }
   var createForm = document.getElementById('saCreateForm');
+  var slugInput = document.getElementById('saSlug');
+  var domainInput = document.getElementById('saDomain');
+  var urlPreview = document.getElementById('saUrlPreview');
+  var previewTpl = urlPreview ? urlPreview.textContent : '';
+  function updateSaPreview() {
+    if (!urlPreview || !previewTpl) return;
+    var slug = slugInput && slugInput.value ? slugInput.value.trim() : '{slug}';
+    var domain = domainInput && domainInput.value ? domainInput.value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '') : '{domain}';
+    urlPreview.textContent = previewTpl.replace('{slug}', slug || '{slug}').replace('{domain}', domain || '{domain}');
+  }
+  if (slugInput) slugInput.addEventListener('input', updateSaPreview);
+  if (domainInput) domainInput.addEventListener('input', updateSaPreview);
   if (createForm) {
     createForm.addEventListener('submit', function (e) {
       e.preventDefault();

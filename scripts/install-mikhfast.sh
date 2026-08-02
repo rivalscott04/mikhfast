@@ -211,9 +211,8 @@ Buat site config, contoh:
     try_files \$uri \$uri/ /index.php?\$query_string;
   }
 
-${CYAN}--- PHP-FPM pool (cron & domain, bukan login super-admin) ---${NC}
+${CYAN}--- PHP-FPM pool (cron, bukan login super-admin) ---${NC}
   php scripts/superadmin-init.php superadmin password-anda
-  env[MIKHMON_BASE_DOMAIN] = mikfast.com
   env[MIKHMON_CRON_TOKEN] = token-cron-rahasia
   env[MIKHMON_INGEST_TOKEN] = token-ingest-rahasia
   env[MIKHMON_NOTIFY_WEBHOOK] = https://hooks.example.com/mikfast

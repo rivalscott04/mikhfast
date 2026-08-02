@@ -130,7 +130,7 @@ if ($id === 'tenant-cron') {
 }
 
 if ($id === 'superadmin-action') {
-  if (!mikhmon_superadmin_host() && !mikhmon_superadmin_authenticated()) {
+  if (!mikhmon_superadmin_active($id) && !mikhmon_superadmin_authenticated()) {
     mikhmon_json(array('ok' => false, 'error' => 'forbidden'), 403);
   }
   include_once('./process/superadmin-tenant.php');
@@ -148,7 +148,7 @@ if ($id === 'superadmin-logout') {
   exit;
 }
 
-if (mikhmon_superadmin_host()) {
+if (mikhmon_superadmin_active($id)) {
   include_once('./include/headhtml.php');
 
   $superadmin_error = '';

@@ -10,9 +10,11 @@ Bayangkan **satu aplikasi** di satu server, tapi bisa melayani banyak pelanggan:
 
 | Alamat | Fungsi |
 |--------|--------|
-| `admin.mikfast.com` | **Panel Super Admin** — buat/hapus/suspend tenant |
-| `kos.mikfast.com` | Tenant "kos" — admin kos login & kelola router |
-| `warnet.mikfast.com` | Tenant "warnet" — admin warnet login & kelola router |
+| `mikfast.com/admin.php` (atau IP VPS) | **Super Admin** — buat/hapus tenant |
+| `kos.mikfast.com` | Tenant "kos" — admin kos login dari domain yang didaftarkan |
+| `warnet.client.com` | Tenant lain — bisa pakai domain berbeda per pelanggan |
+
+**Alur singkat:** Install app → login Super Admin → buat tenant (isi slug + domain + password) → kirim link login ke pelanggan.
 
 **Satu kode, satu upload.** Data tiap tenant tersimpan terpisah di folder `data/tenants/{slug}/`. Tidak perlu upload ulang per pelanggan.
 
@@ -90,18 +92,16 @@ Di panel DNS domain kamu (Cloudflare, Niagahoster, dll), tambahkan:
 |------|------|-----|-----|
 | **A** | `@` | IP VPS kamu | Auto |
 | **A** | `*` | IP VPS kamu | Auto |
-| **A** | `admin` | IP VPS kamu | Auto |
 
 Contoh: IP VPS = `203.0.113.10`
 
-- `mikfast.com` → `203.0.113.10`
-- `*.mikfast.com` → `203.0.113.10` (wildcard — penting!)
-- `admin.mikfast.com` → `203.0.113.10`
+- `mikfast.com` → `203.0.113.10` (Super Admin + apex)
+- `*.mikfast.com` → `203.0.113.10` (wildcard — untuk subdomain tenant)
 
 Tunggu 5–30 menit (propagasi DNS), lalu cek:
 
 ```bash
-ping admin.mikfast.com
+ping mikfast.com
 ping tes123.mikfast.com
 ```
 
@@ -159,7 +159,7 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d mikfast.com -d "*.mikfast.com"
 ```
 
-> Certbot wildcard butuh DNS challenge. Kalau sulit, minimal HTTPS untuk `admin.mikfast.com` dan subdomain tenant yang sudah dipakai.
+> Certbot wildcard butuh DNS challenge. Kalau sulit, HTTPS per subdomain tenant yang sudah dipakai dulu.
 
 ---
 
@@ -201,9 +201,6 @@ sudo nano /etc/php/8.3/fpm/pool.d/www.conf
 Tambahkan di bagian bawah:
 
 ```ini
-; Domain tenant (tanpa subdomain)
-env[MIKHMON_BASE_DOMAIN] = mikfast.com
-
 ; Token cron (string acak, untuk maintenance otomatis)
 env[MIKHMON_CRON_TOKEN] = ganti-dengan-string-acak-panjang
 
@@ -277,15 +274,7 @@ sudo bash scripts/check-persistence.sh /var/www/mikhfast
 
 ### Local dev
 
-Pakai subdomain admin (sama seperti production), tambahkan di `/etc/hosts`:
-
-```
-127.0.0.1 admin.localhost
-```
-
-Buka: **`http://admin.localhost/admin.php`** — login superadmin otomatis (host-based, tanpa `?id=`).
-
-Alternatif tanpa hosts file: set `MIKHMON_SUPERADMIN_DEV=1` di env, lalu `http://localhost/admin.php`.
+Buka langsung: **`http://localhost/admin.php`**
 
 Set password:
 
@@ -293,21 +282,29 @@ Set password:
 php scripts/superadmin-init.php superadmin password-anda
 ```
 
+Saat buat tenant di local, isi domain `localhost` → login tenant di `http://kos.localhost/admin.php?id=login` (tambah `127.0.0.1 kos.localhost` di `/etc/hosts` jika perlu).
+
 ---
 
 ## Langkah 6 — Login Super Admin & buat tenant
 
-1. Buka browser: **`https://admin.mikfast.com/admin.php`** (subdomain `admin` + domain Anda)
-2. Login dengan user/password dari Langkah 4 (`superadmin-init.php`)
-3. Ubah password kapan saja di kartu **Change Password** di panel
+1. Buka **`https://mikfast.com/admin.php`** — atau IP VPS (`http://203.0.113.5/admin.php`). Domain bebas, tidak perlu subdomain khusus.
+2. Login dengan user/password dari Langkah 4
 3. Di form **Create Tenant**, isi:
-   - **Slug** — nama subdomain (huruf kecil, contoh: `kos`, `warnet-jaya`)
-   - **Label** — nama tampilan (opsional, contoh: "Kos Coffee")
-   - **Admin** — username admin tenant
-   - **Password** — password admin tenant
+
+| Field | Contoh | Keterangan |
+|-------|--------|------------|
+| **Slug** | `kos` | Subdomain tenant (huruf kecil) |
+| **Domain** | `mikfast.com` | Domain tempat tenant login |
+| **Label** | Kos Coffee | Nama tampilan (opsional) |
+| **Admin** | `admin` | Username admin tenant |
+| **Password** | `••••••` | Password admin tenant |
+
 4. Klik **Create**
 
-Tenant siap di: **`https://kos.mikfast.com/admin.php?id=login`**
+Pelanggan login di: **`https://kos.mikfast.com/admin.php?id=login`**
+
+> Domain diisi **per tenant** di panel — tidak perlu setting env global. Tenant A bisa `kos.mikfast.com`, tenant B bisa `warnet.domainlain.com` (asalkan DNS wildcard/domain-nya sudah mengarah ke VPS yang sama).
 
 ### Apa yang terjadi di belakang layar?
 
@@ -316,7 +313,7 @@ Super Admin membuat folder:
 ```
 data/tenants/kos/
 ├── config.php      ← login admin tenant + daftar router
-├── meta.json       ← status (active/suspended), label
+├── meta.json       ← status, label, domain tenant
 └── mikfast.sqlite  ← laporan penjualan & log (jika SQLite aktif)
 ```
 
@@ -354,7 +351,7 @@ Tambahkan (jalan setiap 15 menit):
 ### Via HTTP (alternatif)
 
 ```
-GET https://admin.mikfast.com/admin.php?id=tenant-cron&token=TOKEN_DARI_ENV&purge_days=90
+GET https://mikfast.com/admin.php?id=tenant-cron&token=TOKEN_DARI_ENV&purge_days=90
 ```
 
 Token harus sama dengan `MIKHMON_CRON_TOKEN` di PHP-FPM.
@@ -482,10 +479,10 @@ Pastikan deploy sudah jalan. MIKFAST pakai cache-buster otomatis (`?v=filemtime`
 1. Install app di VPS          → scripts/install-mikhfast.sh
 2. DNS wildcard *.domain       → panel DNS
 3. Nginx + blok /data/         → sites-available
-4. Env di PHP-FPM              → superadmin + cron + base domain
+4. Password superadmin         → superadmin-init.php
 5. Permission                  → setup-permissions.sh
-6. Login admin.domain          → buat tenant
-7. tenant.domain               → admin pelanggan add router
+6. Login Super Admin           → buat tenant (slug + domain + password)
+7. Kirim link ke pelanggan     → slug.domain/admin.php?id=login
 8. Cron (opsional)             → cron-tenant-maintenance.php
 9. Backup rutin                → tar data/tenants/
 ```
