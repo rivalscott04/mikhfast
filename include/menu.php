@@ -204,8 +204,8 @@ if ($mmDeviceLabel !== "" && strcasecmp(trim($mmDeviceLabel), "mikrotik") === 0 
       MIKFAST
     </a>
 
-<a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
-<a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
+<a id="openNav" class="navbar-hover pointer" href="#" onclick="var s=document.getElementById('sidenav'),m=document.getElementById('main');if(s){s.style.width='210px';s.style.borderRight='1px solid var(--mm-border,#23282c)';m.style.marginLeft=window.innerWidth<800?'0':'210px';this.style.display='none';var cn=document.getElementById('closeNav');if(cn)cn.style.display='block';}return false;"><i class="fa fa-bars"></i></a>
+<a id="closeNav" class="navbar-hover" href="#" onclick="var s=document.getElementById('sidenav'),m=document.getElementById('main');if(s){s.style.width='0';s.style.borderRight='0';m.style.marginLeft=window.innerWidth<800?'0':'210px';this.style.display='none';var on=document.getElementById('openNav');if(on)on.style.display='block';}return false;"><i class="fa fa-bars"></i></a>
 <a id="cpage" class="navbar-left" href="javascript:void(0)"><?= $mpage; ?></a>
 </div>
  <div class="navbar-right">
@@ -347,8 +347,8 @@ if (file_exists('./info.php')) {
       MIKFAST
     </a>
 
-<a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
-<a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
+<a id="openNav" class="navbar-hover pointer" href="#" onclick="var s=document.getElementById('sidenav'),m=document.getElementById('main');if(s){s.style.width='210px';s.style.borderRight='1px solid var(--mm-border,#23282c)';m.style.marginLeft=window.innerWidth<800?'0':'210px';this.style.display='none';var cn=document.getElementById('closeNav');if(cn)cn.style.display='block';}return false;"><i class="fa fa-bars"></i></a>
+<a id="closeNav" class="navbar-hover" href="#" onclick="var s=document.getElementById('sidenav'),m=document.getElementById('main');if(s){s.style.width='0';s.style.borderRight='0';m.style.marginLeft=window.innerWidth<800?'0':'210px';this.style.display='none';var on=document.getElementById('openNav');if(on)on.style.display='block';}return false;"><i class="fa fa-bars"></i></a>
 <a id="cpage" class="navbar-left" href="javascript:void(0)"><?= $mpage; ?></a>
 </div>
  <div class="navbar-right">
