@@ -17,6 +17,7 @@
  */
 session_start();
 // hide all error
+ini_set("log_errors", 0);
 error_reporting(0);
 
 ob_start("ob_gzhandler");
