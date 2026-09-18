@@ -1299,3 +1299,9 @@ body.theme-light .about-changelog kbd{
 .mm-user-form-row .card-body form .table select{
   max-width:100%;
 }
+@media screen and (max-width: 750px){
+  body.mm-nav-open .sidenav{
+    width:210px !important;
+    border-right:1px solid var(--mm-border, #23282c) !important;
+  }
+}
